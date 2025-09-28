@@ -23,9 +23,9 @@ export async function startKnowledgeFlow(
 	try {
 		const response = await showTextDuringOperation(
 			session,
-			"// Clairvoyant\nK: Thinking it through...",
 			"",
-			"// Clairvoyant\nK: Couldn't figure that out.",
+			"",
+			"",
 			() => b.AnswerQuestion(query),
 			{ view: ViewType.MAIN, clearDurationMs: 2000 },
 		);
