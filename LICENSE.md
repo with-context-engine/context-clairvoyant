@@ -2,7 +2,7 @@
 
 SPDX-License-Identifier: LicenseRef-PUL-1.0
 
-Copyright (c) [Year] [Your Name or Organization]  
+Copyright (c) 2025 Ajay Bhargava Ph.D.  
 All rights reserved.
 
 ## 1. Grant of Permission
