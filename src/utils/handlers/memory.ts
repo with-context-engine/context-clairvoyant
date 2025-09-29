@@ -1,6 +1,7 @@
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
+import { showTextDuringOperation } from "../core/textWall";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
 
@@ -33,12 +34,6 @@ export async function MemoryCapture(
 		}
 	} catch (error) {
 		session.logger.error(`[startMemoryFlow] Error storing memory: ${error}`);
-		if (memoryRunCallIds.get(session) === runId) {
-			session.layouts.showTextWall("// Clairvoyant\nR: Couldn't remember!", {
-				view: ViewType.MAIN,
-				durationMs: 2000,
-			});
-		}
 	}
 }
 
@@ -68,8 +63,21 @@ export async function MemoryRecall(
 				},
 			]);
 
-			const response = await diatribePeer.chat(textQuery);
+			const response = await showTextDuringOperation(
+				session,
+				"// Clairvoyant\nR: Trying to remember...",
+				"// Clairvoyant\nR: Got it!",
+				"// Clairvoyant\nR: Couldn't remember!",
+				() => diatribePeer.chat(textQuery),
+			);
 			if (response) {
+				if (memoryRunCallIds.get(session) !== runId) {
+					session.logger.info(
+						`[startMemoryRecallFlow] Response arrived for stale request, discarding`,
+					);
+					return;
+				}
+
 				const memoryRecall = await b.MemoryQueryRecall(textQuery, response);
 
 				// Check if this is still the current request
