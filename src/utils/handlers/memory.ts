@@ -34,7 +34,7 @@ export async function MemoryCapture(
 	} catch (error) {
 		session.logger.error(`[startMemoryFlow] Error storing memory: ${error}`);
 		if (memoryRunCallIds.get(session) === runId) {
-			session.layouts.showTextWall("// Clairvoyant\nM: Couldn't remember!", {
+			session.layouts.showTextWall("// Clairvoyant\nR: Couldn't remember!", {
 				view: ViewType.MAIN,
 				durationMs: 2000,
 			});
@@ -97,7 +97,7 @@ export async function MemoryRecall(
 						session.logger.info(
 							`[startMemoryRecallFlow] Memory recall line: ${line}`,
 						);
-						session.layouts.showTextWall(`// Clairvoyant\nM: ${line}`, {
+						session.layouts.showTextWall(`// Clairvoyant\nR: ${line}`, {
 							view: ViewType.MAIN,
 							durationMs: 3000,
 						});
@@ -113,7 +113,7 @@ export async function MemoryRecall(
 					);
 					if (memoryRunCallIds.get(session) === runId) {
 						session.layouts.showTextWall(
-							"// Clairvoyant\nM: No memories found.",
+							"// Clairvoyant\nR: No memories found.",
 							{
 								view: ViewType.MAIN,
 								durationMs: 2000,
@@ -128,7 +128,7 @@ export async function MemoryRecall(
 			`[startMemoryRecallFlow] Error recalling memory: ${error}`,
 		);
 		if (memoryRunCallIds.get(session) === runId) {
-			session.layouts.showTextWall("// Clairvoyant\nM: Couldn't remember!", {
+			session.layouts.showTextWall("// Clairvoyant\nR: Couldn't remember!", {
 				view: ViewType.MAIN,
 				durationMs: 2000,
 			});
