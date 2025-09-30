@@ -31,13 +31,6 @@ export async function startKnowledgeFlow(
 		);
 
 		await MemoryCapture(query, session, memorySession, peers, "diatribe");
-		await MemoryCapture(
-			response.answer.join("\n"),
-			session,
-			memorySession,
-			peers,
-			"synthesis",
-		);
 
 		if (knowledgeRunIds.get(session) !== runId) {
 			session.logger.info(
@@ -65,6 +58,14 @@ export async function startKnowledgeFlow(
 				});
 				return;
 			}
+
+			await MemoryCapture(
+				answerLines.join("\n"),
+				session,
+				memorySession,
+				peers,
+				"synthesis",
+			);
 
 			for (let i = 0; i < answerLines.length; i++) {
 				if (knowledgeRunIds.get(session) !== runId) return;
