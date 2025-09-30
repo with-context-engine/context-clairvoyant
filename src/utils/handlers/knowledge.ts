@@ -30,7 +30,14 @@ export async function startKnowledgeFlow(
 			{ view: ViewType.MAIN, clearDurationMs: 2000 },
 		);
 
-		await MemoryCapture(query, session, memorySession, peers);
+		await MemoryCapture(query, session, memorySession, peers, "diatribe");
+		await MemoryCapture(
+			response.answer.join("\n"),
+			session,
+			memorySession,
+			peers,
+			"synthesis",
+		);
 
 		if (knowledgeRunIds.get(session) !== runId) {
 			session.logger.info(

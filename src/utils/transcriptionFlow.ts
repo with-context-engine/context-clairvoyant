@@ -53,7 +53,7 @@ export async function handleTranscription(
 			session.logger.info(
 				`[Clairvoyant] Memory Insertion route: starting async flow`,
 			);
-			void MemoryCapture(data.text, session, memorySession, peers);
+			void MemoryCapture(data.text, session, memorySession, peers, "diatribe");
 			return;
 		}
 	}

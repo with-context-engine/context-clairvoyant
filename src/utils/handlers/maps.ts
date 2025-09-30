@@ -63,7 +63,7 @@ export async function startMapsFlow(
 					}),
 			);
 
-			await MemoryCapture(query, session, memorySession, peers);
+			await MemoryCapture(query, session, memorySession, peers, "diatribe");
 
 			statusWallActive = false;
 
@@ -102,6 +102,14 @@ export async function startMapsFlow(
 				);
 				return;
 			}
+
+			await MemoryCapture(
+				lines.join("\n"),
+				session,
+				memorySession,
+				peers,
+				"synthesis",
+			);
 
 			for (let i = 0; i < lines.length; i++) {
 				if (mapsRunIds.get(session) !== runId) return;

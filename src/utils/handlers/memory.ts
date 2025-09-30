@@ -10,6 +10,7 @@ export async function MemoryCapture(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	peerId: string,
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
@@ -19,11 +20,11 @@ export async function MemoryCapture(
 	);
 
 	try {
-		const diatribePeer = peers.find((peer) => peer.id === "diatribe");
-		if (diatribePeer) {
+		const PeerChoice = peers.find((peer) => peer.id === peerId);
+		if (PeerChoice) {
 			await memorySession.addMessages([
 				{
-					peer_id: diatribePeer.id,
+					peer_id: PeerChoice.id,
 					content: textArtifact,
 					metadata: {
 						timestamp: new Date().toISOString(),

@@ -30,7 +30,7 @@ export async function startWebSearchFlow(
 			() => performWebSearch(query),
 		);
 
-		await MemoryCapture(query, session, memorySession, peers);
+		await MemoryCapture(query, session, memorySession, peers, "diatribe");
 
 		if (!searchResults) {
 			throw new Error("No response from web search");
@@ -44,6 +44,16 @@ export async function startWebSearchFlow(
 		}
 
 		const answerLines = await b.AnswerSearch(query, searchResults);
+
+		if (answerLines.results[0]?.lines?.length) {
+			await MemoryCapture(
+				answerLines.results[0]?.lines?.join("\n"),
+				session,
+				memorySession,
+				peers,
+				"synthesis",
+			);
+		}
 
 		if (webSearchRunIds.get(session) !== runId) {
 			session.logger.info(
