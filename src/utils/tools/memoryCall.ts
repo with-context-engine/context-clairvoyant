@@ -16,6 +16,13 @@ export async function initializeMemory(): Promise<[Session, Peer[]]> {
 				"A peer that listens to the raw translations of the users' speech.",
 		},
 	});
-	await session.addPeers([diatribePeer]);
-	return [session, [diatribePeer]];
+	const synthesisedPeer = await honchoClient.peer("sytnthesis", {
+		metadata: {
+			name: "Synthesis Peer",
+			description:
+				"A peer that captures synthesiszed  knowledge from the user's speech.",
+		},
+	});
+	await session.addPeers([diatribePeer, synthesisedPeer]);
+	return [session, [diatribePeer, synthesisedPeer]];
 }
