@@ -7,8 +7,8 @@
 		"@biomejs/biome": "2.1.2",
 		"@types/bun": "latest",
 		"@types/google.maps": "^3.58.1",
-		"@types/node": "^24.5.2",
-		"tsx": "^4.20.5"
+		"@types/node": "^24.9.2",
+		"tsx": "^4.20.6"
 	},
 	"scripts": {
 		"build": "tsc",
@@ -20,13 +20,13 @@
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"@boundaryml/baml": "0.210.0",
-		"@honcho-ai/sdk": "^1.4.0",
-		"@mentra/sdk": "^2.1.23",
+		"@boundaryml/baml": "0.211.2",
+		"@honcho-ai/sdk": "^1.5",
+		"@mentra/sdk": "^2.1.27",
 		"@t3-oss/env-core": "^0.13.8",
 		"@tavily/core": "^0.5.12",
-		"dotenv": "^17.2.2",
-		"exa-js": "^1.9.3",
-		"openai": "^5.23.0"
+		"dotenv": "^17.2.3",
+		"exa-js": "^1.10.2",
+		"openai": "^5.23.2"
 	}
 }

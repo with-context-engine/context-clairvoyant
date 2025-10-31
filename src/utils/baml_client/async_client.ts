@@ -30,6 +30,7 @@ import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
 import { DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX,
 DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME } from "./globals"
+import type * as events from "./events"
 
 /**
 * @deprecated Use RecursivePartialNull from 'baml_client/types' instead.
@@ -38,7 +39,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
     type TickReason = "Unknown";
 
-    type BamlCallOptions = {
+    type BamlCallOptions<EventsT = never> = {
     tb?: TypeBuilder
     clientRegistry?: ClientRegistry
     collector?: Collector | Collector[]
@@ -46,6 +47,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
       tags?: Record<string, string>
         signal?: AbortSignal
         onTick?: (reason: TickReason, log: FunctionLog | null) => void
+        events?: EventsT
         }
 
         export class BamlAsyncClient {
@@ -96,7 +98,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
         
         async AnswerQuestion(
         text: string,
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QuestionAnalysisResponse> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -134,6 +136,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.QuestionAnalysisResponse
             } catch (error) {
@@ -143,7 +146,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
         async AnswerSearch(
         query: string,searchResults: types.NewsItem[],
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QueryResult> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -181,6 +184,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.QueryResult
             } catch (error) {
@@ -190,7 +194,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
         async MemoryQueryRecall(
         query: string,context: string,
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.MemoryRecall> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -228,6 +232,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.MemoryRecall
             } catch (error) {
@@ -237,7 +242,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
         async Route(
         text: string,
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.RoutingBehavior> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -275,6 +280,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.RoutingBehavior
             } catch (error) {
@@ -284,7 +290,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
         async SummarizePlaces(
         query: string,places: types.PlaceSuggestion[],
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.PlaceLines> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -322,6 +328,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.PlaceLines
             } catch (error) {
@@ -331,7 +338,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
         async SummarizeWeatherFormatted(
         input: types.FormattedWeather,
-        __baml_options__?: BamlCallOptions
+        __baml_options__?: BamlCallOptions<never>
         ): Promise<types.WeatherLines> {
           try {
           const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
@@ -369,6 +376,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
+            options.events,
             )
             return raw.parsed(false) as types.WeatherLines
             } catch (error) {
@@ -392,7 +400,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             
             AnswerQuestion(
             text: string,
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QuestionAnalysisResponse, types.QuestionAnalysisResponse>
               {
               try {
@@ -458,7 +466,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   
             AnswerSearch(
             query: string,searchResults: types.NewsItem[],
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QueryResult, types.QueryResult>
               {
               try {
@@ -524,7 +532,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   
             MemoryQueryRecall(
             query: string,context: string,
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.MemoryRecall, types.MemoryRecall>
               {
               try {
@@ -590,7 +598,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   
             Route(
             text: string,
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.RoutingBehavior, types.RoutingBehavior>
               {
               try {
@@ -656,7 +664,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   
             SummarizePlaces(
             query: string,places: types.PlaceSuggestion[],
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.PlaceLines, types.PlaceLines>
               {
               try {
@@ -722,7 +730,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   
             SummarizeWeatherFormatted(
             input: types.FormattedWeather,
-            __baml_options__?: BamlCallOptions
+            __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.WeatherLines, types.WeatherLines>
               {
               try {

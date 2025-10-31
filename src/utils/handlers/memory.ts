@@ -64,6 +64,19 @@ export async function MemoryRecall(
 				},
 			]);
 
+			try {
+				session.logger.info(
+					await memorySession.getContext({
+						peerTarget: diatribePeer.id,
+						lastUserMessage: textQuery,
+					}),
+				);
+			} catch (error) {
+				session.logger.error(
+					`[startMemoryRecallFlow] Error getting context: ${error}`,
+				);
+			}
+
 			const response = await showTextDuringOperation(
 				session,
 				"// Clairvoyant\nR: Trying to remember...",
@@ -79,7 +92,10 @@ export async function MemoryRecall(
 					return;
 				}
 
-				const memoryRecall = await b.MemoryQueryRecall(textQuery, response);
+				const memoryRecall = await b.MemoryQueryRecall(
+					textQuery,
+					response as string,
+				);
 
 				// Check if this is still the current request
 				if (memoryRunCallIds.get(session) !== runId) {
