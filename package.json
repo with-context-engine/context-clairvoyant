@@ -20,7 +20,7 @@
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"@boundaryml/baml": "0.211.2",
+		"@boundaryml/baml": "0.212.0",
 		"@honcho-ai/sdk": "^1.5",
 		"@mentra/sdk": "^2.1.27",
 		"@t3-oss/env-core": "^0.13.8",
