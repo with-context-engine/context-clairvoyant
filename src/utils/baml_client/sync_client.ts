@@ -40,7 +40,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>;
 
 type TickReason = "Unknown";
 
-type BamlCallOptions<EventsT = never> = {
+type BamlCallOptions<WatchersT = never> = {
   tb?: TypeBuilder
   clientRegistry?: ClientRegistry
   collector?: Collector | Collector[]
@@ -48,7 +48,7 @@ type BamlCallOptions<EventsT = never> = {
   tags?: Record<string, string>
   signal?: AbortSignal
   onTick?: (reason: TickReason, log: FunctionLog | null) => void
-  events?: EventsT
+  watchers?: WatchersT
 }
 
 export class BamlSyncClient {
@@ -130,7 +130,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.QuestionAnalysisResponse
     } catch (error: any) {
@@ -172,7 +172,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.QueryResult
     } catch (error: any) {
@@ -214,7 +214,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.MemoryRecall
     } catch (error: any) {
@@ -256,7 +256,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.RoutingBehavior
     } catch (error: any) {
@@ -298,7 +298,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.PlaceLines
     } catch (error: any) {
@@ -340,7 +340,7 @@ export class BamlSyncClient {
         options.tags || {},
         env,
         signal,
-        options.events,
+        options.watchers,
       )
       return raw.parsed(false) as types.WeatherLines
     } catch (error: any) {

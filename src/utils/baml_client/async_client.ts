@@ -39,7 +39,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
     type TickReason = "Unknown";
 
-    type BamlCallOptions<EventsT = never> = {
+    type BamlCallOptions<WatchersT = never> = {
     tb?: TypeBuilder
     clientRegistry?: ClientRegistry
     collector?: Collector | Collector[]
@@ -47,7 +47,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
       tags?: Record<string, string>
         signal?: AbortSignal
         onTick?: (reason: TickReason, log: FunctionLog | null) => void
-        events?: EventsT
+        watchers?: WatchersT
         }
 
         export class BamlAsyncClient {
@@ -136,7 +136,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.QuestionAnalysisResponse
             } catch (error) {
@@ -184,7 +184,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.QueryResult
             } catch (error) {
@@ -232,7 +232,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.MemoryRecall
             } catch (error) {
@@ -280,7 +280,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.RoutingBehavior
             } catch (error) {
@@ -328,7 +328,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.PlaceLines
             } catch (error) {
@@ -376,7 +376,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.tags || {},
             env,
             signal,
-            options.events,
+            options.watchers,
             )
             return raw.parsed(false) as types.WeatherLines
             } catch (error) {

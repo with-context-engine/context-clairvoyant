@@ -20,27 +20,27 @@ $ pnpm add @boundaryml/baml
 
 import { BamlStream } from "@boundaryml/baml"
 
-export interface BlockEvent {
+export interface BlockNotification {
   block_label: string
-  event_type: "enter" | "exit"
+  notification_type: "enter" | "exit"
 }
 
-export interface VarEvent<T> {
+export interface VarNotification<T> {
   variable_name: string
   value: T
   timestamp: string
   function_name: string
 }
 
-// Internal stream event from Rust FFI
+// Internal stream notification from Rust FFI
 interface InternalStreamEvent {
   streamId: string
-  eventType: "start" | "update" | "end"
+  notificationType: "start" | "update" | "end"
   value?: any
 }
 
-// Simple async iterable stream for emit events
-class EmitStream<PartialT, FinalT> implements BamlStream<PartialT, FinalT> {
+// Simple async iterable stream for watch notifications
+class NotificationStream<PartialT, FinalT> implements BamlStream<PartialT, FinalT> {
   private eventQueue: (PartialT | null)[] = []
   private isComplete = false
 
@@ -88,9 +88,9 @@ class EmitStream<PartialT, FinalT> implements BamlStream<PartialT, FinalT> {
   }
 }
 
-type BlockHandler = (event: BlockEvent) => void
-type VarHandler<T> = (event: VarEvent<T>) => void
-type StreamHandler<PartialT, FinalT> = (event: VarEvent<BamlStream<PartialT, FinalT>>) => void
+type BlockHandler = (event: BlockNotification) => void
+type VarHandler<T> = (event: VarNotification<T>) => void
+type StreamHandler<PartialT, FinalT> = (event: VarNotification<BamlStream<PartialT, FinalT>>) => void
 type InternalStreamHandler = (event: InternalStreamEvent) => void
 
 export interface InternalEventBindings {
