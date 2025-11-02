@@ -8,12 +8,19 @@
 		"@types/bun": "latest",
 		"@types/google.maps": "^3.58.1",
 		"@types/node": "^24.9.2",
-		"tsx": "^4.20.6"
+		"@types/react": "^18.3.26",
+		"@types/react-dom": "^18.3.7",
+		"@vitejs/plugin-react": "^4.7.0",
+		"tsx": "^4.20.6",
+		"vite": "^6.4.1"
 	},
 	"scripts": {
 		"build": "tsc",
 		"start": "bun run src/index.ts",
 		"dev": "bun --watch src/index.ts",
+		"dev:api": "bun --watch src/api.ts",
+		"dev:frontend": "vite",
+		"build:frontend": "vite build --outDir dist/frontend",
 		"test": "bun run baml-cli test && bun test"
 	},
 	"peerDependencies": {
@@ -21,12 +28,18 @@
 	},
 	"dependencies": {
 		"@boundaryml/baml": "0.212.0",
+		"@elysiajs/cors": "^1.4.0",
+		"@elysiajs/eden": "^1.4.4",
 		"@honcho-ai/sdk": "^1.5",
+		"@mentra/react": "^2.0.2",
 		"@mentra/sdk": "^2.1.27",
 		"@t3-oss/env-core": "^0.13.8",
 		"@tavily/core": "^0.5.12",
 		"dotenv": "^17.2.3",
+		"elysia": "^1.4.13",
 		"exa-js": "^1.10.2",
-		"openai": "^5.23.2"
+		"openai": "^5.23.2",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
 	}
 }
