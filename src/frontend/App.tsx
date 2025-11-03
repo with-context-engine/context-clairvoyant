@@ -1,16 +1,9 @@
 import { useMentraAuth } from "@mentra/react";
-import { useQuery } from "convex/react";
-import { useEffect, useState } from "react";
-import { api } from "../../convex/_generated/api";
+import { useEffect } from "react";
+import { SubscriptionCard } from "./components/SubscriptionCard";
 
 export function App() {
 	const { userId, frontendToken, isAuthenticated } = useMentraAuth();
-	const [convexUserId, setConvexUserId] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const user = useQuery(
-		api.users.getByMentraId,
-		userId ? { mentraUserId: userId } : "skip",
-	);
 
 	useEffect(() => {
 		if (userId && frontendToken && isAuthenticated) {
@@ -24,18 +17,16 @@ export function App() {
 					if (!res.ok) throw new Error("Token exchange failed");
 					const data = (await res.json()) as { convexUserId: string };
 					console.log("[Backend] Token exchanged:", data);
-					setConvexUserId(data.convexUserId);
 				})
 				.catch((err) => {
 					console.error("[Backend] Exchange error:", err);
-					setError(err.message);
 				});
 		}
 	}, [userId, frontendToken, isAuthenticated]);
 
 	if (!isAuthenticated) {
 		return (
-			<div style={{ padding: "20px", fontFamily: "system-ui" }}>
+			<div className="p-5 font-sans">
 				<h1>Clairvoyant</h1>
 				<p>Not authenticated. Please open from MentraOS app.</p>
 			</div>
@@ -43,22 +34,9 @@ export function App() {
 	}
 
 	return (
-		<div style={{ padding: "20px", fontFamily: "system-ui" }}>
+		<div className="p-5 font-sans max-w-2xl mx-auto">
 			<h1>Clairvoyant</h1>
-			<p>
-				<strong>Mentra User ID:</strong> {userId}
-			</p>
-			{error && <p style={{ color: "red" }}>Error: {error}</p>}
-			{convexUserId && (
-				<p>
-					<strong>Convex User ID:</strong> {convexUserId}
-				</p>
-			)}
-			{user && (
-				<p>
-					<strong>Created:</strong> {new Date(user._creationTime).toLocaleString()}
-				</p>
-			)}
+			<SubscriptionCard />
 		</div>
 	);
 }

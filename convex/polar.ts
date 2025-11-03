@@ -1,54 +1,71 @@
-import { v } from "convex/values";
-import { action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { Polar } from "@convex-dev/polar";
+import { api, components } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { action, query } from "./_generated/server";
 
-export const createCheckoutSession = action({
-	args: {
-		userId: v.id("users"),
-		productId: v.string(),
-		successUrl: v.string(),
-		cancelUrl: v.optional(v.string()),
-	},
-	handler: async (ctx, args): Promise<{ checkoutUrl: string; checkoutId: string }> => {
-		const polarAccessToken = process.env.POLAR_ACCESS_TOKEN;
-		if (!polarAccessToken) {
-			throw new Error("POLAR_ACCESS_TOKEN not configured");
-		}
-
-		const user = await ctx.runQuery(api.users.getByMentraId, {
-			mentraUserId: args.userId,
-		});
-
+export const getFirstUser = query({
+	handler: async (ctx) => {
+		const user = await ctx.db.query("users").first();
 		if (!user) {
-			throw new Error("User not found");
+			throw new Error("No user found");
 		}
+		return {
+			_id: user._id,
+			email: user.mentraUserId,
+		};
+	},
+});
 
-		const response = await fetch("https://api.polar.sh/v1/checkouts/custom", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${polarAccessToken}`,
-			},
-			body: JSON.stringify({
-				product_id: args.productId,
-				success_url: args.successUrl,
-				customer_email: user.mentraUserId,
-				metadata: {
-					userId: args.userId,
-					mentraUserId: user.mentraUserId,
-				},
-			}),
+export const polar = new Polar(components.polar, {
+	getUserInfo: async (ctx): Promise<{ userId: Id<"users">; email: string }> => {
+		const user: { _id: Id<"users">; email: string } = await ctx.runQuery(
+			api.polar.getFirstUser,
+		);
+		return {
+			userId: user._id,
+			email: user.email,
+		};
+	},
+	server: "sandbox",
+});
+
+export const getCurrentUserWithSubscription = query({
+	handler: async (ctx) => {
+		const user = await ctx.db.query("users").first();
+		if (!user) return null;
+
+		const subscription = await polar.getCurrentSubscription(ctx, {
+			userId: user._id,
 		});
 
-		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(`Polar checkout failed: ${error}`);
-		}
-
-		const checkout = (await response.json()) as { url: string; id: string };
 		return {
-			checkoutUrl: checkout.url,
-			checkoutId: checkout.id,
+			...user,
+			subscription,
+			isFree: !subscription,
+			isPro: !!subscription,
 		};
+	},
+});
+
+export const {
+	listAllProducts,
+	generateCheckoutLink,
+	generateCustomerPortalUrl,
+} = polar.api();
+
+export const syncProductsFromPolar = action({
+	handler: async (ctx) => {
+		try {
+			console.log("[Polar] Starting product sync from sandbox...");
+			await polar.syncProducts(ctx);
+			console.log("[Polar] Product sync completed successfully");
+			return { success: true, message: "Products synced from Polar" };
+		} catch (error) {
+			console.error("[Polar] Sync failed:", error);
+			throw new Error(
+				`Failed to sync products from Polar: ${error instanceof Error ? error.message : String(error)}. ` +
+					"Check that POLAR_ORGANIZATION_TOKEN is valid.",
+			);
+		}
 	},
 });

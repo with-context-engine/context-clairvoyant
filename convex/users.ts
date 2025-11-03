@@ -1,7 +1,6 @@
 import { v } from "convex/values";
-import type { QueryCtx, MutationCtx } from "./_generated/server";
-import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
-import { internal } from "./_generated/api";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 export const getByMentraId = query({
 	args: { mentraUserId: v.string() },
@@ -21,7 +20,10 @@ export const getOrCreate = mutation({
 	},
 });
 
-async function getByMentraIdInternal(ctx: QueryCtx | MutationCtx, mentraUserId: string) {
+async function getByMentraIdInternal(
+	ctx: QueryCtx | MutationCtx,
+	mentraUserId: string,
+) {
 	return await ctx.db
 		.query("users")
 		.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", mentraUserId))
@@ -29,9 +31,5 @@ async function getByMentraIdInternal(ctx: QueryCtx | MutationCtx, mentraUserId: 
 }
 
 async function createUserInternal(ctx: MutationCtx, mentraUserId: string) {
-	const userId = await ctx.db.insert("users", { mentraUserId });
-	await ctx.scheduler.runAfter(0, internal.subscriptions.createDefaultSubscription, {
-		userId,
-	});
-	return userId;
+	return await ctx.db.insert("users", { mentraUserId });
 }

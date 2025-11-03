@@ -1,3 +1,4 @@
+import "./index.css";
 import { MentraAuthProvider } from "@mentra/react";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { StrictMode } from "react";
