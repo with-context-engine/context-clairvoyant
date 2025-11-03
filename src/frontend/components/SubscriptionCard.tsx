@@ -43,9 +43,11 @@ export function SubscriptionCard() {
 
 		setCheckingOut(true);
 		try {
-			const productIds = products.map((p) => p.id);
+			const priceIds = products.flatMap((p) =>
+				p.prices.map((price) => price.id),
+			);
 			const result = await generateCheckout({
-				productIds,
+				productIds: priceIds,
 				origin: window.location.origin,
 				successUrl: window.location.href,
 			});
@@ -85,7 +87,13 @@ export function SubscriptionCard() {
 					<p className="my-1">
 						<strong>Status:</strong> {subscription.status}
 					</p>
-					{subscription.currentPeriodEnd && (
+					{subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
+						<p className="my-1 text-amber-600 font-semibold">
+							⚠️ Subscription will end on{" "}
+							{new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+						</p>
+					)}
+					{subscription.currentPeriodEnd && !subscription.cancelAtPeriodEnd && (
 						<p className="my-1">
 							<strong>Renews:</strong>{" "}
 							{new Date(subscription.currentPeriodEnd).toLocaleDateString()}

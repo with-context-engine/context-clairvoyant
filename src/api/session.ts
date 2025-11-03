@@ -1,8 +1,8 @@
 import { ConvexHttpClient } from "convex/browser";
 import { Elysia } from "elysia";
 import { api } from "../../convex/_generated/api";
+import { env } from "../application/core/env";
 import { verifyFrontendToken } from "../middleware/mentra";
-import { env } from "../utils/core/env";
 
 const convex = new ConvexHttpClient(env.CONVEX_URL);
 
