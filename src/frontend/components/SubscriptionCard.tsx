@@ -45,11 +45,9 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 
 		setCheckingOut(true);
 		try {
-			const priceIds = products.flatMap((p) =>
-				p.prices.map((price) => price.id),
-			);
+			const productIds = products.map((p) => p.id);
 			const result = await generateCheckout({
-				productIds: priceIds,
+				productIds,
 				origin: window.location.origin,
 				successUrl: window.location.href,
 			});
