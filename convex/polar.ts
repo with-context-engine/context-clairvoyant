@@ -1,26 +1,12 @@
 import { Polar } from "@convex-dev/polar";
+import { v } from "convex/values";
 import { api, components } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, query } from "./_generated/server";
 
-export const getFirstUser = query({
-	handler: async (ctx) => {
-		const user = await ctx.db.query("users").first();
-		if (!user) {
-			throw new Error("No user found");
-		}
-		return {
-			_id: user._id,
-			email: user.mentraUserId,
-		};
-	},
-});
-
 export const polar = new Polar(components.polar, {
 	getUserInfo: async (ctx): Promise<{ userId: Id<"users">; email: string }> => {
-		const user: { _id: Id<"users">; email: string } = await ctx.runQuery(
-			api.polar.getFirstUser,
-		);
+		const user = await ctx.runQuery(api.users.getCurrentUser);
 		return {
 			userId: user._id,
 			email: user.email,
@@ -29,9 +15,22 @@ export const polar = new Polar(components.polar, {
 	server: "sandbox",
 });
 
+export const {
+	changeCurrentSubscription,
+	cancelCurrentSubscription,
+	getConfiguredProducts,
+	listAllProducts,
+	generateCheckoutLink,
+	generateCustomerPortalUrl,
+} = polar.api();
+
 export const getCurrentUserWithSubscription = query({
-	handler: async (ctx) => {
-		const user = await ctx.db.query("users").first();
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
 		if (!user) return null;
 
 		const subscription = await polar.getCurrentSubscription(ctx, {
@@ -46,12 +45,6 @@ export const getCurrentUserWithSubscription = query({
 		};
 	},
 });
-
-export const {
-	listAllProducts,
-	generateCheckoutLink,
-	generateCustomerPortalUrl,
-} = polar.api();
 
 export const syncProductsFromPolar = action({
 	handler: async (ctx) => {

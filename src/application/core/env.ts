@@ -13,6 +13,7 @@ export const env = createEnv({
 		GOOGLE_MAPS_API_KEY: z.string(),
 		HONCHO_API_KEY: z.string(),
 		CONVEX_URL: z.string(),
+		CONVEX_AUTH_SECRET: z.string(),
 	},
 	runtimeEnv: process.env,
 });

@@ -1,10 +1,11 @@
-import { ConvexHttpClient } from "convex/browser";
+import { ConvexClient } from "convex/browser";
 import { Elysia } from "elysia";
+import jwt from "jsonwebtoken";
 import { api } from "../../convex/_generated/api";
 import { env } from "../application/core/env";
 import { verifyFrontendToken } from "../middleware/mentra";
 
-const convex = new ConvexHttpClient(env.CONVEX_URL);
+const convex = new ConvexClient(env.CONVEX_URL);
 
 export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 	"/mentra",
@@ -32,11 +33,34 @@ export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 				return { error: "Invalid frontendToken" };
 			}
 
+			const mentraToken = frontendToken.split(":")[1];
+			if (!mentraToken) {
+				set.status = 400;
+				return { error: "Invalid frontendToken: no token part" };
+			}
+
 			const convexUserId = await convex.mutation(api.users.getOrCreate, {
 				mentraUserId,
+				mentraToken,
 			});
 
-			return { success: true, convexUserId, mentraUserId };
+			const convexToken = jwt.sign(
+				{
+					sub: convexUserId,
+					iss: "clairvoyant-backend",
+				},
+				env.CONVEX_AUTH_SECRET,
+				{ expiresIn: "15m" },
+			);
+
+			return {
+				success: true,
+				convexUserId,
+				mentraUserId,
+				mentraToken,
+				convexToken,
+				expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+			};
 		} catch (error) {
 			console.error("[Session] Token exchange failed:", error);
 			set.status = 500;

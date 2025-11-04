@@ -1,28 +1,11 @@
 import { useMentraAuth } from "@mentra/react";
-import { useEffect } from "react";
+import { ConvexProvider } from "convex/react";
 import { SubscriptionCard } from "./components/SubscriptionCard";
+import { useConvexAuth } from "./hooks/useConvexAuth";
 
 export function App() {
 	const { userId, frontendToken, isAuthenticated } = useMentraAuth();
-
-	useEffect(() => {
-		if (userId && frontendToken && isAuthenticated) {
-			console.log("[Mentra] Got userId and frontendToken");
-			fetch("/api/session/mentra", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ frontendToken }),
-			})
-				.then(async (res) => {
-					if (!res.ok) throw new Error("Token exchange failed");
-					const data = (await res.json()) as { convexUserId: string };
-					console.log("[Backend] Token exchanged:", data);
-				})
-				.catch((err) => {
-					console.error("[Backend] Exchange error:", err);
-				});
-		}
-	}, [userId, frontendToken, isAuthenticated]);
+	const authState = useConvexAuth(userId, frontendToken, isAuthenticated);
 
 	if (!isAuthenticated) {
 		return (
@@ -33,10 +16,39 @@ export function App() {
 		);
 	}
 
+	if (authState.status === "loading") {
+		return (
+			<div className="p-5 font-sans max-w-2xl mx-auto">
+				<h1>Clairvoyant</h1>
+				<p>Loading...</p>
+			</div>
+		);
+	}
+
+	if (authState.status === "error") {
+		return (
+			<div className="p-5 font-sans max-w-2xl mx-auto">
+				<h1>Clairvoyant</h1>
+				<p className="text-red-600">Error: {authState.error}</p>
+			</div>
+		);
+	}
+
+	if (authState.status !== "authenticated") {
+		return (
+			<div className="p-5 font-sans max-w-2xl mx-auto">
+				<h1>Clairvoyant</h1>
+				<p>Initializing...</p>
+			</div>
+		);
+	}
+
 	return (
-		<div className="p-5 font-sans max-w-2xl mx-auto">
-			<h1>Clairvoyant</h1>
-			<SubscriptionCard />
-		</div>
+		<ConvexProvider client={authState.convexClient}>
+			<div className="p-5 font-sans max-w-2xl mx-auto">
+				<h1>Clairvoyant</h1>
+				<SubscriptionCard mentraUserId={authState.mentraUserId} />
+			</div>
+		</ConvexProvider>
 	);
 }

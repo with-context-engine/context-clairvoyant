@@ -3,9 +3,11 @@ import { useAction, useQuery } from "convex/react";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 
-export function SubscriptionCard() {
+export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	const products = useQuery(api.polar.listAllProducts);
-	const userWithSub = useQuery(api.polar.getCurrentUserWithSubscription);
+	const userWithSub = useQuery(api.polar.getCurrentUserWithSubscription, {
+		mentraUserId,
+	});
 	const syncProducts = useAction(api.polar.syncProductsFromPolar);
 	const generateCheckout = useAction(api.polar.generateCheckoutLink);
 	const [syncing, setSyncing] = useState(false);
