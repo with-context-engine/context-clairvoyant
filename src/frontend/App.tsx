@@ -1,6 +1,10 @@
 import { useMentraAuth } from "@mentra/react";
 import { ConvexProvider } from "convex/react";
-import { SubscriptionCard } from "./components/SubscriptionCard";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BillingPage } from "./components/BillingPage";
+import { HomePage } from "./components/HomePage";
+import { NavBar } from "./components/NavBar";
+import { SettingsPage } from "./components/SettingsPage";
 import { useConvexAuth } from "./hooks/useConvexAuth";
 
 export function App() {
@@ -45,10 +49,27 @@ export function App() {
 
 	return (
 		<ConvexProvider client={authState.convexClient}>
-			<div className="p-5 font-sans max-w-2xl mx-auto">
-				<h1>Clairvoyant</h1>
-				<SubscriptionCard mentraUserId={authState.mentraUserId} />
-			</div>
+			<BrowserRouter>
+				<div className="p-5 font-sans max-w-2xl mx-auto">
+					<h1>Clairvoyant</h1>
+					<NavBar />
+					<Routes>
+						<Route path="/" element={<HomePage />} />
+						<Route
+							path="/settings"
+							element={
+								<SettingsPage
+									userId={authState.convexUserId as any}
+								/>
+							}
+						/>
+						<Route
+							path="/billing"
+							element={<BillingPage mentraUserId={authState.mentraUserId} />}
+						/>
+					</Routes>
+				</div>
+			</BrowserRouter>
 		</ConvexProvider>
 	);
 }

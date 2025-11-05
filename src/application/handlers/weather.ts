@@ -1,11 +1,26 @@
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
+import { getUserPreferences } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getWeatherData } from "../tools/weatherCall";
 
 const weatherRunIds = new WeakMap<AppSession, number>();
 
 export async function startWeatherFlow(session: AppSession) {
+	const mentraUserId = session.userId;
+	let preferredUnit: "C" | "F" = "C";
+
+	try {
+		const prefs = await getUserPreferences(mentraUserId);
+		preferredUnit = (prefs.weatherUnit as "C" | "F") || "C";
+		session.logger.info(
+			`[Clairvoyant] User preference: weatherUnit=${preferredUnit}`,
+		);
+	} catch (error) {
+		session.logger.warn(
+			`[Clairvoyant] Failed to fetch preferences, using default (C): ${String(error)}`,
+		);
+	}
 	session.layouts.showTextWall("// Clairvoyant\nW: Looking outside...", {
 		view: ViewType.MAIN,
 		durationMs: 2000,
@@ -50,7 +65,7 @@ export async function startWeatherFlow(session: AppSession) {
 				"// Clairvoyant\nW: Getting the weather...",
 				"// Clairvoyant\nW: Got the weather!",
 				"// Clairvoyant\nW: Couldn't get the weather.",
-				() => getWeatherData(location.lat, location.lng),
+				() => getWeatherData(location.lat, location.lng, preferredUnit),
 			);
 
 			weatherTextWallShown = false;

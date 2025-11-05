@@ -96,12 +96,26 @@ function kelvinToFahrenheit(kelvin: number): number {
 }
 
 /**
+ * Helper function to convert Kelvin to Celsius
+ * @param kelvin - Temperature in Kelvin
+ * @returns number - Temperature in Celsius
+ */
+function kelvinToCelsius(kelvin: number): number {
+	return kelvin - 273.15;
+}
+
+/**
  * Helper function to format weather data for display
  * @param weatherData - Weather response data
+ * @param unit - Temperature unit to use ("C" or "F")
  * @returns FormattedWeather - Formatted weather information
  */
-function formatWeatherData(weatherData: WeatherResponse): FormattedWeather {
+function formatWeatherData(
+	weatherData: WeatherResponse,
+	unit: "C" | "F" = "F",
+): FormattedWeather {
 	const current = weatherData.current;
+	const convertTemp = unit === "C" ? kelvinToCelsius : kelvinToFahrenheit;
 
 	// Helper function to ensure weather conditions are always present
 	const getWeatherCondition = (
@@ -139,8 +153,8 @@ function formatWeatherData(weatherData: WeatherResponse): FormattedWeather {
 			timezone: weatherData.timezone,
 		},
 		current: {
-			temperature: kelvinToFahrenheit(current.temp),
-			feels_like: kelvinToFahrenheit(current.feels_like),
+			temperature: convertTemp(current.temp),
+			feels_like: convertTemp(current.feels_like),
 			conditions: getWeatherCondition(current.weather),
 			humidity: current.humidity,
 			pressure: current.pressure,
@@ -154,10 +168,10 @@ function formatWeatherData(weatherData: WeatherResponse): FormattedWeather {
 			date: new Date(day.dt * 1000).toISOString(),
 			summary: day.summary,
 			temperature: {
-				day: kelvinToFahrenheit(day.temp.day),
-				min: kelvinToFahrenheit(day.temp.min),
-				max: kelvinToFahrenheit(day.temp.max),
-				night: kelvinToFahrenheit(day.temp.night),
+				day: convertTemp(day.temp.day),
+				min: convertTemp(day.temp.min),
+				max: convertTemp(day.temp.max),
+				night: convertTemp(day.temp.night),
 			},
 			conditions: getWeatherCondition(day.weather),
 			precipitation_probability: day.pop,
@@ -171,11 +185,13 @@ function formatWeatherData(weatherData: WeatherResponse): FormattedWeather {
  * Fetches and formats weather data from OpenWeatherMap OneCall API
  * @param lat - Latitude coordinate
  * @param lon - Longitude coordinate
- * @returns Promise<FormattedWeather> - Formatted weather data in Fahrenheit
+ * @param preferredUnit - Temperature unit preference ("C" or "F", defaults to "F")
+ * @returns Promise<FormattedWeather> - Formatted weather data in requested unit
  */
 export async function getWeatherData(
 	lat: number,
 	lon: number,
+	preferredUnit: "C" | "F" = "F",
 ): Promise<FormattedWeather> {
 	const apiKey = process.env.OPENWEATHERMAP_API_KEY;
 
@@ -195,7 +211,7 @@ export async function getWeatherData(
 		}
 
 		const data = (await response.json()) as WeatherResponse;
-		return formatWeatherData(data);
+		return formatWeatherData(data, preferredUnit);
 	} catch (error) {
 		if (error instanceof Error) {
 			throw new Error(`Failed to fetch weather data: ${error.message}`);

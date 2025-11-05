@@ -10,10 +10,17 @@ export const getOrCreate = mutation({
 		if (existing) {
 			return existing._id;
 		}
-		return await ctx.db.insert("users", {
+		const userId = await ctx.db.insert("users", {
 			mentraUserId: args.mentraUserId,
 			mentraToken: args.mentraToken,
 		});
+
+		await ctx.db.insert("preferences", {
+			userId,
+			weatherUnit: "C",
+		});
+
+		return userId;
 	},
 });
 

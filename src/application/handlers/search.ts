@@ -2,6 +2,7 @@ import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
+import { checkUserIsPro } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { performWebSearch } from "../tools/webSearch";
 import { MemoryCapture } from "./memory";
@@ -20,6 +21,21 @@ export async function startWebSearchFlow(
 	session.logger.info(
 		`[startWebSearchFlow] Starting web search flow for query: ${query}`,
 	);
+
+	const isPro = await checkUserIsPro(session.userId);
+	if (!isPro) {
+		session.logger.warn(
+			"[startWebSearchFlow] User is not Pro, web search disabled",
+		);
+		session.layouts.showTextWall(
+			"// Clairvoyant\nS: Web search is a Pro feature.",
+			{
+				view: ViewType.MAIN,
+				durationMs: 3000,
+			},
+		);
+		return;
+	}
 
 	try {
 		const searchResults = await showTextDuringOperation(
