@@ -7,17 +7,21 @@ import { verifyServerAuthToken } from "./middleware/auth";
 
 const API_PORT = parseInt(process.env.API_PORT || "3001");
 
-// Guard plugin for protecting routes that require authentication
-// Usage: .use(requireAuth) before route definitions
 export const requireAuth = new Elysia({ name: "requireAuth" }).onBeforeHandle(
-	({ authUserId, set }) => {
-		if (!authUserId) {
-			set.status = 401;
-			return { error: "Unauthorized" };
+	({ headers }) => {
+		const auth = headers.authorization;
+		let authUserId: string | null = null;
+		if (auth?.startsWith("Bearer ")) {
+			const token = auth.slice(7);
+			authUserId = verifyServerAuthToken(
+				token,
+				env.AUTH_PUBLIC_KEY_PEM,
+				env.PUBLIC_BASE_URL,
+			);
 		}
+		return { authUserId };
 	},
 );
-
 export const app = new Elysia()
 	.use(cors())
 	.get("/.well-known/jwks.json", async () => {
@@ -35,8 +39,8 @@ export const app = new Elysia()
 			],
 		};
 	})
-		.derive(({ headers }) => {
-		const auth = headers["authorization"];
+	.derive(({ headers }) => {
+		const auth = headers.authorization;
 		let authUserId: string | null = null;
 		if (auth?.startsWith("Bearer ")) {
 			const token = auth.slice(7);
