@@ -1,7 +1,7 @@
 import { AppServer, type AppSession } from "@mentra/sdk";
-import { RateLimiter } from "./utils/core/rateLimiting";
-import { initializeMemory } from "./utils/tools/memoryCall";
-import { handleTranscription } from "./utils/transcriptionFlow";
+import { RateLimiter } from "./application/core/rateLimiting";
+import { initializeMemory } from "./application/tools/memoryCall";
+import { handleTranscription } from "./application/transcriptionFlow";
 
 const PACKAGE_NAME =
 	process.env.PACKAGE_NAME ??

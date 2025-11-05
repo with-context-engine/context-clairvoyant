@@ -12,6 +12,13 @@ export const env = createEnv({
 		TAVILY_API_KEY: z.string(),
 		GOOGLE_MAPS_API_KEY: z.string(),
 		HONCHO_API_KEY: z.string(),
+		CONVEX_URL: z.string(),
+		CONVEX_AUTH_SECRET: z.string(),
+		AUTH_PRIVATE_KEY_PEM: z.string(),
+		AUTH_PUBLIC_KEY_PEM: z.string(),
+		AUTH_KEY_ID: z.string(),
+		PUBLIC_BASE_URL: z.string(),
+		API_PORT: z.coerce.number().optional(),
 	},
 	runtimeEnv: process.env,
 });

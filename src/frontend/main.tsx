@@ -1,3 +1,4 @@
+import "./index.css";
 import { MentraAuthProvider } from "@mentra/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
