@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => {
 					target: "http://localhost:3001",
 					changeOrigin: true,
 				},
+				"/.well-known": {
+					target: "http://localhost:3001",
+					changeOrigin: true,
+				},
 			},
 		},
 		define: {

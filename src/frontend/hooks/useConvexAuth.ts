@@ -9,6 +9,7 @@ type AuthState =
 			convexClient: ConvexReactClient;
 			mentraUserId: string;
 			convexUserId: string;
+			convexToken: string;
 	  }
 	| { status: "error"; error: string };
 
@@ -60,24 +61,48 @@ export function useConvexAuth(
 					mentraUserId: string;
 					mentraToken: string;
 					convexToken: string;
+					expiresAt?: string;
 				};
 
 				// Check if request was aborted after async operation
 				if (abortController.signal.aborted) return;
 
-				console.log("[Backend] Token exchanged:", data);
-
 				// Create Convex client with auth token
 				const client = new ConvexReactClient(
 					import.meta.env.VITE_CONVEX_URL as string,
 				);
-				client.setAuth(() => Promise.resolve(data.convexToken));
+
+				// Store token for refresh capability
+				let currentToken = data.convexToken;
+				const tokenExpiresAt = new Date(data.expiresAt || Date.now() + 15 * 60 * 1000);
+
+				// Set auth with a function that can refresh tokens
+				client.setAuth(async () => {
+					// If token is about to expire (within 1 minute), refresh it
+					if (Date.now() > tokenExpiresAt.getTime() - 60 * 1000) {
+						try {
+							const refreshRes = await fetch("/api/session/mentra", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({ frontendToken }),
+							});
+							if (refreshRes.ok) {
+								const refreshData = await refreshRes.json();
+								currentToken = refreshData.convexToken;
+							}
+						} catch (err) {
+							console.error("[ConvexAuth] Token refresh failed:", err);
+						}
+					}
+					return currentToken;
+				});
 
 				setAuthState({
 					status: "authenticated",
 					convexClient: client,
 					mentraUserId: data.mentraUserId,
 					convexUserId: data.convexUserId,
+					convexToken: data.convexToken,
 				});
 			})
 			.catch((err) => {

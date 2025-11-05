@@ -1,3 +1,4 @@
+import { createPrivateKey } from "node:crypto";
 import { ConvexClient } from "convex/browser";
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
@@ -44,13 +45,25 @@ export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 				mentraToken,
 			});
 
+			const privateKey = createPrivateKey({
+				key: env.AUTH_PRIVATE_KEY_PEM.replace(/\\n/g, "\n"),
+				format: "pem",
+			});
+
+			const issuer = env.PUBLIC_BASE_URL;
+
 			const convexToken = jwt.sign(
 				{
 					sub: convexUserId,
-					iss: "clairvoyant-backend",
+					aud: "clairvoyant-backend",
 				},
-				env.CONVEX_AUTH_SECRET,
-				{ expiresIn: "15m" },
+				privateKey,
+				{
+					algorithm: "RS256",
+					issuer,
+					expiresIn: "15m",
+					keyid: env.AUTH_KEY_ID,
+				},
 			);
 
 			return {

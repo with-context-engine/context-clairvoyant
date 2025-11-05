@@ -51,7 +51,9 @@ export const getCurrentUser = query({
 		}
 		const user = await ctx.db.get(identity.subject as Id<"users">);
 		if (!user) {
-			throw new Error("User not found");
+			throw new Error(
+				`User not found for identity subject: ${identity.subject}`,
+			);
 		}
 		return {
 			_id: user._id,
