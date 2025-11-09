@@ -17,15 +17,15 @@
 		"vite": "^6.4.1"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build:main": "tsc",
 		"build:api": "bun build src/api.ts --outdir dist/api --target bun --minify",
-		"start": "bun run src/index.ts",
+		"build:frontend": "vite build --outDir dist/frontend",
+		"start:main": "bun run src/index.ts",
 		"start:api": "bun run src/api.ts",
-		"dev": "bun run .scripts/.all.ts",
+		"start:frontend": "vite preview",
 		"dev:main": "bun --watch src/index.ts",
 		"dev:api": "bun --watch src/api.ts",
 		"dev:frontend": "vite",
-		"build:frontend": "vite build --outDir dist/frontend",
 		"test": "bun run baml-cli test && bun test"
 	},
 	"peerDependencies": {

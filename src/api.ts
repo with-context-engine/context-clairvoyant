@@ -5,7 +5,7 @@ import { sessionRoutes } from "./api/session";
 import { env } from "./application/core/env";
 import { verifyServerAuthToken } from "./middleware/auth";
 
-const API_PORT = parseInt(process.env.API_PORT || "3001");
+const PORT = parseInt(process.env.PORT || "3001");
 
 export const requireAuth = new Elysia({ name: "requireAuth" }).onBeforeHandle(
 	({ headers }) => {
@@ -59,7 +59,7 @@ export const app = new Elysia()
 		authenticated: !!authUserId,
 		timestamp: new Date().toISOString(),
 	}))
-	.listen(API_PORT, ({ hostname, port }) => {
+	.listen(PORT, ({ hostname, port }) => {
 		console.log(
 			`🦊 Elysia API server is running at http://${hostname}:${port}`,
 		);
