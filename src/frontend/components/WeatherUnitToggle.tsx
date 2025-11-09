@@ -12,7 +12,7 @@ export function WeatherUnitToggle({
 	return (
 		<div className="inline-flex items-center gap-2">
 			<span className="text-sm font-medium text-gray-700">Weather Unit:</span>
-			<div className="inline-flex rounded-md shadow-sm" role="group">
+			<fieldset className="inline-flex rounded-md shadow-sm">
 				<button
 					type="button"
 					onClick={() => onChange("C")}
@@ -41,7 +41,7 @@ export function WeatherUnitToggle({
 				>
 					Fahrenheit (°F)
 				</button>
-			</div>
+			</fieldset>
 		</div>
 	);
 }

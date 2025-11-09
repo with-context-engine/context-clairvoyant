@@ -35,3 +35,4 @@ jobs:
         PORT: ${{ secrets.PORT }}
         MENTRAOS_API_KEY: ${{ secrets.MENTRAOS_API_KEY }}
         HONCHO_API_KEY: ${{ secrets.HONCHO_API_KEY }}
+        CONVEX_URL: ${{ secrets.CONVEX_URL }}
