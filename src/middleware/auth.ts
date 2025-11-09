@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-import { publicBaseUrl } from "../application/core/env";
+import { publicBaseUrl } from "../api/env";
 
 /**
  * Verifies a JWT token issued by our authentication server

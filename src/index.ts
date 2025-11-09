@@ -1,19 +1,12 @@
 import { AppServer, type AppSession } from "@mentra/sdk";
+import { env } from "./application/core/env";
 import { RateLimiter } from "./application/core/rateLimiting";
 import { initializeMemory } from "./application/tools/memoryCall";
 import { handleTranscription } from "./application/transcriptionFlow";
 
-const PACKAGE_NAME =
-	process.env.PACKAGE_NAME ??
-	(() => {
-		throw new Error("PACKAGE_NAME is not set in .env file");
-	})();
-const MENTRAOS_API_KEY =
-	process.env.MENTRAOS_API_KEY ??
-	(() => {
-		throw new Error("MENTRAOS_API_KEY is not set in .env file");
-	})();
-const PORT = parseInt(process.env.PORT || "3000");
+const PACKAGE_NAME = env.PACKAGE_NAME;
+const MENTRAOS_API_KEY = env.MENTRAOS_API_KEY;
+const PORT = env.PORT;
 
 class Clairvoyant extends AppServer {
 	private questionRateLimiter: RateLimiter;

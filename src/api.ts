@@ -1,11 +1,11 @@
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import { exportJWK, importSPKI } from "jose";
+import { env, publicBaseUrl } from "./api/env";
 import { sessionRoutes } from "./api/session";
-import { env, publicBaseUrl } from "./application/core/env";
 import { verifyServerAuthToken } from "./middleware/auth";
 
-const PORT = parseInt(process.env.PORT || "3001");
+const PORT = env.API_PORT;
 
 export const requireAuth = new Elysia({ name: "requireAuth" }).onBeforeHandle(
 	({ headers }) => {
@@ -53,7 +53,6 @@ export const app = new Elysia()
 		return { authUserId };
 	})
 	.use(sessionRoutes)
-	// Health endpoint is public but shows auth status
 	.get("/api/health", ({ authUserId }) => ({
 		status: "ok",
 		authenticated: !!authUserId,
@@ -63,6 +62,7 @@ export const app = new Elysia()
 		console.log(
 			`🦊 Elysia API server is running at http://${hostname}:${port}`,
 		);
+		console.log(`🔑 Public base URL: ${publicBaseUrl}`);
 	});
 
 export type App = typeof app;

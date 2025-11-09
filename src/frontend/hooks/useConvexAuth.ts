@@ -1,5 +1,6 @@
 import { ConvexReactClient } from "convex/react";
 import { useEffect, useRef, useState } from "react";
+import { convexUrl } from "../env";
 
 type AuthState =
 	| { status: "idle" }
@@ -68,13 +69,13 @@ export function useConvexAuth(
 				if (abortController.signal.aborted) return;
 
 				// Create Convex client with auth token
-				const client = new ConvexReactClient(
-					import.meta.env.VITE_CONVEX_URL as string,
-				);
+				const client = new ConvexReactClient(convexUrl);
 
 				// Store token for refresh capability
 				let currentToken = data.convexToken;
-				const tokenExpiresAt = new Date(data.expiresAt || Date.now() + 15 * 60 * 1000);
+				const tokenExpiresAt = new Date(
+					data.expiresAt || Date.now() + 15 * 60 * 1000,
+				);
 
 				// Set auth with a function that can refresh tokens
 				client.setAuth(async () => {

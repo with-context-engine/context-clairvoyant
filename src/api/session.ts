@@ -3,14 +3,13 @@ import { ConvexClient } from "convex/browser";
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
 import { api } from "../../convex/_generated/api";
-import { env, publicBaseUrl } from "../application/core/env";
 import { verifyFrontendToken } from "../middleware/mentra";
+import { env, publicBaseUrl } from "./env";
 
 const convex = new ConvexClient(env.CONVEX_URL);
 
-export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
-	"/mentra",
-	async ({ body, set }) => {
+export const sessionRoutes = new Elysia({ prefix: "/api/session" })
+	.post("/mentra", async ({ body, set }) => {
 		try {
 			const { frontendToken } = body as { frontendToken?: string };
 
@@ -22,11 +21,6 @@ export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 			const mentraUserId = verifyFrontendToken(
 				frontendToken,
 				env.MENTRAOS_API_KEY,
-			);
-
-			console.log(
-				"[Session] Token verification:",
-				mentraUserId ? `✓ Valid (userId: ${mentraUserId})` : "✗ Invalid",
 			);
 
 			if (!mentraUserId) {
@@ -75,9 +69,10 @@ export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 				expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
 			};
 		} catch (error) {
-			console.error("[Session] Token exchange failed:", error);
 			set.status = 500;
-			return { error: "Internal server error" };
+			return { error: "Internal server error", details: error };
 		}
-	},
-);
+	})
+	.get("/health", () => {
+		return { status: "ok" };
+	});

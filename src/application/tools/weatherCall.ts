@@ -2,6 +2,7 @@ import type {
 	FormattedWeather,
 	WeatherConditionLite,
 } from "../baml_client/types";
+import { env } from "../core/env";
 
 // Weather API interfaces based on OpenWeatherMap OneCall API
 export interface WeatherCondition {
@@ -193,7 +194,7 @@ export async function getWeatherData(
 	lon: number,
 	preferredUnit: "C" | "F" = "F",
 ): Promise<FormattedWeather> {
-	const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+	const apiKey = env.OPENWEATHERMAP_API_KEY;
 
 	if (!apiKey) {
 		throw new Error("OPENWEATHERMAP_API_KEY environment variable is required");
