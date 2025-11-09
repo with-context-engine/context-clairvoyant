@@ -7,26 +7,52 @@
 		"@biomejs/biome": "2.1.2",
 		"@types/bun": "latest",
 		"@types/google.maps": "^3.58.1",
-		"@types/node": "^24.9.2",
-		"tsx": "^4.20.6"
+		"@types/node": "^24.10.0",
+		"@types/react": "^18.3.26",
+		"@types/react-dom": "^18.3.7",
+		"@vitejs/plugin-react": "^4.7.0",
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.6",
+		"tsx": "^4.20.6",
+		"vite": "^6.4.1"
 	},
 	"scripts": {
-		"build": "tsc",
-		"start": "bun run src/index.ts",
-		"dev": "bun --watch src/index.ts",
+		"build:main": "tsc",
+		"build:api": "bun build src/api.ts --outdir dist/api --target bun --minify",
+		"build:frontend": "vite build --outDir dist/frontend",
+		"start:main": "bun run src/index.ts",
+		"start:api": "bun run src/api.ts",
+		"start:frontend": "vite preview",
+		"dev:main": "bun --watch src/index.ts",
+		"dev:api": "bun --watch src/api.ts",
+		"dev:frontend": "vite",
 		"test": "bun run baml-cli test && bun test"
 	},
 	"peerDependencies": {
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"@boundaryml/baml": "0.212.0",
+		"@boundaryml/baml": "^0.213.0",
+		"@convex-dev/polar": "^0.6.4",
+		"@elysiajs/cors": "^1.4.0",
+		"@elysiajs/eden": "^1.4.4",
 		"@honcho-ai/sdk": "^1.5",
+		"@mentra/react": "^2.0.2",
 		"@mentra/sdk": "^2.1.27",
 		"@t3-oss/env-core": "^0.13.8",
+		"@tailwindcss/vite": "^4.1.17",
 		"@tavily/core": "^0.5.12",
+		"@types/jsonwebtoken": "^9.0.10",
+		"convex": "^1.28.2",
 		"dotenv": "^17.2.3",
+		"elysia": "^1.4.15",
 		"exa-js": "^1.10.2",
-		"openai": "^5.23.2"
+		"jose": "^6.1.0",
+		"jsonwebtoken": "^9.0.2",
+		"openai": "^5.23.2",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-router-dom": "^7.9.5",
+		"tailwindcss": "^4.1.17"
 	}
 }

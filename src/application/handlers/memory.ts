@@ -1,7 +1,6 @@
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
-import { showTextDuringOperation } from "../core/textWall";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
 
@@ -77,13 +76,32 @@ export async function MemoryRecall(
 				);
 			}
 
-			const response = await showTextDuringOperation(
-				session,
-				"// Clairvoyant\nR: Trying to remember...",
-				"// Clairvoyant\nR: Got it!",
-				"// Clairvoyant\nR: Couldn't remember!",
-				() => diatribePeer.chat(textQuery),
-			);
+			// Show loading message
+			session.layouts.showTextWall("// Clairvoyant\nR: Trying to remember...", {
+				view: ViewType.MAIN,
+				durationMs: 30000,
+			});
+
+			// Call chat directly
+			let response: string;
+			try {
+				response = (await diatribePeer.chat(textQuery)) as string;
+			} catch (error) {
+				session.logger.error(
+					`[startMemoryRecallFlow] Error during chat: ${error}`,
+				);
+				if (memoryRunCallIds.get(session) === runId) {
+					session.layouts.showTextWall(
+						"// Clairvoyant\nR: Couldn't remember!",
+						{
+							view: ViewType.MAIN,
+							durationMs: 2000,
+						},
+					);
+				}
+				return;
+			}
+
 			if (response) {
 				if (memoryRunCallIds.get(session) !== runId) {
 					session.logger.info(

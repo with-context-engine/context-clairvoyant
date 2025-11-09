@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { env } from "../src/utils/core/env";
+import { env } from "../src/application/core/env";
 
 const samplePayload = {
 	places: [
@@ -51,7 +51,7 @@ describe("Maps API Integration", () => {
 		);
 
 		try {
-			const { getPlaces } = await import("../src/utils/tools/mapsCall");
+			const { getPlaces } = await import("../src/application/tools/mapsCall");
 			const places = await getPlaces("Thai iced tea", {
 				latitude: 40.7507,
 				longitude: -73.9819,
@@ -99,7 +99,7 @@ describe("Maps API Integration", () => {
 		);
 
 		try {
-			const { getPlaces } = await import("../src/utils/tools/mapsCall");
+			const { getPlaces } = await import("../src/application/tools/mapsCall");
 			expect(
 				getPlaces("anything", { latitude: 0, longitude: 0 }),
 			).rejects.toThrow(/HTTP 500/);

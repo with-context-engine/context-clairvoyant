@@ -319,3 +319,9 @@ When adding new tools or features:
 6. Update this README if adding new capabilities
 
 This project was created using `bun init` in bun v1.2.12.
+
+## TODO
+- [ ] Make the UI into a React Native Application
+- [ ] Pass the User ID to the Honcho Session to have user specific memories
+- [ ] Investigate a speaker diarization module
+- [ ] Deploy to Production
