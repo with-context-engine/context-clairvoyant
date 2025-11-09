@@ -25,7 +25,7 @@ export async function startWebSearchFlow(
 	const isPro = await checkUserIsPro(session.userId);
 	if (!isPro) {
 		session.logger.warn(
-			"[startWebSearchFlow] User is not Pro, web search disabled",
+			"[startWebSearchFlow] User isn't subscribed, web search disabled.",
 		);
 		session.layouts.showTextWall(
 			"// Clairvoyant\nS: Web search is a Pro feature.",

@@ -42,6 +42,13 @@ export async function handleTranscription(
 			void startKnowledgeFlow(data.text, session, memorySession, peers);
 			return;
 
+		case Router.MEMORY_CAPTURE:
+			session.logger.info(
+				`[Clairvoyant] Memory Capture route: starting async flow`,
+			);
+			void MemoryCapture(data.text, session, memorySession, peers, "diatribe");
+			return;
+
 		case Router.MEMORY_RECALL:
 			session.logger.info(
 				`[Clairvoyant] Memory Recall route: starting async flow`,
