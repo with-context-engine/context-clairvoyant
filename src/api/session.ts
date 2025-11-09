@@ -3,7 +3,7 @@ import { ConvexClient } from "convex/browser";
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
 import { api } from "../../convex/_generated/api";
-import { env } from "../application/core/env";
+import { env, publicBaseUrl } from "../application/core/env";
 import { verifyFrontendToken } from "../middleware/mentra";
 
 const convex = new ConvexClient(env.CONVEX_URL);
@@ -50,7 +50,7 @@ export const sessionRoutes = new Elysia({ prefix: "/api/session" }).post(
 				format: "pem",
 			});
 
-			const issuer = env.PUBLIC_BASE_URL;
+			const issuer = publicBaseUrl;
 
 			const convexToken = jwt.sign(
 				{

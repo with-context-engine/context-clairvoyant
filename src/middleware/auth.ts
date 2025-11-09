@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 
+import { publicBaseUrl } from "../application/core/env";
+
 /**
  * Verifies a JWT token issued by our authentication server
  *
@@ -11,7 +13,7 @@ import jwt from "jsonwebtoken";
 export function verifyServerAuthToken(
 	token: string,
 	publicKeyPem: string,
-	issuer: string,
+	issuer: string = publicBaseUrl,
 ): string | null {
 	try {
 		const payload = jwt.verify(token, publicKeyPem.replace(/\\n/g, "\n"), {

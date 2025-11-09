@@ -2,7 +2,7 @@ import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import { exportJWK, importSPKI } from "jose";
 import { sessionRoutes } from "./api/session";
-import { env } from "./application/core/env";
+import { env, publicBaseUrl } from "./application/core/env";
 import { verifyServerAuthToken } from "./middleware/auth";
 
 const PORT = parseInt(process.env.PORT || "3001");
@@ -16,7 +16,7 @@ export const requireAuth = new Elysia({ name: "requireAuth" }).onBeforeHandle(
 			authUserId = verifyServerAuthToken(
 				token,
 				env.AUTH_PUBLIC_KEY_PEM,
-				env.PUBLIC_BASE_URL,
+				publicBaseUrl,
 			);
 		}
 		return { authUserId };
@@ -47,7 +47,7 @@ export const app = new Elysia()
 			authUserId = verifyServerAuthToken(
 				token,
 				env.AUTH_PUBLIC_KEY_PEM,
-				env.PUBLIC_BASE_URL,
+				publicBaseUrl,
 			);
 		}
 		return { authUserId };

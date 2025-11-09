@@ -17,7 +17,26 @@ export const env = createEnv({
 		AUTH_PUBLIC_KEY_PEM: z.string(),
 		AUTH_KEY_ID: z.string(),
 		PUBLIC_BASE_URL: z.string(),
+		RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
 		API_PORT: z.coerce.number().optional(),
 	},
 	runtimeEnv: process.env,
 });
+
+const normalizeUrl = (value: string) => {
+	const trimmed = value.trim();
+	const withProtocol = /^https?:\/\//i.test(trimmed)
+		? trimmed
+		: `https://${trimmed}`;
+	return withProtocol.replace(/\/+$/, "");
+};
+
+export const publicBaseUrl = (() => {
+	const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN?.trim();
+	if (railwayDomain) {
+		return normalizeUrl(railwayDomain);
+	}
+	return normalizeUrl(env.PUBLIC_BASE_URL);
+})();
+
+export const publicJwksUrl = `${publicBaseUrl}/.well-known/jwks.json`;
