@@ -16,12 +16,14 @@ export const env = createEnv({
 		AUTH_PRIVATE_KEY_PEM: z.string(),
 		AUTH_PUBLIC_KEY_PEM: z.string(),
 		AUTH_KEY_ID: z.string(),
-		PUBLIC_BASE_URL: z.string(),
+		PUBLIC_BASE_URL: z.string().optional(),
 		RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
 		API_PORT: z.coerce.number().optional(),
 	},
 	runtimeEnv: process.env,
 });
+
+const DEFAULT_PUBLIC_BASE_URL = "https://with-context-engine.ngrok.dev";
 
 const normalizeUrl = (value: string) => {
 	const trimmed = value.trim();
@@ -36,7 +38,11 @@ export const publicBaseUrl = (() => {
 	if (railwayDomain) {
 		return normalizeUrl(railwayDomain);
 	}
-	return normalizeUrl(env.PUBLIC_BASE_URL);
+	const configured = env.PUBLIC_BASE_URL?.trim();
+	if (configured) {
+		return normalizeUrl(configured);
+	}
+	return DEFAULT_PUBLIC_BASE_URL;
 })();
 
 export const publicJwksUrl = `${publicBaseUrl}/.well-known/jwks.json`;
