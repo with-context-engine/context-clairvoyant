@@ -12,6 +12,7 @@ export async function handleTranscription(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	mentraUserId: string,
 ) {
 	session.logger.info(`[Clairvoyant] Transcription: ${data.text}`);
 	const routing = await b.Route(data.text);
@@ -46,21 +47,21 @@ export async function handleTranscription(
 			session.logger.info(
 				`[Clairvoyant] Memory Capture route: starting async flow`,
 			);
-			void MemoryCapture(data.text, session, memorySession, peers, "diatribe");
+			void MemoryCapture(data.text, session, memorySession, peers, "diatribe", mentraUserId);
 			return;
 
 		case Router.MEMORY_RECALL:
 			session.logger.info(
 				`[Clairvoyant] Memory Recall route: starting async flow`,
 			);
-			void MemoryRecall(data.text, session, memorySession, peers);
+			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
 		default: {
 			session.logger.info(
 				`[Clairvoyant] Memory Insertion route: starting async flow`,
 			);
-			void MemoryCapture(data.text, session, memorySession, peers, "diatribe");
+			void MemoryCapture(data.text, session, memorySession, peers, "diatribe", mentraUserId);
 			return;
 		}
 	}

@@ -22,7 +22,7 @@ class Clairvoyant extends AppServer {
 	}
 
 	protected override async onSession(session: AppSession): Promise<void> {
-		const [memorySession, peers] = await initializeMemory();
+		const [memorySession, peers] = await initializeMemory(session.userId);
 
 		session.events.onTranscription(async (data) => {
 			// If its not a final utterance, skip
@@ -41,7 +41,7 @@ class Clairvoyant extends AppServer {
 			}
 
 			// Handle the transcription
-			await handleTranscription(data, session, memorySession, peers);
+			await handleTranscription(data, session, memorySession, peers, session.userId);
 		});
 	}
 }

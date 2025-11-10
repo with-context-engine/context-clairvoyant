@@ -1,6 +1,8 @@
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
+import { checkUserIsPro, convexClient } from "../core/convex";
+import { api } from "../../../convex/_generated/api";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
 
@@ -10,6 +12,7 @@ export async function MemoryCapture(
 	memorySession: Session,
 	peers: Peer[],
 	peerId: string,
+	mentraUserId: string,
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
@@ -18,8 +21,36 @@ export async function MemoryCapture(
 		`[startMemoryCaptureFlow] Starting memory capture flow for text artifact: ${textArtifact}`,
 	);
 
+	const isPro = await checkUserIsPro(mentraUserId);
+	if (!isPro) {
+		session.logger.warn(
+			"[MemoryCapture] User isn't Pro, memory capture disabled.",
+		);
+		session.layouts.showTextWall(
+			"// Clairvoyant\nM: Memory is a Pro feature.",
+			{
+				view: ViewType.MAIN,
+				durationMs: 3000,
+			},
+		);
+		return;
+	}
+
+	// Fetch user to get their _id for peer lookup
+	const user = await convexClient.query(
+		api.polar.getCurrentUserWithSubscription,
+		{ mentraUserId },
+	);
+
+	if (!user) {
+		session.logger.error(`[MemoryCapture] User not found for mentraUserId: ${mentraUserId}`);
+		return;
+	}
+
+	const userId = user._id;
+
 	try {
-		const PeerChoice = peers.find((peer) => peer.id === peerId);
+		const PeerChoice = peers.find((peer) => peer.id === `${userId}-${peerId}`);
 		if (PeerChoice) {
 			await memorySession.addMessages([
 				{
@@ -42,14 +73,43 @@ export async function MemoryRecall(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	mentraUserId: string,
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
 
 	session.logger.info(`[startMemoryRecallFlow] Starting memory recall flow`);
 
+	const isPro = await checkUserIsPro(mentraUserId);
+	if (!isPro) {
+		session.logger.warn(
+			"[MemoryRecall] User isn't Pro, memory recall disabled.",
+		);
+		session.layouts.showTextWall(
+			"// Clairvoyant\nR: Memory is a Pro feature.",
+			{
+				view: ViewType.MAIN,
+				durationMs: 3000,
+			},
+		);
+		return;
+	}
+
+	// Fetch user to get their _id for peer lookup
+	const user = await convexClient.query(
+		api.polar.getCurrentUserWithSubscription,
+		{ mentraUserId },
+	);
+
+	if (!user) {
+		session.logger.error(`[MemoryRecall] User not found for mentraUserId: ${mentraUserId}`);
+		return;
+	}
+
+	const userId = user._id;
+
 	try {
-		const diatribePeer = peers.find((peer) => peer.id === "diatribe");
+		const diatribePeer = peers.find((peer) => peer.id === `${userId}-diatribe`);
 		if (diatribePeer) {
 			// Capture the query as a memory first
 			await memorySession.addMessages([
