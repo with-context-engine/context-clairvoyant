@@ -8,26 +8,22 @@ const normalizeUrl = (value: string) => {
 	return withProtocol.replace(/\/+$/, "");
 };
 
-const publicBaseUrl = (() => {
-	const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN?.trim();
-	if (railwayDomain) {
-		return normalizeUrl(railwayDomain);
-	}
-	const fallback =
-		process.env.PUBLIC_BASE_URL ||
-		process.env.VITE_PUBLIC_BASE_URL ||
-		"https://with-context-engine.ngrok.dev";
-	return normalizeUrl(fallback);
-})();
+const issuerCandidates = [
+	process.env.RAILWAY_PUBLIC_DOMAIN,
+	"https://with-context-engine.ngrok.dev",
+]
+	.filter(
+		(value): value is string =>
+			typeof value === "string" && value.trim().length > 0,
+	)
+	.map((value) => normalizeUrl(value));
 
 export default {
-	providers: [
-		{
-			type: "customJwt",
-			applicationID: "clairvoyant-backend",
-			issuer: publicBaseUrl,
-			jwks: `${publicBaseUrl}/.well-known/jwks.json`,
-			algorithm: "RS256",
-		},
-	],
+	providers: issuerCandidates.map((issuer) => ({
+		type: "customJwt",
+		applicationID: "clairvoyant-backend",
+		issuer,
+		jwks: `${issuer}/.well-known/jwks.json`,
+		algorithm: "RS256",
+	})),
 } satisfies AuthConfig;

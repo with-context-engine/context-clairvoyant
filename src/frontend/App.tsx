@@ -1,6 +1,7 @@
 import { useMentraAuth } from "@mentra/react";
 import { ConvexProvider } from "convex/react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import type { Id } from "../../convex/_generated/dataModel";
 import { BillingPage } from "./components/BillingPage";
 import { HomePage } from "./components/HomePage";
 import { NavBar } from "./components/NavBar";
@@ -58,9 +59,7 @@ export function App() {
 						<Route
 							path="/settings"
 							element={
-								<SettingsPage
-									userId={authState.convexUserId as any}
-								/>
+								<SettingsPage userId={authState.convexUserId as Id<"users">} />
 							}
 						/>
 						<Route
