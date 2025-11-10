@@ -19,7 +19,7 @@
 	"scripts": {
 		"build:main": "tsc",
 		"build:api": "bun build src/api.ts --outdir dist/api --target bun --minify",
-		"build:frontend": "vite build --outDir dist/frontend",
+		"build:frontend": "vite build",
 		"start:main": "bun run src/index.ts",
 		"start:api": "bun run src/api.ts",
 		"start:frontend": "vite preview",
