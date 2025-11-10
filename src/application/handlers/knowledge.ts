@@ -12,6 +12,7 @@ export async function startKnowledgeFlow(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	mentraUserId: string,
 ) {
 	const runId = Date.now();
 	knowledgeRunIds.set(session, runId);
@@ -30,7 +31,7 @@ export async function startKnowledgeFlow(
 			{ view: ViewType.MAIN, clearDurationMs: 2000 },
 		);
 
-		await MemoryCapture(query, session, memorySession, peers, "diatribe");
+		await MemoryCapture(query, session, memorySession, peers, "diatribe", mentraUserId);
 
 		if (knowledgeRunIds.get(session) !== runId) {
 			session.logger.info(
@@ -65,6 +66,7 @@ export async function startKnowledgeFlow(
 				memorySession,
 				peers,
 				"synthesis",
+				mentraUserId,
 			);
 
 			for (let i = 0; i < answerLines.length; i++) {

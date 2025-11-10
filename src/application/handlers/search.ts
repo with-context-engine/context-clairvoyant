@@ -14,6 +14,7 @@ export async function startWebSearchFlow(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	mentraUserId: string,
 ) {
 	const runId = Date.now();
 	webSearchRunIds.set(session, runId);
@@ -22,7 +23,7 @@ export async function startWebSearchFlow(
 		`[startWebSearchFlow] Starting web search flow for query: ${query}`,
 	);
 
-	const isPro = await checkUserIsPro(session.userId);
+	const isPro = await checkUserIsPro(mentraUserId);
 	if (!isPro) {
 		session.logger.warn(
 			"[startWebSearchFlow] User isn't subscribed, web search disabled.",
@@ -46,7 +47,7 @@ export async function startWebSearchFlow(
 			() => performWebSearch(query),
 		);
 
-		await MemoryCapture(query, session, memorySession, peers, "diatribe");
+		await MemoryCapture(query, session, memorySession, peers, "diatribe", mentraUserId);
 
 		if (!searchResults) {
 			throw new Error("No response from web search");
@@ -68,6 +69,7 @@ export async function startWebSearchFlow(
 				memorySession,
 				peers,
 				"synthesis",
+				mentraUserId,
 			);
 		}
 

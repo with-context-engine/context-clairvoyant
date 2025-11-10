@@ -28,19 +28,19 @@ export async function handleTranscription(
 
 		case Router.MAPS:
 			session.logger.info(`[Clairvoyant] Maps route: starting async flow`);
-			void startMapsFlow(data.text, session, memorySession, peers);
+			void startMapsFlow(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
 		case Router.WEB_SEARCH:
 			session.logger.info(
 				`[Clairvoyant] Web search route: starting async flow`,
 			);
-			void startWebSearchFlow(data.text, session, memorySession, peers);
+			void startWebSearchFlow(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
 		case Router.KNOWLEDGE:
 			session.logger.info(`[Clairvoyant] Routing: Starting knowledge flow`);
-			void startKnowledgeFlow(data.text, session, memorySession, peers);
+			void startKnowledgeFlow(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
 		case Router.MEMORY_CAPTURE:

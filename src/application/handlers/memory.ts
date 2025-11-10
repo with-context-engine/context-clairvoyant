@@ -135,14 +135,20 @@ export async function MemoryRecall(
 				peerRepresentation: string;
 				peerCard: string[];
 			};
+			const contextStartTime = Date.now();
 			try {
 				contextData = (await memorySession.getContext({
 					peerTarget: diatribePeer.id,
 					lastUserMessage: textQuery,
 				})) as typeof contextData;
+				const contextDuration = Date.now() - contextStartTime;
+				session.logger.info(
+					`[startMemoryRecallFlow] getContext() completed in ${contextDuration}ms`,
+				);
 			} catch (error) {
+				const contextDuration = Date.now() - contextStartTime;
 				session.logger.error(
-					`[startMemoryRecallFlow] Error getting context: ${error}`,
+					`[startMemoryRecallFlow] Error getting context after ${contextDuration}ms: ${error}`,
 				);
 				if (memoryRunCallIds.get(session) === runId) {
 					session.layouts.showTextWall(
@@ -192,11 +198,17 @@ export async function MemoryRecall(
 
 			// Synthesize response with BAML (replaces .chat() call)
 			let synthesis: { lines: string[] };
+			const synthesisStartTime = Date.now();
 			try {
 				synthesis = await b.SynthesizeMemory(textQuery, memoryContext);
+				const synthesisDuration = Date.now() - synthesisStartTime;
+				session.logger.info(
+					`[startMemoryRecallFlow] SynthesizeMemory() completed in ${synthesisDuration}ms`,
+				);
 			} catch (error) {
+				const synthesisDuration = Date.now() - synthesisStartTime;
 				session.logger.error(
-					`[startMemoryRecallFlow] Error during synthesis: ${error}`,
+					`[startMemoryRecallFlow] Error during synthesis after ${synthesisDuration}ms: ${error}`,
 				);
 				if (memoryRunCallIds.get(session) === runId) {
 					session.layouts.showTextWall(

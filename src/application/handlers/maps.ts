@@ -13,6 +13,7 @@ export async function startMapsFlow(
 	session: AppSession,
 	memorySession: Session,
 	peers: Peer[],
+	mentraUserId: string,
 ) {
 	const runId = Date.now();
 	mapsRunIds.set(session, runId);
@@ -63,7 +64,7 @@ export async function startMapsFlow(
 					}),
 			);
 
-			await MemoryCapture(query, session, memorySession, peers, "diatribe");
+			await MemoryCapture(query, session, memorySession, peers, "diatribe", mentraUserId);
 
 			statusWallActive = false;
 
@@ -109,6 +110,7 @@ export async function startMapsFlow(
 				memorySession,
 				peers,
 				"synthesis",
+				mentraUserId,
 			);
 
 			for (let i = 0; i < lines.length; i++) {
