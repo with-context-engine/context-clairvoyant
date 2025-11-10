@@ -1,6 +1,6 @@
 import { ConvexReactClient } from "convex/react";
 import { useEffect, useRef, useState } from "react";
-import { convexUrl } from "../env";
+import { apiBaseUrl, convexUrl } from "../env";
 
 type AuthState =
 	| { status: "idle" }
@@ -40,7 +40,11 @@ export function useConvexAuth(
 
 		setAuthState({ status: "loading" });
 
-		fetch("/api/session/mentra", {
+		const sessionEndpoint = apiBaseUrl
+			? `${apiBaseUrl}/api/session/mentra`
+			: "/api/session/mentra";
+
+		fetch(sessionEndpoint, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ frontendToken }),
@@ -82,7 +86,7 @@ export function useConvexAuth(
 					// If token is about to expire (within 1 minute), refresh it
 					if (Date.now() > tokenExpiresAt.getTime() - 60 * 1000) {
 						try {
-							const refreshRes = await fetch("/api/session/mentra", {
+							const refreshRes = await fetch(sessionEndpoint, {
 								method: "POST",
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify({ frontendToken }),
