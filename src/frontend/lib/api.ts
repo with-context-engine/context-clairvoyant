@@ -1,7 +1,8 @@
 import { treaty } from "@elysiajs/eden";
 import type { App } from "../../api";
+import { apiBaseUrl } from "../env";
 
-export const api = treaty<App>("/");
+export const api = treaty<App>(apiBaseUrl);
 
 /**
  * Helper function to make authenticated API calls
@@ -9,7 +10,7 @@ export const api = treaty<App>("/");
  * @returns A treaty instance with Authorization header set
  */
 export function getAuthenticatedApi(token: string) {
-	return treaty<App>("/", {
+	return treaty<App>(apiBaseUrl, {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},

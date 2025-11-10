@@ -28,6 +28,9 @@ export default defineConfig(({ mode }) => {
 		},
 		define: {
 			"import.meta.env.VITE_CONVEX_URL": JSON.stringify(env.VITE_CONVEX_URL),
+			"import.meta.env.VITE_API_BASE_URL": JSON.stringify(
+				env.VITE_API_BASE_URL,
+			),
 		},
 	};
 });
