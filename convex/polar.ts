@@ -12,7 +12,6 @@ export const polar = new Polar(components.polar, {
 			email: user.email,
 		};
 	},
-	server: "sandbox",
 });
 
 export const {
