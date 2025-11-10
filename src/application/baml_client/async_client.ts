@@ -337,7 +337,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async SummarizeWeatherFormatted(
-        input: types.FormattedWeather,
+        input: types.FormattedWeather,unit: string,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.WeatherLines> {
           try {
@@ -351,7 +351,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.SummarizeWeatherFormatted(
-          input,
+          input,unit,
           __baml_options__
           );
 
@@ -367,7 +367,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "SummarizeWeatherFormatted",
             {
-            "input": input
+            "input": input,"unit": unit
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -729,7 +729,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             SummarizeWeatherFormatted(
-            input: types.FormattedWeather,
+            input: types.FormattedWeather,unit: string,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.WeatherLines, types.WeatherLines>
               {
@@ -770,7 +770,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "SummarizeWeatherFormatted",
                 {
-                "input": input
+                "input": input,"unit": unit
                 },
                 undefined,
                 this.ctxManager.cloneContext(),

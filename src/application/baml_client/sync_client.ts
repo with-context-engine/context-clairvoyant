@@ -307,7 +307,7 @@ export class BamlSyncClient {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,
+      input: types.FormattedWeather,unit: string,
       __baml_options__?: BamlCallOptions<never>
   ): types.WeatherLines {
     try {
@@ -331,7 +331,7 @@ export class BamlSyncClient {
       const raw = this.runtime.callFunctionSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input
+          "input": input,"unit": unit
         },
         this.ctxManager.cloneContext(),
         options.tb?.__tb(),

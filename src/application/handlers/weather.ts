@@ -81,7 +81,7 @@ export async function startWeatherFlow(session: AppSession) {
 				return;
 			}
 
-			const weatherLines = await b.SummarizeWeatherFormatted(response);
+			const weatherLines = await b.SummarizeWeatherFormatted(response, preferredUnit);
 
 			for (let i = 0; i < weatherLines.lines.length; i++) {
 				const line = weatherLines.lines[i];
