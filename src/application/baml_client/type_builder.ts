@@ -39,7 +39,11 @@ export default class TypeBuilder {
     
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
     
+    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages">;
+    
     MemoryRecall: ClassViewer<'MemoryRecall', "query" | "results">;
+    
+    MemorySynthesisLines: ClassViewer<'MemorySynthesisLines', "lines">;
     
     NewsItem: ClassViewer<'NewsItem', "title" | "content">;
     
@@ -66,7 +70,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","FormattedWeather","LocationLite","MemoryRecall","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","FormattedWeather","LocationLite","MemoryContext","MemoryRecall","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "Router",
@@ -98,8 +102,16 @@ export default class TypeBuilder {
           "lat","lon","timezone",
         ]);
         
+        this.MemoryContext = this.tb.classViewer("MemoryContext", [
+          "explicitFacts","deductiveFacts","peerCard","recentMessages",
+        ]);
+        
         this.MemoryRecall = this.tb.classViewer("MemoryRecall", [
           "query","results",
+        ]);
+        
+        this.MemorySynthesisLines = this.tb.classViewer("MemorySynthesisLines", [
+          "lines",
         ]);
         
         this.NewsItem = this.tb.classViewer("NewsItem", [
