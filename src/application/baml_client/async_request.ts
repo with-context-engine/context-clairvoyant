@@ -167,7 +167,7 @@ env?: Record<string, string | undefined>
       }
       
   async SummarizeWeatherFormatted(
-  input: types.FormattedWeather,
+  input: types.FormattedWeather,unit: string,
   __baml_options__?: BamlCallOptions<never>
   ): Promise<HTTPRequest> {
     try {
@@ -178,7 +178,7 @@ env?: Record<string, string | undefined>
       return await this.runtime.buildRequest(
       "SummarizeWeatherFormatted",
       {
-      "input": input
+      "input": input,"unit": unit
       },
       this.ctxManager.cloneContext(),
       __baml_options__?.tb?.__tb(),
@@ -323,7 +323,7 @@ env?: Record<string, string | undefined>
           }
           
       async SummarizeWeatherFormatted(
-      input: types.FormattedWeather,
+      input: types.FormattedWeather,unit: string,
       __baml_options__?: BamlCallOptions<never>
       ): Promise<HTTPRequest> {
         try {
@@ -334,7 +334,7 @@ env?: Record<string, string | undefined>
           return await this.runtime.buildRequest(
           "SummarizeWeatherFormatted",
           {
-          "input": input
+          "input": input,"unit": unit
           },
           this.ctxManager.cloneContext(),
           __baml_options__?.tb?.__tb(),

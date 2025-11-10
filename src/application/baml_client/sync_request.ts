@@ -163,7 +163,7 @@ export class HttpRequest {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,
+      input: types.FormattedWeather,unit: string,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -174,7 +174,7 @@ export class HttpRequest {
       return this.runtime.buildRequestSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input
+          "input": input,"unit": unit
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -319,7 +319,7 @@ export class HttpStreamRequest {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,
+      input: types.FormattedWeather,unit: string,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -330,7 +330,7 @@ export class HttpStreamRequest {
       return this.runtime.buildRequestSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input
+          "input": input,"unit": unit
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
