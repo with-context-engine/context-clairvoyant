@@ -123,32 +123,32 @@ export async function MemoryRecall(
 				},
 			]);
 
-			try {
-				session.logger.info(
-					await memorySession.getContext({
-						peerTarget: diatribePeer.id,
-						lastUserMessage: textQuery,
-					}),
-				);
-			} catch (error) {
-				session.logger.error(
-					`[startMemoryRecallFlow] Error getting context: ${error}`,
-				);
-			}
-
 			// Show loading message
 			session.layouts.showTextWall("// Clairvoyant\nR: Trying to remember...", {
 				view: ViewType.MAIN,
 				durationMs: 30000,
 			});
 
-			// Call chat directly
-			let response: string;
+			// Get context data from Honcho
+			let contextData: {
+				messages: Array<{ content: string }>;
+				peerRepresentation: string;
+				peerCard: string[];
+			};
+			const contextStartTime = Date.now();
 			try {
-				response = (await diatribePeer.chat(textQuery)) as string;
+				contextData = (await memorySession.getContext({
+					peerTarget: diatribePeer.id,
+					lastUserMessage: textQuery,
+				})) as typeof contextData;
+				const contextDuration = Date.now() - contextStartTime;
+				session.logger.info(
+					`[startMemoryRecallFlow] getContext() completed in ${contextDuration}ms`,
+				);
 			} catch (error) {
+				const contextDuration = Date.now() - contextStartTime;
 				session.logger.error(
-					`[startMemoryRecallFlow] Error during chat: ${error}`,
+					`[startMemoryRecallFlow] Error getting context after ${contextDuration}ms: ${error}`,
 				);
 				if (memoryRunCallIds.get(session) === runId) {
 					session.layouts.showTextWall(
@@ -162,67 +162,109 @@ export async function MemoryRecall(
 				return;
 			}
 
-			if (response) {
-				if (memoryRunCallIds.get(session) !== runId) {
-					session.logger.info(
-						`[startMemoryRecallFlow] Response arrived for stale request, discarding`,
-					);
-					return;
-				}
-
-				const memoryRecall = await b.MemoryQueryRecall(
-					textQuery,
-					response as string,
+			// Check if stale
+			if (memoryRunCallIds.get(session) !== runId) {
+				session.logger.info(
+					`[startMemoryRecallFlow] Context arrived for stale request, discarding`,
 				);
+				return;
+			}
 
-				// Check if this is still the current request
-				if (memoryRunCallIds.get(session) !== runId) {
-					session.logger.info(
-						`[startMemoryRecallFlow] Response arrived for stale request, discarding`,
-					);
-					return;
-				}
+			// Parse peerRepresentation JSON
+			let peerRep: {
+				explicit: Array<{ content: string }>;
+				deductive: Array<{ conclusion: string; premises: string[] }>;
+			};
+			try {
+				peerRep = JSON.parse(contextData.peerRepresentation);
+			} catch (error) {
+				session.logger.error(
+					`[startMemoryRecallFlow] Error parsing peerRepresentation: ${error}`,
+				);
+				peerRep = { explicit: [], deductive: [] };
+			}
 
-				// Process the memory recall results
-				if (
-					memoryRecall.results?.lines &&
-					memoryRecall.results.lines.length > 0
-				) {
-					const lines = memoryRecall.results.lines;
+			// Build memory context
+			const memoryContext = {
+				explicitFacts: peerRep.explicit.map((e) => e.content),
+				deductiveFacts: peerRep.deductive.map(
+					(d) => `${d.conclusion} (from: ${d.premises.join(", ")})`,
+				),
+				peerCard: contextData.peerCard,
+				recentMessages: contextData.messages
+					.slice(-5)
+					.map((m) => m.content),
+			};
 
-					// Display each line sequentially
-					for (let i = 0; i < lines.length; i++) {
-						const line = lines[i];
-
-						// Check if this is still the current request before each line
-						if (memoryRunCallIds.get(session) !== runId) return;
-
-						session.logger.info(
-							`[startMemoryRecallFlow] Memory recall line: ${line}`,
-						);
-						session.layouts.showTextWall(`// Clairvoyant\nR: ${line}`, {
+			// Synthesize response with BAML (replaces .chat() call)
+			let synthesis: { lines: string[] };
+			const synthesisStartTime = Date.now();
+			try {
+				synthesis = await b.SynthesizeMemory(textQuery, memoryContext);
+				const synthesisDuration = Date.now() - synthesisStartTime;
+				session.logger.info(
+					`[startMemoryRecallFlow] SynthesizeMemory() completed in ${synthesisDuration}ms`,
+				);
+			} catch (error) {
+				const synthesisDuration = Date.now() - synthesisStartTime;
+				session.logger.error(
+					`[startMemoryRecallFlow] Error during synthesis after ${synthesisDuration}ms: ${error}`,
+				);
+				if (memoryRunCallIds.get(session) === runId) {
+					session.layouts.showTextWall(
+						"// Clairvoyant\nR: Couldn't remember!",
+						{
 							view: ViewType.MAIN,
-							durationMs: 3000,
-						});
-
-						// Add delay between lines (except for the last line)
-						if (i < lines.length - 1) {
-							await new Promise((resolve) => setTimeout(resolve, 3000));
-						}
-					}
-				} else {
-					session.logger.error(
-						`[startMemoryRecallFlow] No lines in memory recall results`,
+							durationMs: 2000,
+						},
 					);
-					if (memoryRunCallIds.get(session) === runId) {
-						session.layouts.showTextWall(
-							"// Clairvoyant\nR: No memories found.",
-							{
-								view: ViewType.MAIN,
-								durationMs: 2000,
-							},
-						);
+				}
+				return;
+			}
+
+			// Check if this is still the current request
+			if (memoryRunCallIds.get(session) !== runId) {
+				session.logger.info(
+					`[startMemoryRecallFlow] Synthesis arrived for stale request, discarding`,
+				);
+				return;
+			}
+
+			// Process the memory synthesis results
+			const lines = synthesis.lines;
+			if (lines && lines.length > 0) {
+				// Display each line sequentially
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i];
+
+					// Check if this is still the current request before each line
+					if (memoryRunCallIds.get(session) !== runId) return;
+
+					session.logger.info(
+						`[startMemoryRecallFlow] Memory synthesis line: ${line}`,
+					);
+					session.layouts.showTextWall(`// Clairvoyant\nR: ${line}`, {
+						view: ViewType.MAIN,
+						durationMs: 3000,
+					});
+
+					// Add delay between lines (except for the last line)
+					if (i < lines.length - 1) {
+						await new Promise((resolve) => setTimeout(resolve, 3000));
 					}
+				}
+			} else {
+				session.logger.error(
+					`[startMemoryRecallFlow] No lines in synthesis results`,
+				);
+				if (memoryRunCallIds.get(session) === runId) {
+					session.layouts.showTextWall(
+						"// Clairvoyant\nR: No memories found.",
+						{
+							view: ViewType.MAIN,
+							durationMs: 2000,
+						},
+					);
 				}
 			}
 		}
