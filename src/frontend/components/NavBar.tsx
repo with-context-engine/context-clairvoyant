@@ -18,6 +18,9 @@ export function NavBar() {
 				<Link to="/" className={linkClass("/")}>
 					Home
 				</Link>
+				<Link to="/chat" className={linkClass("/chat")}>
+					Chat
+				</Link>
 				<Link to="/settings" className={linkClass("/settings")}>
 					Settings
 				</Link>

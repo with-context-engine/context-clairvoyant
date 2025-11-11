@@ -17,6 +17,7 @@
 		"vite": "^6.4.1"
 	},
 	"scripts": {
+		"clean:all": "rm -rf node_modules && bun install && rm -rf dist && rm -rf build",
 		"build:main": "tsc",
 		"build:api": "bun build src/api.ts --outdir dist/api --target bun --minify",
 		"build:frontend": "vite build",
@@ -45,16 +46,21 @@
 		"@tailwindcss/vite": "^4.1.17",
 		"@tavily/core": "^0.5.12",
 		"@types/jsonwebtoken": "^9.0.10",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
 		"convex": "^1.28.2",
 		"dotenv": "^17.2.3",
 		"elysia": "^1.4.15",
 		"exa-js": "^1.10.2",
 		"jose": "^6.1.0",
 		"jsonwebtoken": "^9.0.2",
+		"lucide-react": "^0.553.0",
 		"openai": "^5.23.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-router-dom": "^7.9.5",
-		"tailwindcss": "^4.1.17"
+		"tailwind-merge": "^3.4.0",
+		"tailwindcss": "^4.1.17",
+		"tailwindcss-animate": "^1.0.7"
 	}
 }
