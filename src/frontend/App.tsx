@@ -66,11 +66,11 @@ export function App() {
 	return (
 		<ConvexProvider client={authState.convexClient}>
 			<BrowserRouter>
-				<div className={`font-sans max-w-2xl mx-auto ${isMobile ? "pb-20" : "p-5"}`}>
+				<div className={`max-w-2xl mx-auto min-h-screen ${isMobile ? "pb-24" : "p-5"}`}>
 					{!isMobile && <h1 className="px-5 pt-5">Clairvoyant</h1>}
 					{!isMobile && <NavBar />}
 					
-					<div className={isMobile ? "p-5" : ""}>
+					<div className={isMobile ? "p-5 pb-8" : ""}>
 						<Routes>
 							<Route path="/" element={<HomePage />} />
 							<Route path="/chat" element={<ChatPage />} />

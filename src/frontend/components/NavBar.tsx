@@ -1,3 +1,4 @@
+import { CreditCard, Home, MessageSquare, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export function NavBar() {
@@ -6,27 +7,31 @@ export function NavBar() {
 	const isActive = (path: string) => location.pathname === path;
 
 	const linkClass = (path: string) =>
-		`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+		`px-4 py-2 text-sm font-semibold rounded-base transition-all flex items-center gap-2 border-2 ${
 			isActive(path)
-				? "bg-blue-500 text-white"
-				: "text-gray-700 hover:bg-gray-100"
+				? "bg-main text-main-foreground border-border translate-x-boxShadowX translate-y-boxShadowY shadow-shadow"
+				: "bg-background text-foreground border-border hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-shadow"
 		}`;
 
+	const tabs = [
+		{ path: "/", label: "Home", icon: Home },
+		{ path: "/chat", label: "Chat", icon: MessageSquare },
+		{ path: "/settings", label: "Settings", icon: Settings },
+		{ path: "/billing", label: "Billing", icon: CreditCard },
+	];
+
 	return (
-		<nav className="mb-6 border-b border-gray-200 pb-4">
+		<nav className="mb-6 border-b-2 border-border pb-4">
 			<div className="flex gap-2">
-				<Link to="/" className={linkClass("/")}>
-					Home
-				</Link>
-				<Link to="/chat" className={linkClass("/chat")}>
-					Chat
-				</Link>
-				<Link to="/settings" className={linkClass("/settings")}>
-					Settings
-				</Link>
-				<Link to="/billing" className={linkClass("/billing")}>
-					Billing
-				</Link>
+				{tabs.map((tab) => {
+					const Icon = tab.icon;
+					return (
+						<Link key={tab.path} to={tab.path} className={linkClass(tab.path)}>
+							<Icon className="w-4 h-4" />
+							{tab.label}
+						</Link>
+					);
+				})}
 			</div>
 		</nav>
 	);

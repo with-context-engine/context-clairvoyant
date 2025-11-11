@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
 		root: "src/frontend",
 		resolve: {
 			alias: {
-				"@": path.resolve(__dirname, "src/frontend"),
+				"@": path.resolve(__dirname, "src"),
 			},
 		},
 		server: {
