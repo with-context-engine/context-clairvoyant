@@ -11,6 +11,7 @@
 import type * as http from "../http.js";
 import type * as polar from "../polar.js";
 import type * as preferences from "../preferences.js";
+import type * as toolInvocations from "../toolInvocations.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   polar: typeof polar;
   preferences: typeof preferences;
+  toolInvocations: typeof toolInvocations;
   users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

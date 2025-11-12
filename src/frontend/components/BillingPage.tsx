@@ -2,8 +2,7 @@ import { SubscriptionCard } from "./SubscriptionCard";
 
 export function BillingPage({ mentraUserId }: { mentraUserId: string }) {
 	return (
-		<div>
-			<h2>Billing</h2>
+		<div className="space-y-6">
 			<SubscriptionCard mentraUserId={mentraUserId} />
 		</div>
 	);

@@ -1,47 +1,56 @@
+import { useState } from "react";
+import { Switch } from "./ui/switch";
+
 interface WeatherUnitToggleProps {
 	value: "C" | "F";
-	onChange: (unit: "C" | "F") => void;
-	disabled?: boolean;
+	onSave: (unit: "C" | "F") => Promise<void>;
 }
 
 export function WeatherUnitToggle({
 	value,
-	onChange,
-	disabled = false,
+	onSave,
 }: WeatherUnitToggleProps) {
+	const [isSaving, setIsSaving] = useState(false);
+
+	const handleToggle = async (checked: boolean) => {
+		const newUnit = checked ? "F" : "C";
+		setIsSaving(true);
+		try {
+			await onSave(newUnit);
+		} catch (error) {
+			console.error("Failed to save weather unit:", error);
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
 	return (
-		<div className="inline-flex items-center gap-2">
-			<span className="text-sm font-medium text-gray-700">Weather Unit:</span>
-			<fieldset className="inline-flex rounded-md shadow-sm">
-				<button
-					type="button"
-					onClick={() => onChange("C")}
-					disabled={disabled}
-					className={`px-4 py-2 text-sm font-medium border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-						value === "C"
-							? "bg-blue-500 text-white border-blue-500"
-							: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-					} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-					aria-label="Select Celsius"
-					aria-pressed={value === "C"}
+		<div className="flex flex-col gap-3">
+			<span className="text-sm font-semibold text-center">
+				Weather Unit {isSaving && <span className="text-foreground/60">(Saving...)</span>}
+			</span>
+			<div className="flex items-center justify-between gap-4">
+				<span
+					className={`text-sm font-semibold transition-colors flex-1 text-right ${
+						value === "C" ? "text-main" : "text-foreground/60"
+					}`}
 				>
 					Celsius (°C)
-				</button>
-				<button
-					type="button"
-					onClick={() => onChange("F")}
-					disabled={disabled}
-					className={`px-4 py-2 text-sm font-medium border rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-						value === "F"
-							? "bg-blue-500 text-white border-blue-500"
-							: "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-					} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-					aria-label="Select Fahrenheit"
-					aria-pressed={value === "F"}
+				</span>
+				<Switch
+					checked={value === "F"}
+					onCheckedChange={handleToggle}
+					disabled={isSaving}
+					aria-label="Toggle temperature unit"
+				/>
+				<span
+					className={`text-sm font-semibold transition-colors flex-1 text-left ${
+						value === "F" ? "text-main" : "text-foreground/60"
+					}`}
 				>
 					Fahrenheit (°F)
-				</button>
-			</fieldset>
+				</span>
+			</div>
 		</div>
 	);
 }

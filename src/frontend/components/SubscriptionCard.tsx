@@ -1,7 +1,16 @@
 import { CustomerPortalLink } from "@convex-dev/polar/react";
 import { useAction, useQuery } from "convex/react";
+import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../../convex/_generated/api";
+import { Button } from "./ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "./ui/card";
 
 export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	const products = useQuery(api.polar.listAllProducts);
@@ -13,6 +22,11 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	const [syncing, setSyncing] = useState(false);
 	const [autoSyncAttempted, setAutoSyncAttempted] = useState(false);
 	const [checkingOut, setCheckingOut] = useState(false);
+
+	// Animation hooks - must be called before any early returns
+	const [_daysUntilRenewal, setDaysUntilRenewal] = useState(0);
+	const count = useMotionValue(0);
+	const rounded = useTransform(count, (latest) => Math.round(latest));
 
 	const handleSyncProducts = useCallback(async () => {
 		setSyncing(true);
@@ -40,6 +54,32 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 		}
 	}, [products, autoSyncAttempted, syncing, handleSyncProducts]);
 
+	// Calculate days until renewal - runs after userWithSub loads
+	useEffect(() => {
+		if (!userWithSub?.subscription?.currentPeriodEnd || !userWithSub) {
+			setDaysUntilRenewal(0);
+			return;
+		}
+
+		const isPro = userWithSub.isPro;
+		const subscription = userWithSub.subscription;
+		const now = new Date();
+		const renewalDate = new Date(subscription.currentPeriodEnd ?? "");
+		const diffTime = renewalDate.getTime() - now.getTime();
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		const days = Math.max(0, diffDays);
+
+		setDaysUntilRenewal(days);
+
+		if (isPro && days > 0) {
+			const controls = animate(count, days, {
+				duration: 2,
+				ease: "easeOut",
+			});
+			return () => controls.stop();
+		}
+	}, [userWithSub, count]);
+
 	const handleUpgrade = async () => {
 		if (!products || products.length === 0) return;
 
@@ -64,109 +104,142 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	};
 
 	if (!userWithSub) {
-		return <div>Loading...</div>;
+		return <p>Loading...</p>;
 	}
 
 	const isPro = userWithSub.isPro;
-	const subscription = userWithSub.subscription;
 
 	return (
-		<div className="p-5 border-2 border-gray-200 rounded-lg bg-gray-50 mt-5">
-			<h2 className="mt-0">Subscription Status</h2>
+		<div className="space-y-6">
+			{/* Card 1: Subscription Status */}
+			<Card>
+				<CardContent className="space-y-4">
+					<div
+						className={`w-full px-4 py-1.5 rounded-base text-sm font-bold border-2 border-border text-center ${
+							isPro
+								? "bg-chart-4 text-main-foreground"
+								: "bg-secondary-background text-foreground"
+						}`}
+					>
+						{isPro ? "Pro Tier" : "Free Tier"}
+					</div>
+				</CardContent>
+			</Card>
 
-			<div
-				className={`inline-block px-4 py-1.5 rounded text-sm font-semibold mb-4 ${
-					isPro ? "bg-emerald-500" : "bg-gray-500"
-				} text-white`}
-			>
-				{isPro ? "Pro Tier ✨" : "Free Tier"}
-			</div>
-
-			{subscription && (
-				<div className="mb-4 text-sm">
-					<p className="my-1">
-						<strong>Status:</strong> {subscription.status}
-					</p>
-					{subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd && (
-						<p className="my-1 text-amber-600 font-semibold">
-							⚠️ Subscription will end on{" "}
-							{new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-						</p>
-					)}
-					{subscription.currentPeriodEnd && !subscription.cancelAtPeriodEnd && (
-						<p className="my-1">
-							<strong>Renews:</strong>{" "}
-							{new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-						</p>
-					)}
-				</div>
-			)}
-
-			{!isPro && (
-				<div>
-					<h3 className="mt-5 mb-3">Available Plans</h3>
-
-					{products === undefined && (
-						<p className="text-gray-500">Loading products...</p>
-					)}
-
-					{products && products.length === 0 && (
-						<div>
-							<p className="text-red-500 mb-3">
-								No products found. Click below to sync products from Polar.
-							</p>
-							<button
-								type="button"
-								onClick={handleSyncProducts}
-								disabled={syncing}
-								className="px-5 py-2.5 bg-amber-500 text-white rounded-md cursor-pointer text-sm font-semibold hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-							>
-								{syncing ? "Syncing..." : "Sync Products from Polar"}
-							</button>
-						</div>
-					)}
-
-					{products && products.length > 0 && (
-						<div>
-							{products.map((product) => (
-								<div
-									key={product.id}
-									className="border border-gray-200 rounded-md p-3 mb-3 bg-white"
-								>
-									<h4 className="m-0 mb-2">{product.name}</h4>
-									{product.prices.map((price) => (
-										<p key={price.id} className="my-1 text-gray-500">
-											${(price.priceAmount ?? 0) / 100}/
-											{price.recurringInterval}
-										</p>
-									))}
+			{/* Animated Renewal Display */}
+			{userWithSub &&
+				userWithSub.subscription &&
+				userWithSub.subscription.currentPeriodEnd !== null &&
+				isPro && (
+					<Card>
+						<CardContent className="space-y-3">
+							<div className="flex gap-6">
+								<div className="flex flex-1 flex-col items-center gap-3">
+									<div className="flex items-baseline gap-2">
+										<motion.span
+											className={`text-6xl font-heading ${
+												userWithSub.subscription.cancelAtPeriodEnd
+													? "text-chart-2"
+													: "text-chart-4"
+											}`}
+										>
+											{rounded}
+										</motion.span>
+									</div>
+									<div
+										className={`w-full px-4 py-1.5 rounded-base text-sm font-bold border-2 border-border text-center ${
+											isPro
+												? "bg-chart-4 text-main-foreground"
+												: "bg-secondary-background text-foreground"
+										}`}
+									>
+										{isPro
+											? "Days until subscription renewal."
+											: "Days until subscription end."}
+									</div>
 								</div>
-							))}
-							<button
-								type="button"
-								onClick={handleUpgrade}
-								disabled={checkingOut}
-								className="px-5 py-2.5 bg-blue-500 text-white border-none rounded-md cursor-pointer text-base font-semibold hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
-							>
-								{checkingOut ? "Loading..." : "Upgrade to Pro"}
-							</button>
-						</div>
-					)}
-				</div>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+			{/* Card 3: Manage Subscription / Upgrade */}
+			{!isPro && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Available Plans</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{products === undefined && (
+							<p className="text-foreground/60">Loading products...</p>
+						)}
+
+						{products && products.length === 0 && (
+							<div className="space-y-3">
+								<Card className="border-chart-2 bg-chart-2/10">
+									<CardContent className="py-3">
+										<p className="text-sm">
+											No products found. Click below to sync products from
+											Polar.
+										</p>
+									</CardContent>
+								</Card>
+								<Button
+									onClick={handleSyncProducts}
+									disabled={syncing}
+									variant="default"
+									className="w-full"
+								>
+									{syncing ? "Syncing..." : "Sync Products from Polar"}
+								</Button>
+							</div>
+						)}
+
+						{products && products.length > 0 && (
+							<div className="space-y-4">
+								{products.map((product) => (
+									<Card key={product.id}>
+										<CardHeader>
+											<CardTitle>{product.name}</CardTitle>
+											<CardDescription>
+												{product.prices.map((price) => (
+													<span key={price.id}>
+														${(price.priceAmount ?? 0) / 100}/
+														{price.recurringInterval}
+													</span>
+												))}
+											</CardDescription>
+										</CardHeader>
+									</Card>
+								))}
+								<Button
+									onClick={handleUpgrade}
+									disabled={checkingOut}
+									className="w-full"
+								>
+									{checkingOut ? "Loading..." : "Upgrade to Pro"}
+								</Button>
+							</div>
+						)}
+					</CardContent>
+				</Card>
 			)}
 
 			{isPro && (
-				<div>
-					<p className="mb-3">Thank you for being a Pro member! 🎉</p>
-					<CustomerPortalLink
-						polarApi={{
-							generateCustomerPortalUrl: api.polar.generateCustomerPortalUrl,
-						}}
-						className="px-5 py-2.5 bg-violet-500 text-white border-none rounded-md cursor-pointer text-base font-semibold no-underline inline-block hover:bg-violet-600"
-					>
-						Manage Subscription
-					</CustomerPortalLink>
-				</div>
+				<Card>
+					<CardContent>
+						<Button variant="default" className="w-full" asChild>
+							<CustomerPortalLink
+								polarApi={{
+									generateCustomerPortalUrl:
+										api.polar.generateCustomerPortalUrl,
+								}}
+							>
+								Manage Subscription
+							</CustomerPortalLink>
+						</Button>
+					</CardContent>
+				</Card>
 			)}
 		</div>
 	);
