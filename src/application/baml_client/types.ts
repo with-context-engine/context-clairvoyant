@@ -121,6 +121,7 @@ export interface MemoryContext {
 export interface MemoryContextLite {
   userName?: string | null
   userFacts: string[]
+  deductiveFacts: string[]
   
 }
 

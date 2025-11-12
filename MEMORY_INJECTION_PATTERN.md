@@ -4,11 +4,12 @@ This document describes the pattern for adding proactive memory recall to tool h
 
 ## Overview
 
-The pattern enables tools (like Weather, Maps, Web Search) to access user memory and weave relevant personal context into their responses naturally.
+The pattern enables tools (like Weather, Maps, Web Search) to access user memory and weave relevant personal context into their responses naturally. It leverages both biographical facts (peerCard) and deductive conclusions (from peerRepresentation) to create personalized, context-aware responses.
 
 **Example**: Weather response that knows your name and preferences:
 - Without memory: "Today's vibe: 9/10, sunny with a breeze feels nice!"
-- With memory: "Today's vibe: 9/10, Ajay - perfect for your morning run!"
+- With memory (biographical): "Today's vibe: 9/10, Ajay - perfect for your morning run!"
+- With memory (deductive): "Today's vibe: 9/10, Ajay - chilly but you like cold weather!"
 
 ## Implementation Reference: Weather Handler
 
@@ -41,7 +42,7 @@ import { checkUserIsPro, convexClient } from "../core/convex";
 import { api } from "../../../convex/_generated/api";
 
 // Fetch memory context if available
-let memoryContext: { userName?: string; userFacts: string[] } | null = null;
+let memoryContext: { userName?: string; userFacts: string[]; deductiveFacts: string[] } | null = null;
 if (memorySession && peers) {
   try {
     const isPro = await checkUserIsPro(mentraUserId);
@@ -61,15 +62,42 @@ if (memorySession && peers) {
             lastUserMessage: "your-tool-name", // e.g., "weather", "maps", "search"
           }) as {
             peerCard: string[];
+            peerRepresentation: string;
           };
+
+          // Parse peerRepresentation JSON for explicit and deductive facts
+          let peerRep: {
+            explicit: Array<{ content: string }>;
+            deductive: Array<{ conclusion: string; premises: string[] }>;
+          };
+          try {
+            peerRep = JSON.parse(contextData.peerRepresentation);
+          } catch (error) {
+            session.logger.error(
+              `[Clairvoyant] Error parsing peerRepresentation: ${error}`,
+            );
+            peerRep = { explicit: [], deductive: [] };
+          }
 
           // Extract name and relevant facts from peerCard
           const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
           const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
           
+          // Extract tool-relevant deductive conclusions
+          // Customize filter keywords based on your tool (e.g., "weather", "location", "preference")
+          const toolRelatedDeductions = peerRep.deductive
+            .map((d) => d.conclusion)
+            .filter((conclusion: string) => 
+              conclusion.toLowerCase().includes("keyword1") ||  // Replace with tool-specific keywords
+              conclusion.toLowerCase().includes("keyword2") ||
+              conclusion.toLowerCase().includes("preference")
+            )
+            .slice(0, 2); // Limit to top 2 relevant deductions
+          
           memoryContext = {
             userName,
             userFacts: relevantFacts,
+            deductiveFacts: toolRelatedDeductions,
           };
           session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
         }
@@ -89,6 +117,7 @@ Add a `MemoryContextLite` class and optional memory parameter to your BAML funct
 class MemoryContextLite {
   userName string? @description("User's name if known")
   userFacts string[] @description("Relevant biographical facts about the user")
+  deductiveFacts string[] @description("Relevant deductive conclusions about the user's preferences and behaviors")
 }
 
 function YourToolFormatter(
@@ -100,10 +129,13 @@ function YourToolFormatter(
   prompt #"
   Your existing prompt...
   
-  {% if memory and (memory.userName or memory.userFacts|length > 0) %}
+  {% if memory and (memory.userName or memory.userFacts|length > 0 or memory.deductiveFacts|length > 0) %}
   User Context (weave naturally if relevant):
   {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
   {% for fact in memory.userFacts %}
+  - {{ fact }}
+  {% endfor %}
+  {% for fact in memory.deductiveFacts %}
   - {{ fact }}
   {% endfor %}
   {% endif %}
@@ -154,10 +186,11 @@ bunx baml-cli test -i "YourToolFormatter::"
 ## Key Design Principles
 
 1. **Graceful Degradation**: Memory injection is optional - if no memory exists or fetching fails, the tool still works normally
-2. **Lightweight Context**: Use `peerCard` only (biographical summary) rather than full context retrieval to minimize latency
-3. **Subtle Integration**: Let the LLM weave memories naturally - don't force them into every response
-4. **Privacy-First**: Only Pro users get memory features; check `isPro` status before fetching
-5. **Error Handling**: Wrap memory fetching in try-catch; log warnings but don't fail the tool
+2. **Rich Context**: Use both `peerCard` (biographical summary) and `peerRepresentation` (deductive conclusions) for deeper personalization
+3. **Tool-Specific Filtering**: Filter deductive conclusions by relevance to your tool (e.g., weather preferences for weather tool)
+4. **Subtle Integration**: Let the LLM weave memories naturally - don't force them into every response
+5. **Privacy-First**: Only Pro users get memory features; check `isPro` status before fetching
+6. **Error Handling**: Wrap memory fetching and JSON parsing in try-catch; log warnings but don't fail the tool
 
 ## Memory Context Structure
 
@@ -174,12 +207,30 @@ The `peerCard` is an array of biographical facts:
 ]
 ```
 
+### peerRepresentation Format
+The `peerRepresentation` is a JSON string containing explicit and deductive facts:
+```typescript
+{
+  explicit: [
+    { content: "User's name is Ajay Bhargava" },
+    { content: "User stated they are from Canada" }
+  ],
+  deductive: [
+    { 
+      conclusion: "User likes cold weather because they are from Canada",
+      premises: ["User stated they are from Canada", "Canadians like cold weather"]
+    }
+  ]
+}
+```
+
 ### Extracted Context
 We extract and normalize to:
 ```typescript
 {
-  userName?: string,        // e.g., "Ajay Bhargava"
-  userFacts: string[]      // e.g., ["Age: 37", "Location: San Francisco"]
+  userName?: string,           // e.g., "Ajay Bhargava"
+  userFacts: string[],        // e.g., ["Age: 37", "Location: San Francisco"]
+  deductiveFacts: string[]    // e.g., ["User likes cold weather because they are from Canada"]
 }
 ```
 
@@ -198,26 +249,37 @@ Current temp is 23.9°C, clear skies with low humidity.
 Tomorrow brings rain, so enjoy today while you can!
 ```
 
-### Weather With Memory
+### Weather With Memory (Biographical)
 ```
-Today's vibe: 9/10, Ajay - perfect for your morning run!
-Current temp is 23.9°C, clear skies with low humidity.
-Remember you mentioned liking this kind of weather!
+Today's weather gets a 6/10 vibe rating, not great, right?
+It's 18°C with light rain, so grab your raincoats.
+Perfect day for indoor fun with your daughters, Sarah!
 ```
+
+### Weather With Memory (Deductive Conclusions)
+```
+Weather's a 7/10, vibe's chilly with light snow vibes.
+Currently 2°C but feels like -3°C, busy little snowflakes.
+Perfect time for a warm drink, embrace your Canadian roots!
+```
+*Uses deductive fact: "User likes cold weather because they are from Canada"*
 
 ## Applying to Other Tools
 
 ### Maps Handler
-- Personalize location suggestions based on past preferences
-- Reference previously saved favorite places
+- **Biographical facts**: Use location history, home address
+- **Deductive conclusions**: "User prefers outdoor restaurants", "User avoids busy areas"
+- **Example keywords**: `location`, `place`, `restaurant`, `prefer`, `avoid`
 
 ### Web Search Handler
-- Tailor results based on user's interests from memory
-- Reference related topics the user has mentioned
+- **Biographical facts**: Occupation, interests from peerCard
+- **Deductive conclusions**: "User is interested in AI because they work in tech", "User prefers technical documentation"
+- **Example keywords**: `interest`, `work`, `technology`, `prefer`, `like`
 
 ### Knowledge Handler
-- Connect new knowledge to user's existing context
-- Personalize explanations based on user's background
+- **Biographical facts**: Education, background, expertise
+- **Deductive conclusions**: "User has experience with Python", "User learns visually"
+- **Example keywords**: `experience`, `knowledge`, `background`, `learn`, `understand`
 
 ## Testing Strategy
 

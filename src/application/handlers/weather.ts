@@ -88,7 +88,7 @@ export async function startWeatherFlow(
 			}
 
 			// Fetch memory context if available
-			let memoryContext: { userName?: string; userFacts: string[] } | null = null;
+			let memoryContext: { userName?: string; userFacts: string[]; deductiveFacts: string[] } | null = null;
 			if (memorySession && peers) {
 				try {
 					const isPro = await checkUserIsPro(mentraUserId);
@@ -108,15 +108,43 @@ export async function startWeatherFlow(
 									lastUserMessage: "weather",
 								}) as {
 									peerCard: string[];
+									peerRepresentation: string;
 								};
+
+								// Parse peerRepresentation JSON for explicit and deductive facts
+								let peerRep: {
+									explicit: Array<{ content: string }>;
+									deductive: Array<{ conclusion: string; premises: string[] }>;
+								};
+								try {
+									peerRep = JSON.parse(contextData.peerRepresentation);
+								} catch (error) {
+									session.logger.error(
+										`[Clairvoyant] Error parsing peerRepresentation: ${error}`,
+									);
+									peerRep = { explicit: [], deductive: [] };
+								}
 
 								// Extract name and relevant facts from peerCard
 								const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
 								const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
 								
+								// Extract weather-relevant deductive conclusions (e.g., preferences about weather)
+								const weatherRelatedDeductions = peerRep.deductive
+									.map((d) => d.conclusion)
+									.filter((conclusion: string) => 
+										conclusion.toLowerCase().includes("weather") ||
+										conclusion.toLowerCase().includes("cold") ||
+										conclusion.toLowerCase().includes("hot") ||
+										conclusion.toLowerCase().includes("rain") ||
+										conclusion.toLowerCase().includes("sun")
+									)
+									.slice(0, 2); // Limit to top 2 relevant deductions
+								
 								memoryContext = {
 									userName,
 									userFacts: relevantFacts,
+									deductiveFacts: weatherRelatedDeductions,
 								};
 								session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
 							}

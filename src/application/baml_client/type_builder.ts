@@ -41,7 +41,7 @@ export default class TypeBuilder {
     
     MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages">;
     
-    MemoryContextLite: ClassViewer<'MemoryContextLite', "userName" | "userFacts">;
+    MemoryContextLite: ClassViewer<'MemoryContextLite', "userName" | "userFacts" | "deductiveFacts">;
     
     MemoryRecall: ClassViewer<'MemoryRecall', "query" | "results">;
     
@@ -109,7 +109,7 @@ export default class TypeBuilder {
         ]);
         
         this.MemoryContextLite = this.tb.classViewer("MemoryContextLite", [
-          "userName","userFacts",
+          "userName","userFacts","deductiveFacts",
         ]);
         
         this.MemoryRecall = this.tb.classViewer("MemoryRecall", [

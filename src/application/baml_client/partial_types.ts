@@ -87,6 +87,7 @@ export namespace partial_types {
     export interface MemoryContextLite {
       userName?: string | null
       userFacts: string[]
+      deductiveFacts: string[]
     }
     export interface MemoryRecall {
       query?: string | null
