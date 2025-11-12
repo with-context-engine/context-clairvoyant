@@ -63,6 +63,7 @@
 		"jose": "^6.1.0",
 		"jsonwebtoken": "^9.0.2",
 		"lucide-react": "^0.553.0",
+		"motion": "^12.23.24",
 		"openai": "^5.23.2",
 		"react": "^18.3.1",
 		"react-day-picker": "^9.11.1",
