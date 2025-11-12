@@ -4,39 +4,11 @@ import { ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
+import { getTimeAgo } from "../core/utils";
 import { MemoryCapture } from "./memory";
 import { api } from "../../../convex/_generated/api";
 
 const knowledgeRunIds = new WeakMap<AppSession, number>();
-
-function getTimeAgo(timestamp: string): string {
-	try {
-		const now = new Date();
-		const then = new Date(timestamp);
-		const diffMs = now.getTime() - then.getTime();
-		const diffMins = Math.floor(diffMs / 60000);
-		const diffHours = Math.floor(diffMs / 3600000);
-		const diffDays = Math.floor(diffMs / 86400000);
-
-		if (diffMins < 60) {
-			return diffMins <= 1 ? "just now" : `${diffMins} minutes ago`;
-		}
-		if (diffHours < 24) {
-			return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
-		}
-		if (diffDays < 7) {
-			return diffDays === 1 ? "yesterday" : `${diffDays} days ago`;
-		}
-		if (diffDays < 30) {
-			const weeks = Math.floor(diffDays / 7);
-			return weeks === 1 ? "last week" : `${weeks} weeks ago`;
-		}
-		const months = Math.floor(diffDays / 30);
-		return months === 1 ? "last month" : `${months} months ago`;
-	} catch {
-		return "recently";
-	}
-}
 
 export async function startKnowledgeFlow(
 	query: string,
