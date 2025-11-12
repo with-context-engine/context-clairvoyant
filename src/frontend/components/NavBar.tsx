@@ -1,4 +1,4 @@
-import { CreditCard, Home, MessageSquare, Settings } from "lucide-react";
+import { Home, MessageSquare, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 interface NavTab {
@@ -13,22 +13,21 @@ export function NavBar() {
 	const isActive = (path: string) => location.pathname === path;
 
 	const linkClass = (path: string) =>
-		`px-4 py-2 text-sm font-semibold rounded-base transition-all flex items-center gap-2 border-2 ${
+		`px-4 py-2 text-sm font-semibold rounded-base transition-all flex items-center justify-center gap-2 border-2 flex-1 ${
 			isActive(path)
 				? "bg-main text-main-foreground border-border translate-x-boxShadowX translate-y-boxShadowY shadow-shadow"
 				: "bg-background text-foreground border-border hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-shadow"
 		}`;
 
-	const tabs = [
+	const tabs: NavTab[] = [
 		{ path: "/", label: "Home", icon: Home },
 		{ path: "/chat", label: "Chat", icon: MessageSquare },
 		{ path: "/settings", label: "Settings", icon: Settings },
-		{ path: "/billing", label: "Billing", icon: CreditCard },
 	];
 
 	return (
 		<nav className="mb-6 border-b-2 border-border pb-4">
-			<div className="flex gap-2">
+			<div className="flex gap-2 w-full">
 				{tabs.map((tab) => {
 					const Icon = tab.icon;
 					return (

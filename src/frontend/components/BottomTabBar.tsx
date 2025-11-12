@@ -1,4 +1,4 @@
-import { CreditCard, Home, MessageSquare, Settings } from "lucide-react";
+import { Home, MessageSquare, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export function BottomTabBar() {
@@ -10,7 +10,6 @@ export function BottomTabBar() {
 		{ path: "/", label: "Home", icon: Home },
 		{ path: "/chat", label: "Chat", icon: MessageSquare },
 		{ path: "/settings", label: "Settings", icon: Settings },
-		{ path: "/billing", label: "Billing", icon: CreditCard },
 	];
 
 	return (

@@ -3,6 +3,7 @@ import { useAction, useQuery } from "convex/react";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../../convex/_generated/api";
+import { BorderBeam } from "./ui/border-beam";
 import { Button } from "./ui/button";
 import {
 	Card,
@@ -112,18 +113,19 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	return (
 		<div className="space-y-6">
 			{/* Card 1: Subscription Status */}
-			<Card>
-				<CardContent className="space-y-4">
+			<Card className="relative overflow-hidden">
+				<CardContent className="relative z-10 space-y-4">
 					<div
 						className={`w-full px-4 py-1.5 rounded-base text-sm font-bold border-2 border-border text-center ${
 							isPro
-								? "bg-chart-4 text-main-foreground"
+								? "bg-transparent text-foreground"
 								: "bg-secondary-background text-foreground"
 						}`}
 					>
 						{isPro ? "Pro Tier" : "Free Tier"}
 					</div>
 				</CardContent>
+				<BorderBeam duration={8} size={160} borderWidth={2} />
 			</Card>
 
 			{/* Animated Renewal Display */}
@@ -137,7 +139,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 								<div className="flex flex-1 flex-col items-center gap-3">
 									<div className="flex items-baseline gap-2">
 										<motion.span
-											className={`text-6xl font-heading ${
+											className={`text-6xl font-heading bg-transparent text-foreground ${
 												userWithSub.subscription.cancelAtPeriodEnd
 													? "text-chart-2"
 													: "text-chart-4"
@@ -149,7 +151,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 									<div
 										className={`w-full px-4 py-1.5 rounded-base text-sm font-bold border-2 border-border text-center ${
 											isPro
-												? "bg-chart-4 text-main-foreground"
+												? "bg-transparent text-foreground"
 												: "bg-secondary-background text-foreground"
 										}`}
 									>
@@ -187,7 +189,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 								<Button
 									onClick={handleSyncProducts}
 									disabled={syncing}
-									variant="default"
+									variant="neutral"
 									className="w-full"
 								>
 									{syncing ? "Syncing..." : "Sync Products from Polar"}
@@ -215,6 +217,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 								<Button
 									onClick={handleUpgrade}
 									disabled={checkingOut}
+									variant="neutral"
 									className="w-full"
 								>
 									{checkingOut ? "Loading..." : "Upgrade to Pro"}
@@ -228,7 +231,11 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 			{isPro && (
 				<Card>
 					<CardContent>
-						<Button variant="default" className="w-full" asChild>
+						<Button
+							variant="neutral"
+							className="w-full bg-transparent text-foreground"
+							asChild
+						>
 							<CustomerPortalLink
 								polarApi={{
 									generateCustomerPortalUrl:
