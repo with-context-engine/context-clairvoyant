@@ -181,7 +181,7 @@ export function ToolUsageChart({
 				</div>
 			)}
 
-			<div className="h-[300px] w-full">
+			<div className="w-full">
 				{isChartLoading ? (
 					<div className="flex h-full items-center justify-center text-sm text-muted-foreground">
 						{loadingText}
@@ -194,7 +194,7 @@ export function ToolUsageChart({
 					<ChartContainer config={chartMemo.config}>
 						<BarChart
 							data={chartMemo.data}
-							margin={{ left: 12, right: 12 }}
+							margin={{ left: 12, right: 12, top: 12, bottom: 12 }}
 							barCategoryGap="20%"
 						>
 							<CartesianGrid vertical={false} />

@@ -1,14 +1,7 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { ToolUsageChart } from "./charts/ToolUsageChart";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { WeatherUnitToggle } from "./WeatherUnitToggle";
 
 export function SettingsPage({ userId }: { userId: Id<"users"> }) {
@@ -42,18 +35,6 @@ export function SettingsPage({ userId }: { userId: Id<"users"> }) {
 						value={preferences.weatherUnit as "C" | "F"}
 						onSave={handleSaveUnit}
 					/>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>Tool usage</CardTitle>
-					<CardDescription>
-						Track how often each tool is invoked over time.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<ToolUsageChart userId={userId} />
 				</CardContent>
 			</Card>
 		</div>
