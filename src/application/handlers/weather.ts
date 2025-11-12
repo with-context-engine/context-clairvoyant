@@ -3,6 +3,7 @@ import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
 import { checkUserIsPro, convexClient, getUserPreferences } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
+import { getTimeAgo } from "../core/utils";
 import { getWeatherData } from "../tools/weatherCall";
 import { api } from "../../../convex/_generated/api";
 
@@ -109,6 +110,7 @@ export async function startWeatherFlow(
 								}) as {
 									peerCard: string[];
 									peerRepresentation: string;
+									messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
 								};
 
 								// Parse peerRepresentation JSON for explicit and deductive facts
@@ -140,11 +142,31 @@ export async function startWeatherFlow(
 										conclusion.toLowerCase().includes("sun")
 									)
 									.slice(0, 2); // Limit to top 2 relevant deductions
+
+								// Extract recent weather queries with timestamps
+								const recentMessages = contextData.messages || [];
+								const weatherPattern = /weather|temperature|forecast|rain|snow|sun|cold|hot/i;
+								const recentWeatherQueries = recentMessages
+									.filter(msg => weatherPattern.test(msg.content))
+									.slice(-5) // Get last 5 weather-related messages
+									.map(msg => {
+										if (msg.metadata?.timestamp) {
+											const timeAgo = getTimeAgo(msg.metadata.timestamp);
+											return `Asked about weather "${msg.content.slice(0, 40)}${msg.content.length > 40 ? '...' : ''}" ${timeAgo}`;
+										}
+										return null;
+									})
+									.filter(Boolean) as string[];
+
+								// Combine deductions with temporal information
+								const deductionsWithTiming = weatherRelatedDeductions.concat(
+									recentWeatherQueries.slice(0, 1) // Add up to 1 recent weather query timestamp
+								);
 								
 								memoryContext = {
 									userName,
 									userFacts: relevantFacts,
-									deductiveFacts: weatherRelatedDeductions,
+									deductiveFacts: deductionsWithTiming,
 								};
 								session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
 							}
