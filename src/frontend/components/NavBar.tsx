@@ -1,6 +1,12 @@
 import { CreditCard, Home, MessageSquare, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
+interface NavTab {
+	label: string;
+	path: string;
+	icon: React.ComponentType<{ className?: string }>;
+}
+
 export function NavBar() {
 	const location = useLocation();
 
