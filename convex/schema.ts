@@ -11,4 +11,12 @@ export default defineSchema({
 		weatherUnit: v.string(),
 		defaultLocation: v.optional(v.string()),
 	}).index("by_user", ["userId"]),
+	toolInvocations: defineTable({
+		userId: v.id("users"),
+		router: v.string(),
+		count: v.number(),
+		date: v.string(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_user_router_date", ["userId", "router", "date"]),
 });

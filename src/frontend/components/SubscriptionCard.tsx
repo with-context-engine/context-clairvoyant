@@ -24,7 +24,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 	const [checkingOut, setCheckingOut] = useState(false);
 
 	// Animation hooks - must be called before any early returns
-	const [daysUntilRenewal, setDaysUntilRenewal] = useState(0);
+	const [_daysUntilRenewal, setDaysUntilRenewal] = useState(0);
 	const count = useMotionValue(0);
 	const rounded = useTransform(count, (latest) => Math.round(latest));
 
@@ -113,9 +113,6 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 		<div className="space-y-6">
 			{/* Card 1: Subscription Status */}
 			<Card>
-				<CardHeader>
-					<CardTitle>Subscription Status</CardTitle>
-				</CardHeader>
 				<CardContent className="space-y-4">
 					<div
 						className={`w-full px-4 py-1.5 rounded-base text-sm font-bold border-2 border-border text-center ${
@@ -230,9 +227,6 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 
 			{isPro && (
 				<Card>
-					<CardHeader>
-						<CardTitle>Manage Subscription</CardTitle>
-					</CardHeader>
 					<CardContent>
 						<Button variant="default" className="w-full" asChild>
 							<CustomerPortalLink

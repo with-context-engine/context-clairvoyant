@@ -72,7 +72,12 @@ export function App() {
 					
 					<div className={isMobile ? "p-5 pb-8" : ""}>
 						<Routes>
-							<Route path="/" element={<HomePage />} />
+							<Route
+								path="/"
+								element={
+									<HomePage userId={authState.convexUserId as Id<"users">} />
+								}
+							/>
 							<Route path="/chat" element={<ChatPage />} />
 							<Route
 								path="/settings"

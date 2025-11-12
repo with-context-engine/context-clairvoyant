@@ -1,3 +1,5 @@
+import type { Id } from "../../../convex/_generated/dataModel";
+import { ToolUsageChart } from "./charts/ToolUsageChart";
 import {
 	Card,
 	CardContent,
@@ -6,7 +8,7 @@ import {
 	CardTitle,
 } from "./ui/card";
 
-export function HomePage() {
+export function HomePage({ userId }: { userId: Id<"users"> }) {
 	return (
 		<div className="space-y-6">
 			<div>
@@ -20,7 +22,7 @@ export function HomePage() {
 				<CardHeader>
 					<CardTitle>Features</CardTitle>
 					<CardDescription>
-						Clairvoyant brings powerful AI capabilities to your smart glasses
+						Clairvoyant brings powerful AI capabilities to your smart glasses.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -45,12 +47,19 @@ export function HomePage() {
 				</CardContent>
 			</Card>
 
-			<Card className="border-main">
-				<CardContent className="py-6">
-					<p className="text-sm">
-						💡 <strong>Tip:</strong> Use the Settings page to customize your
-						weather unit preference (Celsius or Fahrenheit).
-					</p>
+			<Card>
+				<CardHeader>
+					<CardTitle>Recent tool usage</CardTitle>
+					<CardDescription>
+						See what you’ve used most this week.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<ToolUsageChart
+						userId={userId}
+						defaultTimeframe={7}
+						showControls={false}
+					/>
 				</CardContent>
 			</Card>
 		</div>
