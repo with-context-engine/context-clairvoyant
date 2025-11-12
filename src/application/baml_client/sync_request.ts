@@ -22,7 +22,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -163,7 +163,7 @@ export class HttpRequest {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,unit: string,
+      input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -174,7 +174,7 @@ export class HttpRequest {
       return this.runtime.buildRequestSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input,"unit": unit
+          "input": input,"unit": unit,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -344,7 +344,7 @@ export class HttpStreamRequest {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,unit: string,
+      input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -355,7 +355,7 @@ export class HttpStreamRequest {
       return this.runtime.buildRequestSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input,"unit": unit
+          "input": input,"unit": unit,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),

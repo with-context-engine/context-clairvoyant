@@ -60,7 +60,12 @@ class WeatherLines {
   lines string[]
 }
 
-function SummarizeWeatherFormatted(input: FormattedWeather, unit: string) -> WeatherLines {
+class MemoryContextLite {
+  userName string? @description("User's name if known")
+  userFacts string[] @description("Relevant biographical facts about the user")
+}
+
+function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory: MemoryContextLite?) -> WeatherLines {
   client "openai/gpt-4o-mini"
 
   prompt #"
@@ -70,12 +75,20 @@ function SummarizeWeatherFormatted(input: FormattedWeather, unit: string) -> Wea
   Use the data to describe the weather on a scale of 1-10 out of 10 and include the "vibe rating" of the weather.
   {{ ctx.output_format }}
 
+  {% if memory and (memory.userName or memory.userFacts|length > 0) %}
+  User Context (weave naturally if relevant):
+  {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
+  {% for fact in memory.userFacts %}
+  - {{ fact }}
+  {% endfor %}
+  {% endif %}
+
   Style rules:
   - You are only allowed to print 3 lines in the list output. 
   - Each line can be a continuation of the previous line.
   - The first line should be the scale and the vibe rating.
   - The second line should be the current weather.
-  - The third line should be the alert if there is one.
+  - The third line should be the alert if there is one OR a personalized insight based on user context.
 
   Data (verbatim):
   Location:

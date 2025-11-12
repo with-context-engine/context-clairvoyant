@@ -118,6 +118,12 @@ export interface MemoryContext {
   
 }
 
+export interface MemoryContextLite {
+  userName?: string | null
+  userFacts: string[]
+  
+}
+
 export interface MemoryRecall {
   query: string
   results: AnswerLines

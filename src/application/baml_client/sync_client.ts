@@ -22,7 +22,7 @@ import type { BamlRuntime, FunctionResult, BamlCtxManager, Image, Audio, Pdf, Vi
 import { toBamlError, BamlAbortError, type HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { HttpRequest, HttpStreamRequest } from "./sync_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -307,7 +307,7 @@ export class BamlSyncClient {
   }
   
   SummarizeWeatherFormatted(
-      input: types.FormattedWeather,unit: string,
+      input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): types.WeatherLines {
     try {
@@ -331,7 +331,7 @@ export class BamlSyncClient {
       const raw = this.runtime.callFunctionSync(
         "SummarizeWeatherFormatted",
         {
-          "input": input,"unit": unit
+          "input": input,"unit": unit,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         options.tb?.__tb(),

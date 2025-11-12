@@ -25,7 +25,7 @@ export async function handleTranscription(
 		case Router.WEATHER:
 			session.logger.info(`[Clairvoyant] Weather route: starting async flow`);
 			void recordToolInvocation(mentraUserId, Router.WEATHER);
-			void startWeatherFlow(session);
+			void startWeatherFlow(session, memorySession, peers);
 			return;
 
 		case Router.MAPS:

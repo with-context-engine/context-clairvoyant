@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector } from "@boundaryml/
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -337,7 +337,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async SummarizeWeatherFormatted(
-        input: types.FormattedWeather,unit: string,
+        input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.WeatherLines> {
           try {
@@ -351,7 +351,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.SummarizeWeatherFormatted(
-          input,unit,
+          input,unit,memory,
           __baml_options__
           );
 
@@ -367,7 +367,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "SummarizeWeatherFormatted",
             {
-            "input": input,"unit": unit
+            "input": input,"unit": unit,"memory": memory?? null
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -777,7 +777,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             SummarizeWeatherFormatted(
-            input: types.FormattedWeather,unit: string,
+            input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.WeatherLines, types.WeatherLines>
               {
@@ -818,7 +818,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "SummarizeWeatherFormatted",
                 {
-                "input": input,"unit": unit
+                "input": input,"unit": unit,"memory": memory ?? null
                 },
                 undefined,
                 this.ctxManager.cloneContext(),

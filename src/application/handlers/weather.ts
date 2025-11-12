@@ -1,12 +1,18 @@
+import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
-import { getUserPreferences } from "../core/convex";
+import { checkUserIsPro, convexClient, getUserPreferences } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getWeatherData } from "../tools/weatherCall";
+import { api } from "../../../convex/_generated/api";
 
 const weatherRunIds = new WeakMap<AppSession, number>();
 
-export async function startWeatherFlow(session: AppSession) {
+export async function startWeatherFlow(
+	session: AppSession,
+	memorySession?: Session,
+	peers?: Peer[],
+) {
 	const mentraUserId = session.userId;
 	let preferredUnit: "C" | "F" = "C";
 
@@ -81,7 +87,47 @@ export async function startWeatherFlow(session: AppSession) {
 				return;
 			}
 
-			const weatherLines = await b.SummarizeWeatherFormatted(response, preferredUnit);
+			// Fetch memory context if available
+			let memoryContext: { userName?: string; userFacts: string[] } | null = null;
+			if (memorySession && peers) {
+				try {
+					const isPro = await checkUserIsPro(mentraUserId);
+					if (isPro) {
+						const user = await convexClient.query(
+							api.polar.getCurrentUserWithSubscription,
+							{ mentraUserId },
+						);
+						if (user) {
+							const userId = user._id;
+							const diatribePeer = peers.find((peer) => peer.id === `${userId}-diatribe`);
+							
+							if (diatribePeer) {
+								session.logger.info("[Clairvoyant] Fetching memory context for weather personalization");
+								const contextData = await memorySession.getContext({
+									peerTarget: diatribePeer.id,
+									lastUserMessage: "weather",
+								}) as {
+									peerCard: string[];
+								};
+
+								// Extract name and relevant facts from peerCard
+								const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
+								const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
+								
+								memoryContext = {
+									userName,
+									userFacts: relevantFacts,
+								};
+								session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
+							}
+						}
+					}
+				} catch (error) {
+					session.logger.warn(`[Clairvoyant] Failed to fetch memory context: ${String(error)}`);
+				}
+			}
+
+			const weatherLines = await b.SummarizeWeatherFormatted(response, preferredUnit, memoryContext);
 
 			for (let i = 0; i < weatherLines.lines.length; i++) {
 				const line = weatherLines.lines[i];
