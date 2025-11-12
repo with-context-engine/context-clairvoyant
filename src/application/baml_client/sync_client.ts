@@ -97,7 +97,7 @@ export class BamlSyncClient {
 
   
   AnswerQuestion(
-      text: string,
+      text: string,memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): types.QuestionAnalysisResponse {
     try {
@@ -121,7 +121,7 @@ export class BamlSyncClient {
       const raw = this.runtime.callFunctionSync(
         "AnswerQuestion",
         {
-          "text": text
+          "text": text,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         options.tb?.__tb(),

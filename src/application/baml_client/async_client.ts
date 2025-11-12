@@ -97,7 +97,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
         
         async AnswerQuestion(
-        text: string,
+        text: string,memory?: types.MemoryContextLite | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QuestionAnalysisResponse> {
           try {
@@ -111,7 +111,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.AnswerQuestion(
-          text,
+          text,memory,
           __baml_options__
           );
 
@@ -127,7 +127,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "AnswerQuestion",
             {
-            "text": text
+            "text": text,"memory": memory?? null
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -447,7 +447,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
             
             AnswerQuestion(
-            text: string,
+            text: string,memory?: types.MemoryContextLite | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QuestionAnalysisResponse, types.QuestionAnalysisResponse>
               {
@@ -488,7 +488,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "AnswerQuestion",
                 {
-                "text": text
+                "text": text,"memory": memory ?? null
                 },
                 undefined,
                 this.ctxManager.cloneContext(),

@@ -60,12 +60,6 @@ class WeatherLines {
   lines string[]
 }
 
-class MemoryContextLite {
-  userName string? @description("User's name if known")
-  userFacts string[] @description("Relevant biographical facts about the user")
-  deductiveFacts string[] @description("Relevant deductive conclusions about the user's preferences and behaviors")
-}
-
 function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory: MemoryContextLite?) -> WeatherLines {
   client "openai/gpt-4o-mini"
 
