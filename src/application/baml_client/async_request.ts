@@ -23,7 +23,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryRecall, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -167,7 +167,7 @@ env?: Record<string, string | undefined>
       }
       
   async SummarizeWeatherFormatted(
-  input: types.FormattedWeather,
+  input: types.FormattedWeather,unit: string,
   __baml_options__?: BamlCallOptions<never>
   ): Promise<HTTPRequest> {
     try {
@@ -178,7 +178,32 @@ env?: Record<string, string | undefined>
       return await this.runtime.buildRequest(
       "SummarizeWeatherFormatted",
       {
-      "input": input
+      "input": input,"unit": unit
+      },
+      this.ctxManager.cloneContext(),
+      __baml_options__?.tb?.__tb(),
+      __baml_options__?.clientRegistry,
+      false,
+      env
+      )
+      } catch (error) {
+      throw toBamlError(error);
+      }
+      }
+      
+  async SynthesizeMemory(
+  query: string,context: types.MemoryContext,
+  __baml_options__?: BamlCallOptions<never>
+  ): Promise<HTTPRequest> {
+    try {
+    const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+    const env: Record<string, string> = Object.fromEntries(
+      Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return await this.runtime.buildRequest(
+      "SynthesizeMemory",
+      {
+      "query": query,"context": context
       },
       this.ctxManager.cloneContext(),
       __baml_options__?.tb?.__tb(),
@@ -323,7 +348,7 @@ env?: Record<string, string | undefined>
           }
           
       async SummarizeWeatherFormatted(
-      input: types.FormattedWeather,
+      input: types.FormattedWeather,unit: string,
       __baml_options__?: BamlCallOptions<never>
       ): Promise<HTTPRequest> {
         try {
@@ -334,7 +359,32 @@ env?: Record<string, string | undefined>
           return await this.runtime.buildRequest(
           "SummarizeWeatherFormatted",
           {
-          "input": input
+          "input": input,"unit": unit
+          },
+          this.ctxManager.cloneContext(),
+          __baml_options__?.tb?.__tb(),
+          __baml_options__?.clientRegistry,
+          true,
+          env
+          )
+          } catch (error) {
+          throw toBamlError(error);
+          }
+          }
+          
+      async SynthesizeMemory(
+      query: string,context: types.MemoryContext,
+      __baml_options__?: BamlCallOptions<never>
+      ): Promise<HTTPRequest> {
+        try {
+        const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+        const env: Record<string, string> = Object.fromEntries(
+          Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+          );
+          return await this.runtime.buildRequest(
+          "SynthesizeMemory",
+          {
+          "query": query,"context": context
           },
           this.ctxManager.cloneContext(),
           __baml_options__?.tb?.__tb(),

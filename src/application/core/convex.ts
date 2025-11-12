@@ -21,14 +21,29 @@ export async function getUserPreferences(mentraUserId: string) {
 
 export async function checkUserIsPro(mentraUserId: string): Promise<boolean> {
 	try {
-		const user = await client.query(
-			api.polar.getCurrentUserWithSubscription,
-			{ mentraUserId },
-		);
+		const user = await client.query(api.polar.getCurrentUserWithSubscription, {
+			mentraUserId,
+		});
 		return user?.isPro ?? false;
 	} catch (error) {
 		console.error("[Convex] Failed to check Pro status:", error);
 		return false;
+	}
+}
+
+export async function recordToolInvocation(
+	mentraUserId: string,
+	router: string,
+	date?: string,
+) {
+	try {
+		await client.mutation(api.toolInvocations.increment, {
+			mentraUserId,
+			router,
+			date,
+		});
+	} catch (error) {
+		console.error("[Convex] Failed to record tool invocation:", error);
 	}
 }
 

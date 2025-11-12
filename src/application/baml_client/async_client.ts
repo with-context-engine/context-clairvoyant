@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector } from "@boundaryml/
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryRecall, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -337,7 +337,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async SummarizeWeatherFormatted(
-        input: types.FormattedWeather,
+        input: types.FormattedWeather,unit: string,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.WeatherLines> {
           try {
@@ -351,7 +351,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.SummarizeWeatherFormatted(
-          input,
+          input,unit,
           __baml_options__
           );
 
@@ -367,7 +367,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "SummarizeWeatherFormatted",
             {
-            "input": input
+            "input": input,"unit": unit
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -379,6 +379,54 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.watchers,
             )
             return raw.parsed(false) as types.WeatherLines
+            } catch (error) {
+            throw toBamlError(error);
+            }
+            }
+            
+        async SynthesizeMemory(
+        query: string,context: types.MemoryContext,
+        __baml_options__?: BamlCallOptions<never>
+        ): Promise<types.MemorySynthesisLines> {
+          try {
+          const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+          const signal = options.signal;
+
+          if (signal?.aborted) {
+          throw new BamlAbortError('Operation was aborted', signal.reason);
+          }
+
+          // Check if onTick is provided - route through streaming if so
+          if (options.onTick) {
+          const stream = this.stream.SynthesizeMemory(
+          query,context,
+          __baml_options__
+          );
+
+          return await stream.getFinalResponse();
+          }
+
+          const collector = options.collector ? (Array.isArray(options.collector) ? options.collector :
+          [options.collector]) : [];
+          const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+          const env: Record<string, string> = Object.fromEntries(
+            Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+            );
+            const raw = await this.runtime.callFunction(
+            "SynthesizeMemory",
+            {
+            "query": query,"context": context
+            },
+            this.ctxManager.cloneContext(),
+            options.tb?.__tb(),
+            options.clientRegistry,
+            collector,
+            options.tags || {},
+            env,
+            signal,
+            options.watchers,
+            )
+            return raw.parsed(false) as types.MemorySynthesisLines
             } catch (error) {
             throw toBamlError(error);
             }
@@ -729,7 +777,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             SummarizeWeatherFormatted(
-            input: types.FormattedWeather,
+            input: types.FormattedWeather,unit: string,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.WeatherLines, types.WeatherLines>
               {
@@ -770,7 +818,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "SummarizeWeatherFormatted",
                 {
-                "input": input
+                "input": input,"unit": unit
                 },
                 undefined,
                 this.ctxManager.cloneContext(),
@@ -786,6 +834,72 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   raw,
                   (a): partial_types.WeatherLines => a,
                   (a): types.WeatherLines => a,
+                  this.ctxManager.cloneContext(),
+                  options.signal,
+                  )
+                  } catch (error) {
+                  throw toBamlError(error);
+                  }
+                  }
+                  
+            SynthesizeMemory(
+            query: string,context: types.MemoryContext,
+            __baml_options__?: BamlCallOptions<never>
+            ): BamlStream<partial_types.MemorySynthesisLines, types.MemorySynthesisLines>
+              {
+              try {
+              const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+              const signal = options.signal;
+
+              if (signal?.aborted) {
+              throw new BamlAbortError('Operation was aborted', signal.reason);
+              }
+
+              let collector = options.collector ? (Array.isArray(options.collector) ? options.collector :
+              [options.collector]) : [];
+
+              let onTickWrapper: (() => void) | undefined;
+
+              // Create collector and wrap onTick if provided
+              if (options.onTick) {
+              const tickCollector = new Collector("on-tick-collector");
+              collector = [...collector, tickCollector];
+
+              onTickWrapper = () => {
+              const log = tickCollector.last;
+              if (log) {
+              try {
+              options.onTick!("Unknown", log);
+              } catch (error) {
+              console.error("Error in onTick callback for SynthesizeMemory", error);
+              }
+              }
+              };
+              }
+
+              const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+              const env: Record<string, string> = Object.fromEntries(
+                Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+                );
+                const raw = this.runtime.streamFunction(
+                "SynthesizeMemory",
+                {
+                "query": query,"context": context
+                },
+                undefined,
+                this.ctxManager.cloneContext(),
+                options.tb?.__tb(),
+                options.clientRegistry,
+                collector,
+                options.tags || {},
+                env,
+                signal,
+                onTickWrapper,
+                )
+                return new BamlStream<partial_types.MemorySynthesisLines, types.MemorySynthesisLines>(
+                  raw,
+                  (a): partial_types.MemorySynthesisLines => a,
+                  (a): types.MemorySynthesisLines => a,
                   this.ctxManager.cloneContext(),
                   options.signal,
                   )

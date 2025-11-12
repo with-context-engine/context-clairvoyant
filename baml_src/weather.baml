@@ -60,7 +60,7 @@ class WeatherLines {
   lines string[]
 }
 
-function SummarizeWeatherFormatted(input: FormattedWeather) -> WeatherLines {
+function SummarizeWeatherFormatted(input: FormattedWeather, unit: string) -> WeatherLines {
   client "openai/gpt-4o-mini"
 
   prompt #"
@@ -81,8 +81,13 @@ function SummarizeWeatherFormatted(input: FormattedWeather) -> WeatherLines {
   Location:
     timezone="{{ input.location.timezone }}"
   Now:
+    {% if unit == "C" %}
+    temp_c={{ input.current.temperature }}
+    feels_c={{ input.current.feels_like }}
+    {% else %}
     temp_f={{ input.current.temperature }}
     feels_f={{ input.current.feels_like }}
+    {% endif %}
     desc="{{ input.current.conditions.description }}"
     wind_ms={{ input.current.wind_speed }}
     wind_deg={{ input.current.wind_direction }}
@@ -92,15 +97,25 @@ function SummarizeWeatherFormatted(input: FormattedWeather) -> WeatherLines {
     visibility_m={{ input.current.visibility }}
   Today:
     date="{{ input.daily_forecast[0].date if input.daily_forecast|length > 0 else "" }}"
+    {% if unit == "C" %}
+    min_c={{ input.daily_forecast[0].temperature.min if input.daily_forecast|length > 0 else 0 }}
+    max_c={{ input.daily_forecast[0].temperature.max if input.daily_forecast|length > 0 else 0 }}
+    {% else %}
     min_f={{ input.daily_forecast[0].temperature.min if input.daily_forecast|length > 0 else 0 }}
     max_f={{ input.daily_forecast[0].temperature.max if input.daily_forecast|length > 0 else 0 }}
+    {% endif %}
     pop={{ input.daily_forecast[0].precipitation_probability if input.daily_forecast|length > 0 else 0.0 }}
     rain_mm={{ input.daily_forecast[0].rain if input.daily_forecast|length > 0 else 0.0 }}
     desc="{{ input.daily_forecast[0].summary if input.daily_forecast|length > 0 else "" }}"
   Tomorrow:
     date="{{ input.daily_forecast[1].date if input.daily_forecast|length > 1 else "" }}"
+    {% if unit == "C" %}
+    min_c={{ input.daily_forecast[1].temperature.min if input.daily_forecast|length > 1 else 0 }}
+    max_c={{ input.daily_forecast[1].temperature.max if input.daily_forecast|length > 1 else 0 }}
+    {% else %}
     min_f={{ input.daily_forecast[1].temperature.min if input.daily_forecast|length > 1 else 0 }}
     max_f={{ input.daily_forecast[1].temperature.max if input.daily_forecast|length > 1 else 0 }}
+    {% endif %}
     pop={{ input.daily_forecast[1].precipitation_probability if input.daily_forecast|length > 1 else 0.0 }}
     rain_mm={{ input.daily_forecast[1].rain if input.daily_forecast|length > 1 else 0.0 }}
     desc="{{ input.daily_forecast[1].summary if input.daily_forecast|length > 1 else "" }}"
@@ -114,7 +129,7 @@ function SummarizeWeatherFormatted(input: FormattedWeather) -> WeatherLines {
   "#
 }
 
-test test_weather_lines {
+test test_weather_lines_fahrenheit {
   functions [SummarizeWeatherFormatted]
   args {
     input {
@@ -298,6 +313,77 @@ test test_weather_lines {
           ]
         }
       ]
+      }
+       unit "F"
+  }
+}
+
+test test_weather_lines_celsius {
+  functions [SummarizeWeatherFormatted]
+  args {
+    input {
+      location {
+        lat 40.7128
+        lon -74.006
+        timezone "America/New_York"
+      }
+      current {
+        temperature 23.9
+        feels_like 23.9
+        conditions {
+          id 800
+          main "Clear"
+          description "clear sky"
+          icon "01d"
+        }
+        humidity 50
+        pressure 1013
+        wind_speed 5.5
+        wind_direction 180
+        visibility 10000
+        uv_index 6.5
+        clouds 10
+      }
+      daily_forecast [
+        {
+          date "2025-08-12T17:00:00.000Z"
+          summary "Expect a day of partly cloudy with clear spells"
+          temperature {
+            day 31.37
+            min 18.88
+            max 31.37
+            night 24.53
+          }
+          conditions {
+            id 801
+            main "Clouds"
+            description "few clouds"
+            icon "02d"
+          }
+          precipitation_probability 0
+          rain 0
+        },
+        {
+          date "2025-08-13T17:00:00.000Z"
+          summary "Expect a day of partly cloudy with rain"
+          temperature {
+            day 30.75
+            min 21.67
+            max 31.03
+            night 26.89
+          }
+          conditions {
+            id 501
+            main "Rain"
+            description "moderate rain"
+            icon "10d"
+          }
+          precipitation_probability 1
+          rain 4.89
+        }
+      ]
+      alerts []
     }
+    unit "C"
   }
 }

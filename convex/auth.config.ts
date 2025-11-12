@@ -11,6 +11,7 @@ const normalizeUrl = (value: string) => {
 const issuerCandidates = [
 	process.env.RAILWAY_PUBLIC_DOMAIN,
 	"https://with-context-engine.ngrok.dev",
+	"https://with-context-engine-api.ngrok.dev",
 ]
 	.filter(
 		(value): value is string =>

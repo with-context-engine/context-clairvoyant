@@ -110,9 +110,22 @@ export interface LocationLite {
   
 }
 
+export interface MemoryContext {
+  explicitFacts: string[]
+  deductiveFacts: string[]
+  peerCard: string[]
+  recentMessages: string[]
+  
+}
+
 export interface MemoryRecall {
   query: string
   results: AnswerLines
+  
+}
+
+export interface MemorySynthesisLines {
+  lines: string[]
   
 }
 

@@ -1,99 +1,135 @@
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { SubscriptionCard } from "./SubscriptionCard";
+import { Button } from "./ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "./ui/card";
 import { WeatherUnitToggle } from "./WeatherUnitToggle";
 
-export function SettingsPage({ userId }: { userId: Id<"users"> }) {
+type SettingsSection = "root" | "preferences" | "billing";
+
+interface SettingsPageProps {
+	userId: Id<"users">;
+	mentraUserId?: string | null;
+}
+
+export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
+	const [section, setSection] = useState<SettingsSection>("root");
 	const preferences = useQuery(api.preferences.getPreferences, { userId });
 	const updatePreferences = useMutation(api.preferences.updatePreferences);
 
-	const [localUnit, setLocalUnit] = useState<"C" | "F">("C");
-	const [hasChanges, setHasChanges] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
-	const [saveMessage, setSaveMessage] = useState<string | null>(null);
+	const handleSaveUnit = async (unit: "C" | "F") => {
+		await updatePreferences({
+			userId,
+			weatherUnit: unit,
+		});
+		console.log(`Preference saved: weatherUnit=${unit}`);
+	};
 
-	useEffect(() => {
-		if (preferences !== undefined) {
-			setLocalUnit(preferences.weatherUnit as "C" | "F");
-			setHasChanges(false);
+	const hasPreferencesLoaded = preferences !== undefined;
+	const weatherUnit = useMemo(() => {
+		if (!preferences) {
+			return "C";
 		}
+		return (preferences.weatherUnit as "C" | "F") ?? "C";
 	}, [preferences]);
 
-	const handleToggleChange = (unit: "C" | "F") => {
-		setLocalUnit(unit);
-		setHasChanges(preferences?.weatherUnit !== unit);
-		setSaveMessage(null);
-	};
-
-	const handleSave = async () => {
-		setIsSaving(true);
-		setSaveMessage(null);
-		try {
-			await updatePreferences({
-				userId,
-				weatherUnit: localUnit,
-			});
-			setSaveMessage("✓ Preferences saved successfully!");
-			setHasChanges(false);
-			console.log(`Preference saved: weatherUnit=${localUnit}`);
-		} catch (error) {
-			setSaveMessage("✗ Failed to save preferences. Please try again.");
-			console.error("Failed to save preferences:", error);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	if (preferences === undefined) {
-		return (
-			<div>
-				<h2>Settings</h2>
-				<p>Loading preferences...</p>
-			</div>
-		);
-	}
-
 	return (
-		<div>
-			<h2>Settings</h2>
-
-			<div className="mt-6 p-5 border-2 border-gray-200 rounded-lg bg-gray-50">
-				<h3 className="mt-0">Weather Preferences</h3>
-
-				<div className="mb-4">
-					<WeatherUnitToggle
-						value={localUnit}
-						onChange={handleToggleChange}
-						disabled={isSaving}
-					/>
-				</div>
-
-				<button
-					type="button"
-					onClick={handleSave}
-					disabled={!hasChanges || isSaving}
-					className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-colors ${
-						hasChanges && !isSaving
-							? "bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
-							: "bg-gray-300 text-gray-500 cursor-not-allowed"
-					}`}
-				>
-					{isSaving ? "Saving..." : "Save Preferences"}
-				</button>
-
-				{saveMessage && (
-					<div
-						className={`mt-3 p-3 rounded-md text-sm ${
-							saveMessage.startsWith("✓")
-								? "bg-green-100 text-green-800"
-								: "bg-red-100 text-red-800"
-						}`}
+		<div className="space-y-6">
+			<div className="flex items-center gap-3">
+				{section !== "root" && (
+					<Button
+						variant="neutral"
+						size="sm"
+						onClick={() => setSection("root")}
 					>
-						{saveMessage}
-					</div>
+						← Back
+					</Button>
 				)}
+				<h2 className="text-xl font-semibold">Settings</h2>
 			</div>
+
+			{section === "root" && (
+				<div className="space-y-4">
+					<button
+						type="button"
+						onClick={() => setSection("preferences")}
+						className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-main rounded-base"
+					>
+						<Card className="hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-shadow transition-all">
+							<CardHeader>
+								<CardTitle>Preferences</CardTitle>
+								<CardDescription>
+									Weather units and other personal settings
+								</CardDescription>
+							</CardHeader>
+						</Card>
+					</button>
+
+					<button
+						type="button"
+						onClick={() => setSection("billing")}
+						className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-main rounded-base"
+					>
+						<Card className="hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-shadow transition-all">
+							<CardHeader>
+								<CardTitle>Billing</CardTitle>
+								<CardDescription>
+									Subscription status and plan management
+								</CardDescription>
+							</CardHeader>
+						</Card>
+					</button>
+				</div>
+			)}
+
+			{section === "preferences" && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Weather Unit</CardTitle>
+						<CardDescription>
+							Choose how temperatures are displayed
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{!hasPreferencesLoaded ? (
+							<p className="text-sm text-foreground/60">
+								Loading preferences...
+							</p>
+						) : (
+							<WeatherUnitToggle value={weatherUnit} onSave={handleSaveUnit} />
+						)}
+					</CardContent>
+				</Card>
+			)}
+
+			{section === "billing" && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Subscription</CardTitle>
+						<CardDescription>
+							Manage your Clairvoyant subscription
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{mentraUserId ? (
+							<SubscriptionCard mentraUserId={mentraUserId} />
+						) : (
+							<p className="text-sm text-foreground/60">
+								Billing is unavailable because the Mentra user ID could not be
+								loaded.
+							</p>
+						)}
+					</CardContent>
+				</Card>
+			)}
 		</div>
 	);
 }
