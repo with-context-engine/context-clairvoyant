@@ -9,6 +9,35 @@ import { api } from "../../../convex/_generated/api";
 
 const knowledgeRunIds = new WeakMap<AppSession, number>();
 
+function getTimeAgo(timestamp: string): string {
+	try {
+		const now = new Date();
+		const then = new Date(timestamp);
+		const diffMs = now.getTime() - then.getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+		const diffHours = Math.floor(diffMs / 3600000);
+		const diffDays = Math.floor(diffMs / 86400000);
+
+		if (diffMins < 60) {
+			return diffMins <= 1 ? "just now" : `${diffMins} minutes ago`;
+		}
+		if (diffHours < 24) {
+			return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+		}
+		if (diffDays < 7) {
+			return diffDays === 1 ? "yesterday" : `${diffDays} days ago`;
+		}
+		if (diffDays < 30) {
+			const weeks = Math.floor(diffDays / 7);
+			return weeks === 1 ? "last week" : `${weeks} weeks ago`;
+		}
+		const months = Math.floor(diffDays / 30);
+		return months === 1 ? "last month" : `${months} months ago`;
+	} catch {
+		return "recently";
+	}
+}
+
 export async function startKnowledgeFlow(
 	query: string,
 	session: AppSession,
@@ -45,6 +74,7 @@ export async function startKnowledgeFlow(
 						}) as {
 							peerCard: string[];
 							peerRepresentation: string;
+							messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
 						};
 
 						// Parse peerRepresentation JSON for explicit and deductive facts
@@ -77,11 +107,31 @@ export async function startKnowledgeFlow(
 								conclusion.toLowerCase().includes("understand")
 							)
 							.slice(0, 3); // Limit to top 3 relevant deductions
+
+						// Extract recent questions with timestamps to provide temporal context
+						const recentMessages = contextData.messages || [];
+						const questionPattern = /\?$/;
+						const recentQuestions = recentMessages
+							.filter(msg => questionPattern.test(msg.content.trim()))
+							.slice(-5) // Get last 5 questions
+							.map(msg => {
+								if (msg.metadata?.timestamp) {
+									const timeAgo = getTimeAgo(msg.metadata.timestamp);
+									return `Asked "${msg.content.slice(0, 50)}${msg.content.length > 50 ? '...' : ''}" ${timeAgo}`;
+								}
+								return null;
+							})
+							.filter(Boolean) as string[];
+						
+						// Combine deductions with temporal information
+						const deductionsWithTiming = knowledgeRelatedDeductions.concat(
+							recentQuestions.slice(0, 2) // Add up to 2 recent question timestamps
+						);
 						
 						memoryContext = {
 							userName,
 							userFacts: relevantFacts,
-							deductiveFacts: knowledgeRelatedDeductions,
+							deductiveFacts: deductionsWithTiming,
 						};
 						session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
 					}
