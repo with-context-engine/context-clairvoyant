@@ -39,6 +39,7 @@ After your main data fetch (e.g., after weather API call), add memory context re
 
 ```typescript
 import { checkUserIsPro, convexClient } from "../core/convex";
+import { getTimeAgo } from "../core/utils";
 import { api } from "../../../convex/_generated/api";
 
 // Fetch memory context if available
@@ -63,6 +64,7 @@ if (memorySession && peers) {
           }) as {
             peerCard: string[];
             peerRepresentation: string;
+            messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
           };
 
           // Parse peerRepresentation JSON for explicit and deductive facts
@@ -93,11 +95,31 @@ if (memorySession && peers) {
               conclusion.toLowerCase().includes("preference")
             )
             .slice(0, 2); // Limit to top 2 relevant deductions
+
+          // Extract recent tool-related queries with timestamps (TEMPORAL CONTEXT)
+          const recentMessages = contextData.messages || [];
+          const toolPattern = /keyword1|keyword2|tool-specific-pattern/i; // Customize pattern
+          const recentQueries = recentMessages
+            .filter(msg => toolPattern.test(msg.content))
+            .slice(-5) // Get last 5 tool-related messages
+            .map(msg => {
+              if (msg.metadata?.timestamp) {
+                const timeAgo = getTimeAgo(msg.metadata.timestamp);
+                return `Asked about [tool] "${msg.content.slice(0, 40)}${msg.content.length > 40 ? '...' : ''}" ${timeAgo}`;
+              }
+              return null;
+            })
+            .filter(Boolean) as string[];
+
+          // Combine deductions with temporal information
+          const deductionsWithTiming = toolRelatedDeductions.concat(
+            recentQueries.slice(0, 1) // Add up to 1-2 recent query timestamps
+          );
           
           memoryContext = {
             userName,
             userFacts: relevantFacts,
-            deductiveFacts: toolRelatedDeductions,
+            deductiveFacts: deductionsWithTiming,
           };
           session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
         }
@@ -187,10 +209,11 @@ bunx baml-cli test -i "YourToolFormatter::"
 
 1. **Graceful Degradation**: Memory injection is optional - if no memory exists or fetching fails, the tool still works normally
 2. **Rich Context**: Use both `peerCard` (biographical summary) and `peerRepresentation` (deductive conclusions) for deeper personalization
-3. **Tool-Specific Filtering**: Filter deductive conclusions by relevance to your tool (e.g., weather preferences for weather tool)
-4. **Subtle Integration**: Let the LLM weave memories naturally - don't force them into every response
-5. **Privacy-First**: Only Pro users get memory features; check `isPro` status before fetching
-6. **Error Handling**: Wrap memory fetching and JSON parsing in try-catch; log warnings but don't fail the tool
+3. **Temporal Awareness**: Include recent query timestamps using `getTimeAgo()` utility to provide WHAT and WHEN context
+4. **Tool-Specific Filtering**: Filter deductive conclusions and messages by relevance to your tool (e.g., weather preferences for weather tool)
+5. **Subtle Integration**: Let the LLM weave memories naturally - don't force them into every response
+6. **Privacy-First**: Only Pro users get memory features; check `isPro` status before fetching
+7. **Error Handling**: Wrap memory fetching and JSON parsing in try-catch; log warnings but don't fail the tool
 
 ## Memory Context Structure
 
@@ -230,9 +253,16 @@ We extract and normalize to:
 {
   userName?: string,           // e.g., "Ajay Bhargava"
   userFacts: string[],        // e.g., ["Age: 37", "Location: San Francisco"]
-  deductiveFacts: string[]    // e.g., ["User likes cold weather because they are from Canada"]
+  deductiveFacts: string[]    // e.g., [
+                              //   "User likes cold weather because they are from Canada",
+                              //   'Asked about weather "What\'s the temperature?" 3 hours ago'
+                              // ]
 }
 ```
+
+**Note**: `deductiveFacts` now includes both:
+- Deductive conclusions from peerRepresentation
+- Temporal context (recent queries with timestamps)
 
 ## Performance Considerations
 
@@ -264,22 +294,39 @@ Perfect time for a warm drink, embrace your Canadian roots!
 ```
 *Uses deductive fact: "User likes cold weather because they are from Canada"*
 
+### Weather With Memory (Temporal Context)
+```
+Today's a solid 8/10, Ajay - still loving the cold weather!
+Currently -2°C with snow, just like you asked about earlier.
+You checked weather 3 hours ago, conditions haven't changed much.
+```
+*Uses temporal fact: 'Asked about weather "What's the temperature in Toronto?" 3 hours ago'*
+
 ## Applying to Other Tools
 
 ### Maps Handler
 - **Biographical facts**: Use location history, home address
 - **Deductive conclusions**: "User prefers outdoor restaurants", "User avoids busy areas"
-- **Example keywords**: `location`, `place`, `restaurant`, `prefer`, `avoid`
+- **Temporal keywords**: `location|place|restaurant|directions|address|nearby`
+- **Example temporal**: 'Asked about maps "Find coffee shop near me" 1 hour ago'
 
 ### Web Search Handler
 - **Biographical facts**: Occupation, interests from peerCard
 - **Deductive conclusions**: "User is interested in AI because they work in tech", "User prefers technical documentation"
-- **Example keywords**: `interest`, `work`, `technology`, `prefer`, `like`
+- **Temporal keywords**: `search|find|look up|information|news`
+- **Example temporal**: 'Asked about search "Latest AI news" yesterday'
 
-### Knowledge Handler
+### Knowledge Handler (✅ Implemented)
 - **Biographical facts**: Education, background, expertise
 - **Deductive conclusions**: "User has experience with Python", "User learns visually"
-- **Example keywords**: `experience`, `knowledge`, `background`, `learn`, `understand`
+- **Temporal keywords**: `question|ask|interest|knowledge|learn|understand`
+- **Example temporal**: 'Asked "What is quantum computing?" 2 days ago'
+
+### Weather Handler (✅ Implemented)
+- **Biographical facts**: Location, age, family
+- **Deductive conclusions**: "User likes cold weather because they are from Canada"
+- **Temporal keywords**: `weather|temperature|forecast|rain|snow|sun|cold|hot`
+- **Example temporal**: 'Asked about weather "What's the temperature?" 3 hours ago'
 
 ## Testing Strategy
 
