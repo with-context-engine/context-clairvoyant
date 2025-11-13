@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector } from "@boundaryml/
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryCore, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -97,7 +97,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
         
         async AnswerQuestion(
-        text: string,memory?: types.MemoryContextLite | null,
+        text: string,memory?: types.MemoryCore | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QuestionAnalysisResponse> {
           try {
@@ -145,7 +145,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async AnswerSearch(
-        query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
+        query: string,searchResults: types.NewsItem[],memory?: types.MemoryCore | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QueryResult> {
           try {
@@ -193,7 +193,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async EnhanceQuery(
-        query: string,memory?: types.MemoryContextLite | null,
+        query: string,memory?: types.MemoryCore | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.EnhancedQuery> {
           try {
@@ -385,7 +385,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async SummarizeWeatherFormatted(
-        input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
+        input: types.FormattedWeather,unit: string,memory?: types.MemoryCore | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.WeatherLines> {
           try {
@@ -495,7 +495,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
 
             
             AnswerQuestion(
-            text: string,memory?: types.MemoryContextLite | null,
+            text: string,memory?: types.MemoryCore | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QuestionAnalysisResponse, types.QuestionAnalysisResponse>
               {
@@ -561,7 +561,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             AnswerSearch(
-            query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
+            query: string,searchResults: types.NewsItem[],memory?: types.MemoryCore | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QueryResult, types.QueryResult>
               {
@@ -627,7 +627,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             EnhanceQuery(
-            query: string,memory?: types.MemoryContextLite | null,
+            query: string,memory?: types.MemoryCore | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.EnhancedQuery, types.EnhancedQuery>
               {
@@ -891,7 +891,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             SummarizeWeatherFormatted(
-            input: types.FormattedWeather,unit: string,memory?: types.MemoryContextLite | null,
+            input: types.FormattedWeather,unit: string,memory?: types.MemoryCore | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.WeatherLines, types.WeatherLines>
               {

@@ -1,12 +1,12 @@
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { ViewType } from "@mentra/sdk";
+import { api } from "../../../convex/_generated/api";
 import { b } from "../baml_client";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { MemoryCapture } from "./memory";
-import { api } from "../../../convex/_generated/api";
 
 const knowledgeRunIds = new WeakMap<AppSession, number>();
 
@@ -26,7 +26,11 @@ export async function startKnowledgeFlow(
 
 	try {
 		// Fetch memory context if available
-		let memoryContext: { userName?: string; userFacts: string[]; deductiveFacts: string[] } | null = null;
+		let memoryContext: {
+			userName?: string;
+			userFacts: string[];
+			deductiveFacts: string[];
+		} | null = null;
 		try {
 			const isPro = await checkUserIsPro(mentraUserId);
 			if (isPro) {
@@ -36,17 +40,24 @@ export async function startKnowledgeFlow(
 				);
 				if (user) {
 					const userId = user._id;
-					const diatribePeer = peers.find((peer) => peer.id === `${userId}-diatribe`);
-					
+					const diatribePeer = peers.find(
+						(peer) => peer.id === `${userId}-diatribe`,
+					);
+
 					if (diatribePeer) {
-						session.logger.info("[Clairvoyant] Fetching memory context for knowledge personalization");
-						const contextData = await memorySession.getContext({
+						session.logger.info(
+							"[Clairvoyant] Fetching memory context for knowledge personalization",
+						);
+						const contextData = (await memorySession.getContext({
 							peerTarget: diatribePeer.id,
 							lastUserMessage: query,
-						}) as {
+						})) as {
 							peerCard: string[];
 							peerRepresentation: string;
-							messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
+							messages: Array<{
+								content: string;
+								metadata?: { timestamp?: string };
+							}>;
 						};
 
 						// Parse peerRepresentation JSON for explicit and deductive facts
@@ -64,19 +75,25 @@ export async function startKnowledgeFlow(
 						}
 
 						// Extract name and relevant facts from peerCard
-						const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
-						const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
-						
+						const userName = contextData.peerCard
+							.find((fact: string) => fact.startsWith("Name:"))
+							?.replace("Name:", "")
+							.trim();
+						const relevantFacts = contextData.peerCard
+							.slice(0, 3)
+							.filter((fact: string) => !fact.startsWith("Name:"));
+
 						// Extract knowledge-relevant deductive conclusions (e.g., past questions, interests, learning patterns)
 						const knowledgeRelatedDeductions = peerRep.deductive
 							.map((d) => d.conclusion)
-							.filter((conclusion: string) => 
-								conclusion.toLowerCase().includes("question") ||
-								conclusion.toLowerCase().includes("ask") ||
-								conclusion.toLowerCase().includes("interest") ||
-								conclusion.toLowerCase().includes("knowledge") ||
-								conclusion.toLowerCase().includes("learn") ||
-								conclusion.toLowerCase().includes("understand")
+							.filter(
+								(conclusion: string) =>
+									conclusion.toLowerCase().includes("question") ||
+									conclusion.toLowerCase().includes("ask") ||
+									conclusion.toLowerCase().includes("interest") ||
+									conclusion.toLowerCase().includes("knowledge") ||
+									conclusion.toLowerCase().includes("learn") ||
+									conclusion.toLowerCase().includes("understand"),
 							)
 							.slice(0, 3); // Limit to top 3 relevant deductions
 
@@ -84,33 +101,37 @@ export async function startKnowledgeFlow(
 						const recentMessages = contextData.messages || [];
 						const questionPattern = /\?$/;
 						const recentQuestions = recentMessages
-							.filter(msg => questionPattern.test(msg.content.trim()))
+							.filter((msg) => questionPattern.test(msg.content.trim()))
 							.slice(-5) // Get last 5 questions
-							.map(msg => {
+							.map((msg) => {
 								if (msg.metadata?.timestamp) {
 									const timeAgo = getTimeAgo(msg.metadata.timestamp);
-									return `Asked "${msg.content.slice(0, 50)}${msg.content.length > 50 ? '...' : ''}" ${timeAgo}`;
+									return `Asked "${msg.content.slice(0, 50)}${msg.content.length > 50 ? "..." : ""}" ${timeAgo}`;
 								}
 								return null;
 							})
 							.filter(Boolean) as string[];
-						
+
 						// Combine deductions with temporal information
 						const deductionsWithTiming = knowledgeRelatedDeductions.concat(
-							recentQuestions.slice(0, 2) // Add up to 2 recent question timestamps
+							recentQuestions.slice(0, 2), // Add up to 2 recent question timestamps
 						);
-						
+
 						memoryContext = {
 							userName,
 							userFacts: relevantFacts,
 							deductiveFacts: deductionsWithTiming,
 						};
-						session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
+						session.logger.info(
+							`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`,
+						);
 					}
 				}
 			}
 		} catch (error) {
-			session.logger.warn(`[Clairvoyant] Failed to fetch memory context: ${String(error)}`);
+			session.logger.warn(
+				`[Clairvoyant] Failed to fetch memory context: ${String(error)}`,
+			);
 		}
 
 		const response = await showTextDuringOperation(
@@ -122,7 +143,14 @@ export async function startKnowledgeFlow(
 			{ view: ViewType.MAIN, clearDurationMs: 2000 },
 		);
 
-		await MemoryCapture(query, session, memorySession, peers, "diatribe", mentraUserId);
+		await MemoryCapture(
+			query,
+			session,
+			memorySession,
+			peers,
+			"diatribe",
+			mentraUserId,
+		);
 
 		if (knowledgeRunIds.get(session) !== runId) {
 			session.logger.info(

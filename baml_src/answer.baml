@@ -5,7 +5,7 @@ class QuestionAnalysisResponse {
     answer string[] @description("Direct answer in 20 words or fewer")
 }
 
-function AnswerQuestion(text: string, memory: MemoryContextLite?) -> QuestionAnalysisResponse {
+function AnswerQuestion(text: string, memory: MemoryCore?) -> QuestionAnalysisResponse {
     client "GroqHeavy"
     prompt #"
         {{ _.role("system") }}
@@ -19,7 +19,11 @@ function AnswerQuestion(text: string, memory: MemoryContextLite?) -> QuestionAna
         - If no question is present, set question and answer to null.
         - If the user is describing someone else's conversation, set has_question to false.
 
-        {% if memory and (memory.userName or memory.userFacts|length > 0 or memory.deductiveFacts|length > 0) %}
+        {% if memory %}
+        {% set hasUserName = memory.userName is defined and memory.userName %}
+        {% set hasUserFacts = memory.userFacts|length > 0 %}
+        {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+        {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
         User Context (use to personalize answers and acknowledge past questions):
         {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
         {% for fact in memory.userFacts %}
@@ -30,6 +34,7 @@ function AnswerQuestion(text: string, memory: MemoryContextLite?) -> QuestionAna
         {% endfor %}
         
         If the user has asked similar questions before or shown interest in related topics, naturally acknowledge this in your answer (e.g., "You've asked about X before..." or "Building on your interest in Y..."). Keep it conversational and familiar.
+        {% endif %}
         {% endif %}
 
         {{ ctx.output_format }}
@@ -79,5 +84,13 @@ test test_answer_question_with_memory_related_interest {
                 "User has asked about artificial intelligence topics before"
             ]
         }
+    }
+}
+
+test test_answer_question_with_no_memory_related_interest {
+    functions [AnswerQuestion]
+    args {
+        text "How does machine learning work?"
+        memory null
     }
 }

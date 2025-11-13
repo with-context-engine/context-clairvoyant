@@ -60,7 +60,7 @@ class WeatherLines {
   lines string[]
 }
 
-function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory: MemoryContextLite?) -> WeatherLines {
+function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory: MemoryCore?) -> WeatherLines {
   client "openai/gpt-4o-mini"
 
   prompt #"
@@ -70,7 +70,11 @@ function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory
   Use the data to describe the weather on a scale of 1-10 out of 10 and include the "vibe rating" of the weather.
   {{ ctx.output_format }}
 
-  {% if memory and (memory.userName or memory.userFacts|length > 0 or memory.deductiveFacts|length > 0) %}
+  {% if memory %}
+  {% set hasUserName = memory.userName is defined and memory.userName %}
+  {% set hasUserFacts = memory.userFacts|length > 0 %}
+  {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+  {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
   User Context (weave naturally if relevant):
   {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
   {% for fact in memory.userFacts %}
@@ -79,6 +83,7 @@ function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory
   {% for fact in memory.deductiveFacts %}
   - {{ fact }}
   {% endfor %}
+  {% endif %}
   {% endif %}
 
   Style rules:

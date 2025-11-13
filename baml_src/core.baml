@@ -1,6 +1,6 @@
 // Common classes shared across BAML functions
 
-class MemoryContextLite {
+class MemoryCore {
   userName string? @description("User's name if known")
   userFacts string[] @description("Relevant biographical facts about the user")
   deductiveFacts string[] @description("Relevant deductive conclusions about the user's preferences and behaviors")
@@ -11,15 +11,19 @@ class EnhancedQuery {
   enhanced string @description("Enhanced query with user context woven in")
 }
 
-function EnhanceQuery(query: string, memory: MemoryContextLite?) -> EnhancedQuery {
-  client "openai/gpt-4o-mini"
+function EnhanceQuery(query: string, memory: MemoryCore?) -> EnhancedQuery {
+  client "Groq"
   
   prompt #"
   You enhance search and knowledge queries by weaving in relevant user context to get better, more personalized results.
   
   Original query: {{ query }}
   
-  {% if memory and (memory.userName or memory.userFacts|length > 0 or memory.deductiveFacts|length > 0) %}
+  {% if memory %}
+  {% set hasUserName = memory.userName is defined and memory.userName %}
+  {% set hasUserFacts = memory.userFacts|length > 0 %}
+  {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+  {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
   User Context (use to enhance query):
   {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
   {% for fact in memory.userFacts %}
@@ -28,6 +32,7 @@ function EnhanceQuery(query: string, memory: MemoryContextLite?) -> EnhancedQuer
   {% for fact in memory.deductiveFacts %}
   - {{ fact }}
   {% endfor %}
+  {% endif %}
   {% endif %}
   
   Instructions:
@@ -45,7 +50,7 @@ function EnhanceQuery(query: string, memory: MemoryContextLite?) -> EnhancedQuer
 test test_enhance_query_with_tech_background {
   functions [EnhanceQuery]
   args {
-    query "Find AI news"
+    query "What's happening in the world of AI?"
     memory {
       userName "Ajay"
       userFacts [

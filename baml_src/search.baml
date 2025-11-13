@@ -12,7 +12,7 @@ class QueryResult {
     results AnswerLines[]
 }
 
-function AnswerSearch(query: string, searchResults: NewsItem[], memory: MemoryContextLite?) -> QueryResult {
+function AnswerSearch(query: string, searchResults: NewsItem[], memory: MemoryCore?) -> QueryResult {
     client "Groq"
     prompt #"
         {{ _.role("system")}}
@@ -20,7 +20,11 @@ function AnswerSearch(query: string, searchResults: NewsItem[], memory: MemoryCo
         You need give an answer to the following question: {{ query }} given the results of the web search below collected by the user. 
         The output should be lines of text that sound like a human would say them to a friend and no more than 10 words per line as per the output format and no more than 3 lines as per the output format: 
         
-        {% if memory and (memory.userName or memory.userFacts|length > 0 or memory.deductiveFacts|length > 0) %}
+        {% if memory %}
+        {% set hasUserName = memory.userName is defined and memory.userName %}
+        {% set hasUserFacts = memory.userFacts|length > 0 %}
+        {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+        {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
         User Context (use to personalize response and acknowledge past searches):
         {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
         {% for fact in memory.userFacts %}
@@ -31,6 +35,7 @@ function AnswerSearch(query: string, searchResults: NewsItem[], memory: MemoryCo
         {% endfor %}
         
         If the user has searched for related topics before, naturally acknowledge this (e.g., "You searched for X yesterday..." or "Following up on your interest in Y..."). Keep it conversational.
+        {% endif %}
         {% endif %}
         
         {{ ctx.output_format }}
