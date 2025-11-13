@@ -35,6 +35,8 @@ export default class TypeBuilder {
     
     DailyForecastItem: ClassViewer<'DailyForecastItem', "date" | "summary" | "temperature" | "conditions" | "precipitation_probability" | "rain">;
     
+    EnhancedQuery: ClassViewer<'EnhancedQuery', "original" | "enhanced">;
+    
     FormattedWeather: ClassViewer<'FormattedWeather', "location" | "current" | "daily_forecast" | "alerts">;
     
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
@@ -72,7 +74,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","FormattedWeather","LocationLite","MemoryContext","MemoryContextLite","MemoryRecall","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","LocationLite","MemoryContext","MemoryContextLite","MemoryRecall","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "Router",
@@ -94,6 +96,10 @@ export default class TypeBuilder {
         
         this.DailyForecastItem = this.tb.classViewer("DailyForecastItem", [
           "date","summary","temperature","conditions","precipitation_probability","rain",
+        ]);
+        
+        this.EnhancedQuery = this.tb.classViewer("EnhancedQuery", [
+          "original","enhanced",
         ]);
         
         this.FormattedWeather = this.tb.classViewer("FormattedWeather", [

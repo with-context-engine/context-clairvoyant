@@ -95,6 +95,12 @@ export interface DailyForecastItem {
   
 }
 
+export interface EnhancedQuery {
+  original: string
+  enhanced: string
+  
+}
+
 export interface FormattedWeather {
   location: LocationLite
   current: CurrentLite

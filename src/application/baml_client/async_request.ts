@@ -23,7 +23,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -67,7 +67,7 @@ env?: Record<string, string | undefined>
       }
       
   async AnswerSearch(
-  query: string,searchResults: types.NewsItem[],
+  query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
   __baml_options__?: BamlCallOptions<never>
   ): Promise<HTTPRequest> {
     try {
@@ -78,7 +78,32 @@ env?: Record<string, string | undefined>
       return await this.runtime.buildRequest(
       "AnswerSearch",
       {
-      "query": query,"searchResults": searchResults
+      "query": query,"searchResults": searchResults,"memory": memory?? null
+      },
+      this.ctxManager.cloneContext(),
+      __baml_options__?.tb?.__tb(),
+      __baml_options__?.clientRegistry,
+      false,
+      env
+      )
+      } catch (error) {
+      throw toBamlError(error);
+      }
+      }
+      
+  async EnhanceQuery(
+  query: string,memory?: types.MemoryContextLite | null,
+  __baml_options__?: BamlCallOptions<never>
+  ): Promise<HTTPRequest> {
+    try {
+    const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+    const env: Record<string, string> = Object.fromEntries(
+      Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return await this.runtime.buildRequest(
+      "EnhanceQuery",
+      {
+      "query": query,"memory": memory?? null
       },
       this.ctxManager.cloneContext(),
       __baml_options__?.tb?.__tb(),
@@ -248,7 +273,7 @@ env?: Record<string, string | undefined>
           }
           
       async AnswerSearch(
-      query: string,searchResults: types.NewsItem[],
+      query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
       ): Promise<HTTPRequest> {
         try {
@@ -259,7 +284,32 @@ env?: Record<string, string | undefined>
           return await this.runtime.buildRequest(
           "AnswerSearch",
           {
-          "query": query,"searchResults": searchResults
+          "query": query,"searchResults": searchResults,"memory": memory?? null
+          },
+          this.ctxManager.cloneContext(),
+          __baml_options__?.tb?.__tb(),
+          __baml_options__?.clientRegistry,
+          true,
+          env
+          )
+          } catch (error) {
+          throw toBamlError(error);
+          }
+          }
+          
+      async EnhanceQuery(
+      query: string,memory?: types.MemoryContextLite | null,
+      __baml_options__?: BamlCallOptions<never>
+      ): Promise<HTTPRequest> {
+        try {
+        const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+        const env: Record<string, string> = Object.fromEntries(
+          Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+          );
+          return await this.runtime.buildRequest(
+          "EnhanceQuery",
+          {
+          "query": query,"memory": memory?? null
           },
           this.ctxManager.cloneContext(),
           __baml_options__?.tb?.__tb(),

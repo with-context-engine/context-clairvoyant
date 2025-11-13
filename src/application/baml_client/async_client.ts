@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector } from "@boundaryml/
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -145,7 +145,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async AnswerSearch(
-        query: string,searchResults: types.NewsItem[],
+        query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.QueryResult> {
           try {
@@ -159,7 +159,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.AnswerSearch(
-          query,searchResults,
+          query,searchResults,memory,
           __baml_options__
           );
 
@@ -175,7 +175,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "AnswerSearch",
             {
-            "query": query,"searchResults": searchResults
+            "query": query,"searchResults": searchResults,"memory": memory?? null
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -187,6 +187,54 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             options.watchers,
             )
             return raw.parsed(false) as types.QueryResult
+            } catch (error) {
+            throw toBamlError(error);
+            }
+            }
+            
+        async EnhanceQuery(
+        query: string,memory?: types.MemoryContextLite | null,
+        __baml_options__?: BamlCallOptions<never>
+        ): Promise<types.EnhancedQuery> {
+          try {
+          const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+          const signal = options.signal;
+
+          if (signal?.aborted) {
+          throw new BamlAbortError('Operation was aborted', signal.reason);
+          }
+
+          // Check if onTick is provided - route through streaming if so
+          if (options.onTick) {
+          const stream = this.stream.EnhanceQuery(
+          query,memory,
+          __baml_options__
+          );
+
+          return await stream.getFinalResponse();
+          }
+
+          const collector = options.collector ? (Array.isArray(options.collector) ? options.collector :
+          [options.collector]) : [];
+          const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+          const env: Record<string, string> = Object.fromEntries(
+            Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+            );
+            const raw = await this.runtime.callFunction(
+            "EnhanceQuery",
+            {
+            "query": query,"memory": memory?? null
+            },
+            this.ctxManager.cloneContext(),
+            options.tb?.__tb(),
+            options.clientRegistry,
+            collector,
+            options.tags || {},
+            env,
+            signal,
+            options.watchers,
+            )
+            return raw.parsed(false) as types.EnhancedQuery
             } catch (error) {
             throw toBamlError(error);
             }
@@ -513,7 +561,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             AnswerSearch(
-            query: string,searchResults: types.NewsItem[],
+            query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.QueryResult, types.QueryResult>
               {
@@ -554,7 +602,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "AnswerSearch",
                 {
-                "query": query,"searchResults": searchResults
+                "query": query,"searchResults": searchResults,"memory": memory ?? null
                 },
                 undefined,
                 this.ctxManager.cloneContext(),
@@ -570,6 +618,72 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   raw,
                   (a): partial_types.QueryResult => a,
                   (a): types.QueryResult => a,
+                  this.ctxManager.cloneContext(),
+                  options.signal,
+                  )
+                  } catch (error) {
+                  throw toBamlError(error);
+                  }
+                  }
+                  
+            EnhanceQuery(
+            query: string,memory?: types.MemoryContextLite | null,
+            __baml_options__?: BamlCallOptions<never>
+            ): BamlStream<partial_types.EnhancedQuery, types.EnhancedQuery>
+              {
+              try {
+              const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+              const signal = options.signal;
+
+              if (signal?.aborted) {
+              throw new BamlAbortError('Operation was aborted', signal.reason);
+              }
+
+              let collector = options.collector ? (Array.isArray(options.collector) ? options.collector :
+              [options.collector]) : [];
+
+              let onTickWrapper: (() => void) | undefined;
+
+              // Create collector and wrap onTick if provided
+              if (options.onTick) {
+              const tickCollector = new Collector("on-tick-collector");
+              collector = [...collector, tickCollector];
+
+              onTickWrapper = () => {
+              const log = tickCollector.last;
+              if (log) {
+              try {
+              options.onTick!("Unknown", log);
+              } catch (error) {
+              console.error("Error in onTick callback for EnhanceQuery", error);
+              }
+              }
+              };
+              }
+
+              const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+              const env: Record<string, string> = Object.fromEntries(
+                Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+                );
+                const raw = this.runtime.streamFunction(
+                "EnhanceQuery",
+                {
+                "query": query,"memory": memory ?? null
+                },
+                undefined,
+                this.ctxManager.cloneContext(),
+                options.tb?.__tb(),
+                options.clientRegistry,
+                collector,
+                options.tags || {},
+                env,
+                signal,
+                onTickWrapper,
+                )
+                return new BamlStream<partial_types.EnhancedQuery, types.EnhancedQuery>(
+                  raw,
+                  (a): partial_types.EnhancedQuery => a,
+                  (a): types.EnhancedQuery => a,
                   this.ctxManager.cloneContext(),
                   options.signal,
                   )

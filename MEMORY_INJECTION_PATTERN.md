@@ -6,16 +6,21 @@ This document describes the pattern for adding proactive memory recall to tool h
 
 The pattern enables tools (like Weather, Maps, Web Search) to access user memory and weave relevant personal context into their responses naturally. It leverages both biographical facts (peerCard) and deductive conclusions (from peerRepresentation) to create personalized, context-aware responses.
 
+**Two Implementation Layers:**
+1. **Single-Layer (Post-Fetch)**: Memory enhances response formatting only (Weather, Knowledge)
+2. **Dual-Layer (Pre + Post-Fetch)**: Memory enhances both query generation AND response formatting (Web Search)
+
 **Example**: Weather response that knows your name and preferences:
 - Without memory: "Today's vibe: 9/10, sunny with a breeze feels nice!"
 - With memory (biographical): "Today's vibe: 9/10, Ajay - perfect for your morning run!"
 - With memory (deductive): "Today's vibe: 9/10, Ajay - chilly but you like cold weather!"
 
-## Implementation Reference: Weather Handler
+## Implementation References
 
-The Weather handler (`src/application/handlers/weather.ts`) was the first to implement this pattern. Use it as a reference for other tools.
+- **Single-Layer Pattern**: Weather handler (`src/application/handlers/weather.ts`) and Knowledge handler (`src/application/handlers/knowledge.ts`)
+- **Dual-Layer Pattern**: Web Search handler (`src/application/handlers/search.ts`)
 
-## Step-by-Step Pattern
+## Step-by-Step Pattern (Single-Layer)
 
 ### 1. Update Handler Function Signature
 
@@ -205,6 +210,93 @@ Run BAML tests to verify your changes work:
 bunx baml-cli test -i "YourToolFormatter::"
 ```
 
+## Dual-Layer Pattern (Query Enhancement + Response Personalization)
+
+For tools that call external APIs (Web Search, potentially Maps), enhance the query BEFORE fetching data to get better, more personalized results.
+
+### When to Use Dual-Layer
+
+- External search APIs (Tavily, Google, etc.) benefit from richer queries
+- User context improves result relevance (e.g., occupation for topic filtering)
+- Past queries indicate evolving interests
+
+### Implementation Steps
+
+**Step 1**: Fetch memory context EARLY (before API call):
+
+```typescript
+// Fetch memory at the START of the handler
+let memoryContext = null;
+// ... same memory fetching logic as single-layer pattern
+```
+
+**Step 2**: Enhance query with `EnhanceQuery` (in `baml_src/core.baml`):
+
+```typescript
+import { b } from "../baml_client";
+
+let searchQuery = query;
+if (memoryContext) {
+  try {
+    const enhancedQuery = await b.EnhanceQuery(query, memoryContext);
+    searchQuery = enhancedQuery.enhanced;
+    session.logger.info(`[Tool] Enhanced query: "${searchQuery}"`);
+  } catch (error) {
+    session.logger.warn(`[Tool] Query enhancement failed, using original`);
+  }
+}
+```
+
+**Step 3**: Use enhanced query for API call:
+
+```typescript
+const results = await externalAPI(searchQuery); // Uses enhanced query
+```
+
+**Step 4**: Pass memory to formatter for personalized response:
+
+```typescript
+const formatted = await b.YourFormatter(query, results, memoryContext);
+```
+
+### EnhanceQuery BAML Function
+
+The `EnhanceQuery` function lives in `baml_src/core.baml` and is reusable across tools:
+
+```baml
+function EnhanceQuery(query: string, memory: MemoryContextLite?) -> EnhancedQuery {
+  client "openai/gpt-4o-mini"
+  
+  prompt #"
+  You enhance search and knowledge queries by weaving in relevant user context.
+  
+  Original query: {{ query }}
+  
+  {% if memory ... %}
+  User Context (use to enhance query):
+  - Occupation, interests, past queries
+  {% endif %}
+  
+  Instructions:
+  - Keep enhanced query concise (≤100 words)
+  - Only add RELEVANT context
+  - Make it natural, not robotic
+  "#
+}
+```
+
+### Example: Web Search Enhancement
+
+**Original query**: "Find AI news"
+
+**Memory context**:
+- Occupation: Tech founder
+- Deductive: "Interested in AI", "Asked about quantum computing before"
+
+**Enhanced query**: "Find the latest AI news relevant to technology and quantum computing, as I'm a founder of a tech company"
+
+**Result**: Tavily returns better, more relevant articles about AI intersecting with quantum computing
+
 ## Key Design Principles
 
 1. **Graceful Degradation**: Memory injection is optional - if no memory exists or fetching fails, the tool still works normally
@@ -310,11 +402,16 @@ You checked weather 3 hours ago, conditions haven't changed much.
 - **Temporal keywords**: `location|place|restaurant|directions|address|nearby`
 - **Example temporal**: 'Asked about maps "Find coffee shop near me" 1 hour ago'
 
-### Web Search Handler
+### Web Search Handler (✅ Implemented - Dual Layer)
 - **Biographical facts**: Occupation, interests from peerCard
 - **Deductive conclusions**: "User is interested in AI because they work in tech", "User prefers technical documentation"
-- **Temporal keywords**: `search|find|look up|information|news`
-- **Example temporal**: 'Asked about search "Latest AI news" yesterday'
+- **Temporal keywords**: `search|find|look up|information|news|latest`
+- **Example temporal**: 'Searched "Latest AI news" yesterday'
+- **Layer 1**: Query enhancement via `EnhanceQuery` BAML function
+- **Layer 2**: Response personalization via `AnswerSearch` with memory
+- **Example enhancement**: 
+  - Original: "Find AI news"
+  - Enhanced: "Find the latest AI news relevant to technology and quantum computing, as I'm a founder of a tech company"
 
 ### Knowledge Handler (✅ Implemented)
 - **Biographical facts**: Education, background, expertise

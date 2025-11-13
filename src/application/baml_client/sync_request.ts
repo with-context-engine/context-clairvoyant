@@ -22,7 +22,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryContextLite, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -63,7 +63,7 @@ export class HttpRequest {
   }
   
   AnswerSearch(
-      query: string,searchResults: types.NewsItem[],
+      query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -74,7 +74,32 @@ export class HttpRequest {
       return this.runtime.buildRequestSync(
         "AnswerSearch",
         {
-          "query": query,"searchResults": searchResults
+          "query": query,"searchResults": searchResults,"memory": memory?? null
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        false,
+        env,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  EnhanceQuery(
+      query: string,memory?: types.MemoryContextLite | null,
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const env: Record<string, string> = Object.fromEntries(
+        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "EnhanceQuery",
+        {
+          "query": query,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -244,7 +269,7 @@ export class HttpStreamRequest {
   }
   
   AnswerSearch(
-      query: string,searchResults: types.NewsItem[],
+      query: string,searchResults: types.NewsItem[],memory?: types.MemoryContextLite | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -255,7 +280,32 @@ export class HttpStreamRequest {
       return this.runtime.buildRequestSync(
         "AnswerSearch",
         {
-          "query": query,"searchResults": searchResults
+          "query": query,"searchResults": searchResults,"memory": memory?? null
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        true,
+        env,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  EnhanceQuery(
+      query: string,memory?: types.MemoryContextLite | null,
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const env: Record<string, string> = Object.fromEntries(
+        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "EnhanceQuery",
+        {
+          "query": query,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
