@@ -17,6 +17,9 @@ function EnhanceQuery(query: string, memory: MemoryCore?) -> EnhancedQuery {
   prompt #"
   You enhance search and knowledge queries by weaving in relevant user context to get better, more personalized results.
   
+  For search queries: Add context to improve external API results (e.g., Tavily, Google).
+  For knowledge queries: Clarify ambiguous questions and add context that helps answer more accurately.
+  
   Original query: {{ query }}
   
   {% if memory %}
@@ -38,7 +41,8 @@ function EnhanceQuery(query: string, memory: MemoryCore?) -> EnhancedQuery {
   Instructions:
   - Keep the enhanced query concise (≤100 words)
   - Only add context that's RELEVANT to the query topic
-  - If occupation/expertise is relevant, include it
+  - For questions: Clarify ambiguity using user background (e.g., "what's the weather" → "what's the weather in Toronto where I live")
+  - For searches: Add occupation/expertise to filter results (e.g., "AI news" → "AI news for tech founders")
   - If past interests/questions are related, reference them
   - If no memory context is relevant, return the original query as enhanced
   - Make it sound natural, not robotic
@@ -70,5 +74,38 @@ test test_enhance_query_no_memory {
   args {
     query "Latest news on climate change"
     memory null
+  }
+}
+
+test test_enhance_query_knowledge_ambiguous {
+  functions [EnhanceQuery]
+  args {
+    query "What's the weather like?"
+    memory {
+      userName "Sarah"
+      userFacts [
+        "Location: Toronto, Canada",
+        "Age: 32"
+      ]
+      deductiveFacts [
+        "User checks weather frequently in the morning"
+      ]
+    }
+  }
+}
+
+test test_enhance_query_knowledge_context {
+  functions [EnhanceQuery]
+  args {
+    query "How does that work?"
+    memory {
+      userName "Alex"
+      userFacts [
+        "Occupation: Software engineer"
+      ]
+      deductiveFacts [
+        "Asked about quantum computing 1 hour ago"
+      ]
+    }
   }
 }

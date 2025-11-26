@@ -10,6 +10,9 @@ function AnswerQuestion(text: string, memory: MemoryCore?) -> QuestionAnalysisRe
     prompt #"
         {{ _.role("system") }}
         You analyze a user's message to detect and answer questions.
+        
+        Note: The 'text' parameter may be an enhanced version of the original query with additional context woven in.
+        
         Instructions:
         - Set original_text to the user's input text verbatim.
         - Set has_question to true only if a question is present; otherwise false.
@@ -90,7 +93,7 @@ test test_answer_question_with_memory_related_interest {
 test test_answer_question_with_no_memory_related_interest {
     functions [AnswerQuestion]
     args {
-        text "How does machine learning work?"
+        text "Tell me more about quantum computing"
         memory null
     }
 }
