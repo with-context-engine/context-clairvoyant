@@ -3,90 +3,87 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* iOS safe area support */
-.safe-area-inset-bottom {
-	padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* Smooth scrolling for mobile */
-html {
-	-webkit-overflow-scrolling: touch;
-}
-
-/* Prevent text selection on mobile tap */
-@media (max-width: 768px) {
-	* {
-		-webkit-tap-highlight-color: transparent;
-		-webkit-touch-callout: none;
-	}
-}
+/* ---- COLOR SYSTEM (OKLCH) ---- */
+/* Background: #080d32 → oklch(18% 18% 272deg) */
+/* Accent: #2BE4FF → ~oklch(82% 0.17 210) */
 
 :root {
-  --background: oklch(94.27% 0.0268 242.57);
-  --secondary-background: oklch(100% 0 0);
-  --foreground: oklch(0% 0 0);
-  --main-foreground: oklch(0% 0 0);
-  --main: oklch(66.9% 0.18368 248.8066);
-  --border: oklch(0% 0 0);
-  --ring: oklch(0% 0 0);
-  --overlay: oklch(0% 0 0 / 0.8);
-  --shadow: 0px 0px 0px 0px var(--border);
-  --chart-1: #0099FF;
-  --chart-2: #FF4D50;
-  --chart-3: #FACC00;
-  --chart-4: #05E17A;
-  --chart-5: #7A83FF;
-  --chart-active-dot: #000;
+	--background: oklch(18% 18% 272deg);
+	--secondary-background: oklch(22% 0.01 260);
+	--foreground: oklch(95% 0 0);
+	--main-foreground: oklch(98% 0 0);
+
+	--main: oklch(82% 0.17 210); /* Electric Cyan Accent */
+	--border: oklch(95% 0 0);
+	--ring: oklch(98% 0 0);
+
+	--overlay: oklch(0% 0 0 / 0.8);
+	--shadow: 0px 0px 0px 0px var(--border);
+
+	--chart-1: #2be4ff;
+	--chart-2: #ff4d50;
+	--chart-3: #facc00;
+	--chart-4: #05e17a;
+	--chart-5: #7a83ff;
+	--chart-active-dot: #2be4ff;
 }
 
 .dark {
-  --background: oklch(27.08% 0.0336 240.69);
-  --secondary-background: oklch(23.93% 0 0);
-  --foreground: oklch(92.49% 0 0);
-  --main-foreground: oklch(0% 0 0);
-  --main: oklch(61.9% 0.16907 248.5982);
-  --border: oklch(0% 0 0);
-  --ring: oklch(100% 0 0);
-  --shadow: 0px 0px 0px 0px var(--border);
-  --chart-1: #008AE5;
-  --chart-2: #FF6669;
-  --chart-3: #E0B700;
-  --chart-4: #027a46;
-  --chart-5: #7A83FF;
-  --chart-active-dot: #fff;
+	--background: oklch(18% 18% 272deg);
+	--secondary-background: oklch(10% 0.01 260);
+	--foreground: oklch(92% 0 0);
+	--main-foreground: oklch(98% 0 0);
+
+	--main: oklch(78% 0.17 210); /* Slightly dimmed cyan */
+	--border: oklch(95% 0 0);
+	--ring: oklch(100% 0 0);
+
+	--shadow: 0px 0px 0px 0px var(--border);
+
+	--chart-1: #2be4ff;
+	--chart-2: #ff6669;
+	--chart-3: #e0b700;
+	--chart-4: #04c86d;
+	--chart-5: #7a83ff;
+	--chart-active-dot: #2be4ff;
 }
 
 @theme inline {
-  --color-main: var(--main);
-  --color-background: var(--background);
-  --color-secondary-background: var(--secondary-background);
-  --color-foreground: var(--foreground);
-  --color-main-foreground: var(--main-foreground);
-  --color-border: var(--border);
-  --color-overlay: var(--overlay);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+	--color-main: var(--main);
+	--color-background: var(--background);
+	--color-secondary-background: var(--secondary-background);
+	--color-foreground: var(--foreground);
+	--color-main-foreground: var(--main-foreground);
+	--color-border: var(--border);
+	--color-overlay: var(--overlay);
+	--color-ring: var(--ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
 
-  --spacing-boxShadowX: 0px;
-  --spacing-boxShadowY: 0px;
-  --spacing-reverseBoxShadowX: -0px;
-  --spacing-reverseBoxShadowY: -0px;
-  --radius-base: 0px;
-  --shadow-shadow: var(--shadow);
-  --font-weight-base: 500;
-  --font-weight-heading: 800;
+	--spacing-boxShadowX: 0px;
+	--spacing-boxShadowY: 0px;
+	--spacing-reverseBoxShadowX: -0px;
+	--spacing-reverseBoxShadowY: -0px;
+	--radius-base: 10px;
+	--shadow-shadow: var(--shadow);
+	--font-weight-base: 700;
+	--font-weight-heading: 900;
 }
 
 @layer base {
-  body {
-    @apply text-foreground font-base bg-background;
-  }
+	body {
+		@apply text-foreground font-base bg-background;
+	}
 
-  h1, h2, h3, h4, h5, h6{
-    @apply font-heading;
-  }
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-heading;
+	}
 }

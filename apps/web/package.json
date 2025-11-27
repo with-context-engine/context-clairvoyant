@@ -8,7 +8,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"typecheck": "tsc --noEmit",
-		"lint": "bunx biome check ."
+		"lint": "bunx biome check .",
+		"test": "echo 'No tests configured for @clairvoyant/web'"
 	},
 	"dependencies": {
 		"@clairvoyant/api": "workspace:*",
