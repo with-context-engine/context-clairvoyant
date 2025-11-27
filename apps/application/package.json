@@ -9,7 +9,7 @@
 		"start": "bun run --env-file=../../.env.local --env-file=.env.local src/index.ts",
 		"lint": "bunx biome check .",
 		"typecheck": "tsc --noEmit",
-		"test": "bun run baml-cli test && bun test"
+		"test": "bun run baml-cli test --from ../../baml_src"
 	},
 	"dependencies": {
 		"@boundaryml/baml": "^0.213.0",

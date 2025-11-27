@@ -15,7 +15,8 @@
 		"dev": "bun run --env-file=../../.env.local --env-file=.env.local --watch src/index.ts",
 		"start": "bun run --env-file=../../.env.local --env-file=.env.local src/index.ts",
 		"lint": "bunx biome check .",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"test": "echo 'No tests configured for @clairvoyant/api'"
 	},
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.0",

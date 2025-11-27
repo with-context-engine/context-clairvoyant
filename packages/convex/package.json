@@ -6,7 +6,8 @@
 	"main": "_generated/api.js",
 	"types": "_generated/api.d.ts",
 	"scripts": {
-		"dev": "cd ../.. && bun convex dev"
+		"dev": "cd ../.. && bun convex dev",
+		"test": "echo 'No tests configured for @clairvoyant/convex'"
 	},
 	"dependencies": {
 		"@convex-dev/polar": "^0.6.4",
