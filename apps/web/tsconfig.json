@@ -7,6 +7,12 @@
 		"jsx": "react-jsx",
 		"allowJs": true,
 		"moduleResolution": "bundler",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@convex/*": ["../../packages/convex/*"],
+			"@convex": ["../../packages/convex"]
+		},
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
 		"noEmit": true,
@@ -19,5 +25,6 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
 	},
-	"exclude": ["node_modules", "apps", "packages"]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules"]
 }

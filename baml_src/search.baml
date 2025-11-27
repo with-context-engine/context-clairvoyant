@@ -12,13 +12,32 @@ class QueryResult {
     results AnswerLines[]
 }
 
-function AnswerSearch(query: string, searchResults: NewsItem[]) -> QueryResult {
+function AnswerSearch(query: string, searchResults: NewsItem[], memory: MemoryCore?) -> QueryResult {
     client "Groq"
     prompt #"
         {{ _.role("system")}}
         You are a helpful Web Search Summarizer who summarizes the results of a web search. 
         You need give an answer to the following question: {{ query }} given the results of the web search below collected by the user. 
         The output should be lines of text that sound like a human would say them to a friend and no more than 10 words per line as per the output format and no more than 3 lines as per the output format: 
+        
+        {% if memory %}
+        {% set hasUserName = memory.userName is defined and memory.userName %}
+        {% set hasUserFacts = memory.userFacts|length > 0 %}
+        {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+        {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
+        User Context (use to personalize response and acknowledge past searches):
+        {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
+        {% for fact in memory.userFacts %}
+        - {{ fact }}
+        {% endfor %}
+        {% for fact in memory.deductiveFacts %}
+        - {{ fact }}
+        {% endfor %}
+        
+        If the user has searched for related topics before, naturally acknowledge this (e.g., "You searched for X yesterday..." or "Following up on your interest in Y..."). Keep it conversational.
+        {% endif %}
+        {% endif %}
+        
         {{ ctx.output_format }}
         {{ _.role("user") }}
         {% for result in searchResults %}
@@ -36,6 +55,7 @@ test test_answer_search {
     functions [AnswerSearch]
     args {
         query "Did Charlie Kirk die?"
+        memory null
         searchResults [
             {
                 title "California state Sen. Scott Wiener labels Charlie Kirk 'a vile bigot who' normalized 'dehumanization' - Fox News"
