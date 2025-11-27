@@ -10,6 +10,6 @@
 	},
 	"dependencies": {
 		"@convex-dev/polar": "^0.6.4",
-		"convex": "^1.28.2"
+		"convex": "^1.29.3"
 	}
 }

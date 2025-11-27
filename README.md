@@ -400,6 +400,318 @@ bun run build
 bun run web:build
 ```
 
+## Deployment
+
+Clairvoyant can be deployed to Railway (recommended for long-running services) or Vercel (recommended for web app and API serverless functions).
+
+### Quick Reference
+
+| Service | Recommended Platform | Alternative Platform | Notes |
+|---------|---------------------|---------------------|-------|
+| **Application** | Railway | - | Long-running MentraOS service |
+| **API** | Railway | Vercel | Requires code changes for Vercel |
+| **Web** | Vercel | Railway | Static site, works on both |
+
+### Railway Deployment
+
+Railway is ideal for deploying the **application** and **API** services as they are long-running processes. The **web** app can also be deployed to Railway as a static site.
+
+#### Prerequisites
+- [Railway account](https://railway.app)
+- Railway CLI installed: `npm i -g @railway/cli`
+- All environment variables configured
+
+#### Deploy Application Service
+
+1. **Create a new Railway project:**
+   ```bash
+   railway login
+   railway init
+   ```
+
+2. **Link to existing service (if using railway.json):**
+   ```bash
+   railway link
+   ```
+
+3. **Configure the service:**
+   - Set the **Root Directory** to the project root
+   - The `railway.application.json` file will be automatically detected
+   - Or manually configure:
+     - **Build Command**: `bun install`
+     - **Start Command**: `bun run --cwd apps/application start`
+     - **Watch Patterns**: `apps/application/**`, `packages/convex/**`, `baml_src/**`, `package.json`, `bun.lock`
+
+4. **Set environment variables:**
+   ```bash
+   railway variables set PACKAGE_NAME=your-package-name
+   railway variables set MENTRAOS_API_KEY=your-mentraos-api-key
+   railway variables set GROQ_API_KEY=your-groq-api-key
+   railway variables set OPENAI_API_KEY=your-openai-api-key
+   railway variables set OPENWEATHERMAP_API_KEY=your-weather-api-key
+   railway variables set TAVILY_API_KEY=your-tavily-api-key
+   railway variables set GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+   railway variables set HONCHO_API_KEY=your-honcho-api-key
+   railway variables set CONVEX_URL=your-convex-deployment-url
+   railway variables set PORT=3000
+   ```
+
+5. **Deploy:**
+   ```bash
+   railway up
+   ```
+
+6. **Get public domain:**
+   ```bash
+   railway domain
+   ```
+   Copy the generated domain and configure it in your MentraOS package settings.
+
+#### Deploy API Service
+
+1. **Create a new service in your Railway project:**
+   ```bash
+   railway service create api
+   ```
+
+2. **Link the service:**
+   ```bash
+   railway link --service api
+   ```
+
+3. **Configure the service:**
+   - The `railway.api.json` file will be automatically detected
+   - Or manually configure:
+     - **Build Command**: `bun install`
+     - **Start Command**: `bun run --cwd apps/api start`
+     - **Watch Patterns**: `apps/api/**`, `packages/convex/**`, `package.json`, `bun.lock`
+
+4. **Set environment variables:**
+   ```bash
+   railway variables set MENTRAOS_API_KEY=your-mentraos-api-key
+   railway variables set CONVEX_URL=your-convex-deployment-url
+   railway variables set AUTH_PUBLIC_KEY_PEM=your-auth-public-key
+   railway variables set AUTH_PRIVATE_KEY_PEM=your-auth-private-key
+   railway variables set AUTH_KEY_ID=your-auth-key-id
+   railway variables set API_PORT=3001
+   railway variables set RAILWAY_PUBLIC_DOMAIN=$(railway domain)
+   ```
+
+5. **Deploy:**
+   ```bash
+   railway up
+   ```
+
+#### Deploy Web App (Static Site)
+
+1. **Create a new service:**
+   ```bash
+   railway service create web
+   railway link --service web
+   ```
+
+2. **Configure the service:**
+   - **Root Directory**: Leave as project root (monorepo)
+   - **Build Command**: `bun install && bun run --cwd apps/web build`
+   - **Start Command**: `bun run --cwd apps/web preview --port $PORT --host`
+   - **Output Directory**: `apps/web/dist`
+   - **Watch Patterns**: `apps/web/**`, `packages/convex/**`, `package.json`, `bun.lock`
+
+3. **Set environment variables:**
+   ```bash
+   railway variables set VITE_CONVEX_URL=your-convex-deployment-url
+   railway variables set VITE_API_BASE_URL=https://your-api-service.railway.app
+   ```
+
+4. **Deploy:**
+   ```bash
+   railway up
+   ```
+
+**Alternative:** Railway also supports static site hosting. You can configure it to serve the `apps/web/dist` directory directly without a preview server.
+
+#### Railway Configuration Files
+
+The project includes Railway configuration files:
+- `railway.application.json`: Application service configuration
+- `railway.api.json`: API service configuration
+
+These files define build commands, start commands, and watch patterns for automatic deployments.
+
+### Vercel Deployment
+
+Vercel is ideal for deploying the **web** app (static site) and **API** (serverless functions). The **application** service should be deployed to Railway as it requires a long-running process.
+
+#### Prerequisites
+- [Vercel account](https://vercel.com)
+- Vercel CLI installed: `npm i -g vercel`
+- All environment variables configured
+
+#### Deploy Web App
+
+1. **Navigate to web app directory:**
+   ```bash
+   cd apps/web
+   ```
+
+2. **Deploy to Vercel:**
+   ```bash
+   vercel
+   ```
+
+3. **Configure build settings:**
+   - **Framework Preset**: Vite
+   - **Build Command**: `cd ../.. && bun install && bun run --cwd apps/web build`
+   - **Output Directory**: `apps/web/dist`
+   - **Install Command**: `cd ../.. && bun install`
+
+4. **Set environment variables in Vercel dashboard:**
+   - `VITE_CONVEX_URL`: Your Convex deployment URL
+   - `VITE_API_BASE_URL`: Your API base URL (Railway or Vercel)
+
+5. **For production deployment:**
+   ```bash
+   vercel --prod
+   ```
+
+#### Deploy API Service (Serverless)
+
+**Note:** The API service uses Elysia with Bun runtime and is optimized for long-running processes. For best compatibility, we recommend deploying the API to Railway. However, Vercel deployment is possible with modifications.
+
+**Option 1: Railway (Recommended)**
+Follow the Railway API deployment instructions above for the best experience.
+
+**Option 2: Vercel (Requires Code Changes)**
+
+To deploy to Vercel, you'll need to modify the API to export a serverless handler:
+
+1. **Create a Vercel handler file** (`apps/api/src/vercel.ts`):
+   ```typescript
+   import { app } from "./index";
+   
+   export default app.handle;
+   ```
+
+2. **Create `vercel.json` in project root:**
+   ```json
+   {
+     "version": 2,
+     "builds": [
+       {
+         "src": "apps/api/src/vercel.ts",
+         "use": "@vercel/node"
+       }
+     ],
+     "routes": [
+       {
+         "src": "/(.*)",
+         "dest": "apps/api/src/vercel.ts"
+       }
+     ]
+   }
+   ```
+
+3. **Deploy from project root:**
+   ```bash
+   vercel
+   ```
+
+4. **Set environment variables:**
+   ```bash
+   vercel env add MENTRAOS_API_KEY
+   vercel env add CONVEX_URL
+   vercel env add AUTH_PUBLIC_KEY_PEM
+   vercel env add AUTH_PRIVATE_KEY_PEM
+   vercel env add AUTH_KEY_ID
+   vercel env add PUBLIC_BASE_URL
+   ```
+
+5. **Note:** The API code already includes Vercel origin detection for CORS. The `PUBLIC_BASE_URL` will be automatically set from `VERCEL_URL` if not explicitly provided. Remove the `.listen()` call in production when using Vercel.
+
+6. **For production:**
+   ```bash
+   vercel --prod
+   ```
+
+**Important:** Since the API uses Bun-specific features, you may need to use a Node.js-compatible runtime or consider Railway for better Bun support.
+
+#### Vercel Monorepo Configuration
+
+If deploying from the monorepo root, configure Vercel to recognize the workspace structure:
+
+1. **Create `vercel.json` in project root (for web app):**
+   ```json
+   {
+     "buildCommand": "cd apps/web && bun install && bun run build",
+     "outputDirectory": "apps/web/dist",
+     "installCommand": "bun install",
+     "framework": "vite"
+   }
+   ```
+
+2. **Or use Vercel dashboard:**
+   - Set **Root Directory** to `apps/web`
+   - Configure build settings as above
+
+### Deployment Architecture Recommendations
+
+**Recommended Setup:**
+- **Application**: Railway (long-running MentraOS service)
+- **API**: Railway or Vercel (serverless functions)
+- **Web**: Vercel (static site with CDN)
+
+**Alternative Setup:**
+- **All services**: Railway (simpler to manage, single platform)
+
+### Environment Variables Checklist
+
+Ensure all required environment variables are set in your deployment platform:
+
+**Application Service:**
+- `PACKAGE_NAME`
+- `PORT`
+- `MENTRAOS_API_KEY`
+- `GROQ_API_KEY`
+- `OPENAI_API_KEY`
+- `OPENWEATHERMAP_API_KEY`
+- `TAVILY_API_KEY`
+- `GOOGLE_MAPS_API_KEY`
+- `HONCHO_API_KEY`
+- `CONVEX_URL`
+
+**API Service:**
+- `API_PORT` (or `PORT`)
+- `MENTRAOS_API_KEY`
+- `CONVEX_URL`
+- `AUTH_PUBLIC_KEY_PEM`
+- `AUTH_PRIVATE_KEY_PEM`
+- `AUTH_KEY_ID`
+- `PUBLIC_BASE_URL` (or `RAILWAY_PUBLIC_DOMAIN` for Railway)
+- `ALLOWED_ORIGINS` (optional, comma-separated)
+
+**Web App:**
+- `VITE_CONVEX_URL`
+- `VITE_API_BASE_URL`
+
+### Post-Deployment Steps
+
+1. **Update MentraOS package settings:**
+   - Set the application service URL (Railway domain)
+   - Configure webhook endpoints if needed
+
+2. **Update Convex environment:**
+   - Ensure `CONVEX_URL` matches your deployment
+   - Verify Polar integration is configured
+
+3. **Test endpoints:**
+   - Application: Health check via MentraOS
+   - API: Test `/health` or session endpoints
+   - Web: Verify dashboard loads and connects to Convex
+
+4. **Monitor logs:**
+   - Railway: `railway logs`
+   - Vercel: Dashboard or `vercel logs`
+
 ## Memory Injection Pattern
 
 Clairvoyant implements a sophisticated memory injection system that enables personalized, context-aware responses. This pattern is documented in detail in [`docs/MEMORY_INJECTION_PATTERN.md`](docs/MEMORY_INJECTION_PATTERN.md).
