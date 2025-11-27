@@ -3,7 +3,13 @@
 	"build": {
 		"builder": "RAILPACK",
 		"buildCommand": "bun install",
-		"watchPatterns": ["apps/application/**", "packages/convex/**", "baml_src/**", "package.json", "bun.lock"]
+		"watchPatterns": [
+			"apps/application/**",
+			"packages/convex/**",
+			"baml_src/**",
+			"package.json",
+			"bun.lock"
+		]
 	},
 	"deploy": {
 		"startCommand": "bun run --cwd apps/application start",

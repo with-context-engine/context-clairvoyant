@@ -3,7 +3,12 @@
 	"build": {
 		"builder": "RAILPACK",
 		"buildCommand": "bun install",
-		"watchPatterns": ["apps/api/**", "packages/convex/**", "package.json", "bun.lock"]
+		"watchPatterns": [
+			"apps/api/**",
+			"packages/convex/**",
+			"package.json",
+			"bun.lock"
+		]
 	},
 	"deploy": {
 		"startCommand": "bun run --cwd apps/api start",

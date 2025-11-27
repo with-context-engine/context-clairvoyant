@@ -125,7 +125,7 @@ export function SubscriptionCard({ mentraUserId }: { mentraUserId: string }) {
 						{isPro ? "Pro Tier" : "Free Tier"}
 					</div>
 				</CardContent>
-				<BorderBeam duration={8} size={160} borderWidth={2} />
+				{isPro && <BorderBeam duration={8} size={160} borderWidth={2} />}
 			</Card>
 
 			{/* Animated Renewal Display */}
