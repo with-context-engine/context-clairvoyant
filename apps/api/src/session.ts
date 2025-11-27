@@ -1,10 +1,10 @@
 import { createPrivateKey } from "node:crypto";
+import { api } from "@convex/_generated/api";
 import { ConvexClient } from "convex/browser";
 import { Elysia } from "elysia";
 import jwt from "jsonwebtoken";
-import { api } from "@convex/_generated/api";
-import { verifyFrontendToken } from "./middleware/mentra";
 import { env, publicBaseUrl } from "./env";
+import { verifyFrontendToken } from "./middleware/mentra";
 
 const convex = new ConvexClient(env.CONVEX_URL);
 

@@ -1,5 +1,5 @@
-import { treaty } from "@elysiajs/eden";
 import type { App } from "@clairvoyant/api";
+import { treaty } from "@elysiajs/eden";
 import { apiBaseUrl } from "../env";
 
 export const api = treaty<App>(apiBaseUrl);

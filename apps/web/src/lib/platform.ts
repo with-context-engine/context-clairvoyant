@@ -3,11 +3,12 @@
  */
 export function isMobile(): boolean {
 	if (typeof window === "undefined") return false;
-	
+
 	// Check user agent for mobile devices
 	const userAgent = navigator.userAgent || navigator.vendor;
-	const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-	
+	const mobileRegex =
+		/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+
 	return mobileRegex.test(userAgent.toLowerCase());
 }
 
@@ -16,13 +17,17 @@ export function isMobile(): boolean {
  */
 export function isWebView(): boolean {
 	if (typeof window === "undefined") return false;
-	
+
 	const userAgent = navigator.userAgent || navigator.vendor;
-	
+
 	// Common webview indicators
-	const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent);
-	const isAndroidWebView = /wv|Android.*Version\/[\d.]+.*Chrome/i.test(userAgent);
-	
+	const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(
+		userAgent,
+	);
+	const isAndroidWebView = /wv|Android.*Version\/[\d.]+.*Chrome/i.test(
+		userAgent,
+	);
+
 	return isIOSWebView || isAndroidWebView;
 }
 

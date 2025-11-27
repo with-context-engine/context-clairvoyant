@@ -1,8 +1,8 @@
+import type { Id } from "@convex/_generated/dataModel";
 import { useMentraAuth } from "@mentra/react";
 import { ConvexProvider } from "convex/react";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import type { Id } from "@convex/_generated/dataModel";
 import { BottomTabBar } from "./components/BottomTabBar";
 import { ChatPage } from "./components/ChatPage";
 import { HomePage } from "./components/HomePage";
@@ -129,7 +129,10 @@ export function App() {
 									/>
 								}
 							/>
-							<Route path="/billing" element={<Navigate to="/settings" replace />} />
+							<Route
+								path="/billing"
+								element={<Navigate to="/settings" replace />}
+							/>
 						</Routes>
 					</div>
 

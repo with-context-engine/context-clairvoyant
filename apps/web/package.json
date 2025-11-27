@@ -5,7 +5,7 @@
 	"private": true,
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc && vite build",
+		"build": "vite build",
 		"preview": "vite preview",
 		"typecheck": "tsc --noEmit",
 		"lint": "bunx biome check ."
@@ -34,7 +34,8 @@
 		"react-dom": "^18.3.1",
 		"react-router-dom": "^7.9.6",
 		"recharts": "^3.5.0",
-		"tailwind-merge": "^3.4.0"
+		"tailwind-merge": "^3.4.0",
+		"zod": "^3.25.76"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.17",

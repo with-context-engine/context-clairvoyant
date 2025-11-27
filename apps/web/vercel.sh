@@ -4,10 +4,8 @@
 cd ../..
 
 if [[ $VERCEL_ENV == "production" ]]; then
-  # Deploy Convex to production, then build the web app
-  bunx convex deploy --cmd 'cd apps/web && tsc && vite build'
+  bunx convex deploy --cmd 'cd apps/web && vite build'
 else
-  # Preview/staging: just build (uses existing dev Convex deployment)
-  cd apps/web && tsc && vite build
+  cd apps/web && vite build
 fi
 

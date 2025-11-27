@@ -2,8 +2,8 @@ import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
 import { exportJWK, importSPKI } from "jose";
 import { env, publicBaseUrl } from "./env";
-import { sessionRoutes } from "./session";
 import { verifyServerAuthToken } from "./middleware/auth";
+import { sessionRoutes } from "./session";
 
 const PORT = env.API_PORT;
 

@@ -1,9 +1,9 @@
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis } from "recharts";
 import { cn } from "@/lib/utils";
-import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 import type { ChartConfig } from "../ui/chart";
 import { ChartContainer } from "../ui/chart";
 
