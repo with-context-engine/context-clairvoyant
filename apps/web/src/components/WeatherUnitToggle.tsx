@@ -6,10 +6,7 @@ interface WeatherUnitToggleProps {
 	onSave: (unit: "C" | "F") => Promise<void>;
 }
 
-export function WeatherUnitToggle({
-	value,
-	onSave,
-}: WeatherUnitToggleProps) {
+export function WeatherUnitToggle({ value, onSave }: WeatherUnitToggleProps) {
 	const [isSaving, setIsSaving] = useState(false);
 
 	const handleToggle = async (checked: boolean) => {
@@ -27,7 +24,8 @@ export function WeatherUnitToggle({
 	return (
 		<div className="flex flex-col gap-3">
 			<span className="text-sm font-semibold text-center">
-				Weather Unit {isSaving && <span className="text-foreground/60">(Saving...)</span>}
+				Weather Unit{" "}
+				{isSaving && <span className="text-foreground/60">(Saving...)</span>}
 			</span>
 			<div className="flex items-center justify-between gap-4">
 				<span

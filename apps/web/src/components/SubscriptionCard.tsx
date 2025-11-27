@@ -1,8 +1,8 @@
+import { api } from "@convex/_generated/api";
 import { CustomerPortalLink } from "@convex-dev/polar/react";
 import { useAction, useQuery } from "convex/react";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@convex/_generated/api";
 import { BorderBeam } from "./ui/border-beam";
 import { Button } from "./ui/button";
 import {

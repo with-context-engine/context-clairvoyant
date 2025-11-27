@@ -12,7 +12,10 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			alias: {
 				"@": path.resolve(__dirname, "src"),
+				"@convex": path.resolve(__dirname, "../../packages/convex"),
+				"@clairvoyant/api": path.resolve(__dirname, "../api/src/index.ts"),
 			},
+			dedupe: ["elysia"],
 		},
 		server: {
 			port: 5173,

@@ -1,6 +1,9 @@
 {
 	"compilerOptions": {
-		"lib": ["ESNext", "DOM"],
+		"lib": [
+			"ESNext",
+			"DOM"
+		],
 		"target": "ESNext",
 		"module": "Preserve",
 		"moduleDetection": "force",
@@ -9,9 +12,18 @@
 		"moduleResolution": "bundler",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"],
-			"@convex/*": ["../../packages/convex/*"],
-			"@convex": ["../../packages/convex"]
+			"@/*": [
+				"./src/*"
+			],
+			"@convex/*": [
+				"../../packages/convex/*"
+			],
+			"@convex": [
+				"../../packages/convex"
+			],
+			"@clairvoyant/api": [
+				"../api/src/index.ts"
+			]
 		},
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
@@ -25,6 +37,10 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
 	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules"]
+	"include": [
+		"src/**/*"
+	],
+	"exclude": [
+		"node_modules"
+	]
 }

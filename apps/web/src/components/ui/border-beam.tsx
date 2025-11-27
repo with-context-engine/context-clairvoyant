@@ -2,7 +2,7 @@ import type { MotionStyle } from "motion/react";
 import { motion } from "motion/react";
 import type { ComponentProps } from "react";
 
-import { cn } from "@/frontend/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface BorderBeamProps {
 	/**
