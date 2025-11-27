@@ -3,5 +3,8 @@
 	"buildCommand": "cd ../.. && bun install && cd apps/web && chmod +x vercel.sh && ./vercel.sh",
 	"outputDirectory": "dist",
 	"installCommand": "cd ../.. && bun install",
-	"framework": "vite"
+	"framework": "vite",
+	"rewrites": [
+		{ "source": "/((?!api|.well-known).*)", "destination": "/index.html" }
+	]
 }
