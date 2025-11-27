@@ -19,7 +19,19 @@
 		},
 		"test": {
 			"dependsOn": ["^build"],
-			"outputs": []
+			"outputs": [],
+			"env": [
+				"GROQ_API_KEY",
+				"OPENAI_API_KEY",
+				"OPENWEATHERMAP_API_KEY",
+				"TAVILY_API_KEY",
+				"GOOGLE_MAPS_API_KEY",
+				"PACKAGE_NAME",
+				"PORT",
+				"MENTRAOS_API_KEY",
+				"HONCHO_API_KEY",
+				"CONVEX_URL"
+			]
 		}
 	}
 }
