@@ -1,0 +1,15 @@
+{
+	"name": "@clairvoyant/convex",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"main": "_generated/api.js",
+	"types": "_generated/api.d.ts",
+	"scripts": {
+		"dev": "cd ../.. && bun convex dev"
+	},
+	"dependencies": {
+		"@convex-dev/polar": "^0.6.4",
+		"convex": "^1.29.3"
+	}
+}

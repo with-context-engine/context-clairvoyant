@@ -60,7 +60,7 @@ class WeatherLines {
   lines string[]
 }
 
-function SummarizeWeatherFormatted(input: FormattedWeather, unit: string) -> WeatherLines {
+function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory: MemoryCore?) -> WeatherLines {
   client "openai/gpt-4o-mini"
 
   prompt #"
@@ -70,12 +70,28 @@ function SummarizeWeatherFormatted(input: FormattedWeather, unit: string) -> Wea
   Use the data to describe the weather on a scale of 1-10 out of 10 and include the "vibe rating" of the weather.
   {{ ctx.output_format }}
 
+  {% if memory %}
+  {% set hasUserName = memory.userName is defined and memory.userName %}
+  {% set hasUserFacts = memory.userFacts|length > 0 %}
+  {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+  {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
+  User Context (weave naturally if relevant):
+  {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
+  {% for fact in memory.userFacts %}
+  - {{ fact }}
+  {% endfor %}
+  {% for fact in memory.deductiveFacts %}
+  - {{ fact }}
+  {% endfor %}
+  {% endif %}
+  {% endif %}
+
   Style rules:
   - You are only allowed to print 3 lines in the list output. 
   - Each line can be a continuation of the previous line.
   - The first line should be the scale and the vibe rating.
   - The second line should be the current weather.
-  - The third line should be the alert if there is one.
+  - The third line should be the alert if there is one OR a personalized insight based on user context.
 
   Data (verbatim):
   Location:
@@ -386,4 +402,166 @@ test test_weather_lines_celsius {
     }
     unit "C"
   }
+}
+
+test test_weather_with_memory_cold_preference {
+  functions [SummarizeWeatherFormatted]
+  args {
+    input {
+      location {
+        lat 43.6532
+        lon -79.3832
+        timezone "America/Toronto"
+      }
+      current {
+        temperature 2.0
+        feels_like -3.0
+        conditions {
+          id 600
+          main "Snow"
+          description "light snow"
+          icon "13d"
+        }
+        humidity 85
+        pressure 1015
+        wind_speed 8.5
+        wind_direction 320
+        visibility 5000
+        uv_index 1.0
+        clouds 90
+      }
+      daily_forecast [
+        {
+          date "2025-11-12T17:00:00.000Z"
+          summary "Expect a day of snow with cold temperatures"
+          temperature {
+            day 2.0
+            min -2.0
+            max 3.0
+            night -1.0
+          }
+          conditions {
+            id 600
+            main "Snow"
+            description "light snow"
+            icon "13d"
+          }
+          precipitation_probability 0.8
+          rain 0
+        },
+        {
+          date "2025-11-13T17:00:00.000Z"
+          summary "Cold and clear skies"
+          temperature {
+            day 1.0
+            min -4.0
+            max 2.0
+            night -3.0
+          }
+          conditions {
+            id 800
+            main "Clear"
+            description "clear sky"
+            icon "01d"
+          }
+          precipitation_probability 0.1
+          rain 0
+        }
+      ]
+      alerts []
+    }
+    unit "C"
+    memory {
+      userName "Ajay"
+      userFacts [
+        "Location: Toronto",
+        "Age: 37"
+      ]
+      deductiveFacts [
+        "User likes cold weather because they are from Canada"
+      ]
+    }
+  }
+  @@assert({{ this.lines|length <= 3 }})
+  @@assert({{ this.lines|length >= 1 }})
+}
+
+test test_weather_with_memory_no_deductions {
+  functions [SummarizeWeatherFormatted]
+  args {
+    input {
+      location {
+        lat 37.7749
+        lon -122.4194
+        timezone "America/Los_Angeles"
+      }
+      current {
+        temperature 18.0
+        feels_like 17.0
+        conditions {
+          id 500
+          main "Rain"
+          description "light rain"
+          icon "10d"
+        }
+        humidity 70
+        pressure 1012
+        wind_speed 4.5
+        wind_direction 270
+        visibility 8000
+        uv_index 2.0
+        clouds 75
+      }
+      daily_forecast [
+        {
+          date "2025-11-12T17:00:00.000Z"
+          summary "Rainy day with mild temperatures"
+          temperature {
+            day 18.0
+            min 14.0
+            max 20.0
+            night 15.0
+          }
+          conditions {
+            id 500
+            main "Rain"
+            description "light rain"
+            icon "10d"
+          }
+          precipitation_probability 0.9
+          rain 5.2
+        },
+        {
+          date "2025-11-13T17:00:00.000Z"
+          summary "Partly cloudy with chance of rain"
+          temperature {
+            day 19.0
+            min 15.0
+            max 21.0
+            night 16.0
+          }
+          conditions {
+            id 802
+            main "Clouds"
+            description "scattered clouds"
+            icon "03d"
+          }
+          precipitation_probability 0.4
+          rain 1.2
+        }
+      ]
+      alerts []
+    }
+    unit "C"
+    memory {
+      userName "Sarah"
+      userFacts [
+        "Children: Two daughters (ages 5 and 2)",
+        "Occupation: Founder of a technology company"
+      ]
+      deductiveFacts []
+    }
+  }
+  @@assert({{ this.lines|length <= 3 }})
+  @@assert({{ this.lines|length >= 1 }})
 }
