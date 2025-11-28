@@ -337,7 +337,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async SummarizePlaces(
-        query: string,places: types.PlaceSuggestion[],
+        query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.PlaceLines> {
           try {
@@ -351,7 +351,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (options.onTick) {
           const stream = this.stream.SummarizePlaces(
-          query,places,
+          query,places,memory,
           __baml_options__
           );
 
@@ -367,7 +367,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const raw = await this.runtime.callFunction(
             "SummarizePlaces",
             {
-            "query": query,"places": places
+            "query": query,"places": places,"memory": memory?? null
             },
             this.ctxManager.cloneContext(),
             options.tb?.__tb(),
@@ -825,7 +825,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             SummarizePlaces(
-            query: string,places: types.PlaceSuggestion[],
+            query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.PlaceLines, types.PlaceLines>
               {
@@ -866,7 +866,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const raw = this.runtime.streamFunction(
                 "SummarizePlaces",
                 {
-                "query": query,"places": places
+                "query": query,"places": places,"memory": memory ?? null
                 },
                 undefined,
                 this.ctxManager.cloneContext(),

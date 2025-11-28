@@ -167,7 +167,7 @@ env?: Record<string, string | undefined>
       }
       
   async SummarizePlaces(
-  query: string,places: types.PlaceSuggestion[],
+  query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
   __baml_options__?: BamlCallOptions<never>
   ): Promise<HTTPRequest> {
     try {
@@ -178,7 +178,7 @@ env?: Record<string, string | undefined>
       return await this.runtime.buildRequest(
       "SummarizePlaces",
       {
-      "query": query,"places": places
+      "query": query,"places": places,"memory": memory?? null
       },
       this.ctxManager.cloneContext(),
       __baml_options__?.tb?.__tb(),
@@ -373,7 +373,7 @@ env?: Record<string, string | undefined>
           }
           
       async SummarizePlaces(
-      query: string,places: types.PlaceSuggestion[],
+      query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
       ): Promise<HTTPRequest> {
         try {
@@ -384,7 +384,7 @@ env?: Record<string, string | undefined>
           return await this.runtime.buildRequest(
           "SummarizePlaces",
           {
-          "query": query,"places": places
+          "query": query,"places": places,"memory": memory?? null
           },
           this.ctxManager.cloneContext(),
           __baml_options__?.tb?.__tb(),

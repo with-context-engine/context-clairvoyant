@@ -1,3 +1,4 @@
+import type { Session } from "@honcho-ai/sdk";
 import { AppServer, type AppSession } from "@mentra/sdk";
 import { env } from "./core/env";
 import { RateLimiter } from "./core/rateLimiting";
@@ -7,9 +8,16 @@ import { handleTranscription } from "./transcriptionFlow";
 const PACKAGE_NAME = env.PACKAGE_NAME;
 const MENTRAOS_API_KEY = env.MENTRAOS_API_KEY;
 const PORT = env.PORT;
+const MIN_AUDIO_DURATION_MS = 200;
+
+interface SessionResources {
+	unsubscribeTranscription: () => void;
+	memorySession: Session;
+}
 
 class Clairvoyant extends AppServer {
 	private questionRateLimiter: RateLimiter;
+	private sessionResources: Map<string, SessionResources> = new Map();
 
 	constructor() {
 		super({
@@ -21,28 +29,49 @@ class Clairvoyant extends AppServer {
 		this.questionRateLimiter = new RateLimiter(1000);
 	}
 
-	protected override async onSession(session: AppSession): Promise<void> {
-		const [memorySession, peers] = await initializeMemory(session.userId);
+	protected override async onSession(
+		session: AppSession,
+		sessionId: string,
+		userId: string,
+	): Promise<void> {
+		const [memorySession, peers] = await initializeMemory(userId);
 
-		session.events.onTranscription(async (data) => {
-			// If its not a final utterance, skip
-			if (!data.isFinal) return;
-
-			// If the audio segment causing this transcription is too short, skip
-			if (data.duration) {
-				if (data.duration < 200) {
-					return;
-				}
-			}
-
-			// If the question rate limiter is triggered, skip
-			if (this.questionRateLimiter.shouldSkip(session.logger, "Clairvoyant")) {
+		const unsubscribe = session.events.onTranscription(async (data) => {
+			if (
+				!data.isFinal ||
+				(data.duration && data.duration < MIN_AUDIO_DURATION_MS) ||
+				this.questionRateLimiter.shouldSkip(session.logger, "Clairvoyant")
+			) {
 				return;
 			}
 
-			// Handle the transcription
-			await handleTranscription(data, session, memorySession, peers, session.userId);
+			await handleTranscription(data, session, memorySession, peers, userId);
 		});
+
+		this.sessionResources.set(sessionId, {
+			unsubscribeTranscription: unsubscribe,
+			memorySession,
+		});
+
+		session.logger.info(
+			`[Clairvoyant] Session started: ${sessionId} for user: ${userId}`,
+		);
+	}
+
+	protected override async onStop(
+		sessionId: string,
+		userId: string,
+		reason: string,
+	): Promise<void> {
+		const resources = this.sessionResources.get(sessionId);
+		if (resources) {
+			resources.unsubscribeTranscription();
+			this.sessionResources.delete(sessionId);
+		}
+
+		console.log(
+			`[Clairvoyant] Session ${sessionId} ended for user ${userId}: ${reason}`,
+		);
 	}
 }
 

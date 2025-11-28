@@ -1,8 +1,11 @@
+import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { ViewType } from "@mentra/sdk";
 import { b } from "../baml_client";
+import { checkUserIsPro, convexClient } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
+import { getTimeAgo } from "../core/utils";
 import { getPlaces } from "../tools/mapsCall";
 import { MemoryCapture } from "./memory";
 
@@ -64,7 +67,14 @@ export async function startMapsFlow(
 					}),
 			);
 
-			await MemoryCapture(query, session, memorySession, peers, "diatribe", mentraUserId);
+			await MemoryCapture(
+				query,
+				session,
+				memorySession,
+				peers,
+				"diatribe",
+				mentraUserId,
+			);
 
 			statusWallActive = false;
 
@@ -86,8 +96,122 @@ export async function startMapsFlow(
 				return;
 			}
 
+			// Fetch memory context if available
+			let memoryContext: {
+				userName?: string;
+				userFacts: string[];
+				deductiveFacts: string[];
+			} | null = null;
+			try {
+				const isPro = await checkUserIsPro(mentraUserId);
+				if (isPro) {
+					const user = await convexClient.query(
+						api.polar.getCurrentUserWithSubscription,
+						{ mentraUserId },
+					);
+					if (user) {
+						const userId = user._id;
+						const diatribePeer = peers.find(
+							(peer) => peer.id === `${userId}-diatribe`,
+						);
+
+						if (diatribePeer) {
+							session.logger.info(
+								"[Clairvoyant] Fetching memory context for maps personalization",
+							);
+							const contextData = (await memorySession.getContext({
+								peerTarget: diatribePeer.id,
+								lastUserMessage: query,
+							})) as {
+								peerCard: string[];
+								peerRepresentation: string;
+								messages: Array<{
+									content: string;
+									metadata?: { timestamp?: string };
+								}>;
+							};
+
+							// Parse peerRepresentation JSON for explicit and deductive facts
+							let peerRep: {
+								explicit: Array<{ content: string }>;
+								deductive: Array<{ conclusion: string; premises: string[] }>;
+							};
+							try {
+								peerRep = JSON.parse(contextData.peerRepresentation);
+							} catch (error) {
+								session.logger.error(
+									`[Clairvoyant] Error parsing peerRepresentation: ${error}`,
+								);
+								peerRep = { explicit: [], deductive: [] };
+							}
+
+							// Extract name and relevant facts from peerCard
+							const userName = contextData.peerCard
+								.find((fact: string) => fact.startsWith("Name:"))
+								?.replace("Name:", "")
+								.trim();
+							const relevantFacts = contextData.peerCard
+								.slice(0, 3)
+								.filter((fact: string) => !fact.startsWith("Name:"));
+
+							// Extract maps-relevant deductive conclusions (e.g., location preferences, past searches)
+							const mapsRelatedDeductions = peerRep.deductive
+								.map((d) => d.conclusion)
+								.filter(
+									(conclusion: string) =>
+										conclusion.toLowerCase().includes("location") ||
+										conclusion.toLowerCase().includes("place") ||
+										conclusion.toLowerCase().includes("restaurant") ||
+										conclusion.toLowerCase().includes("prefer") ||
+										conclusion.toLowerCase().includes("favorite") ||
+										conclusion.toLowerCase().includes("near"),
+								)
+								.slice(0, 2); // Limit to top 2 relevant deductions
+
+							// Extract recent location queries with timestamps
+							const recentMessages = contextData.messages || [];
+							const locationPattern =
+								/find|near|close|restaurant|cafe|store|shop|location|place/i;
+							const recentLocationQueries = recentMessages
+								.filter((msg) => locationPattern.test(msg.content))
+								.slice(-5) // Get last 5 location-related messages
+								.map((msg) => {
+									if (msg.metadata?.timestamp) {
+										const timeAgo = getTimeAgo(msg.metadata.timestamp);
+										return `Asked about "${msg.content.slice(0, 40)}${msg.content.length > 40 ? "..." : ""}" ${timeAgo}`;
+									}
+									return null;
+								})
+								.filter(Boolean) as string[];
+
+							// Combine deductions with temporal information
+							const deductionsWithTiming = mapsRelatedDeductions.concat(
+								recentLocationQueries.slice(0, 1), // Add up to 1 recent location query timestamp
+							);
+
+							memoryContext = {
+								userName,
+								userFacts: relevantFacts,
+								deductiveFacts: deductionsWithTiming,
+							};
+							session.logger.info(
+								`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`,
+							);
+						}
+					}
+				}
+			} catch (error) {
+				session.logger.warn(
+					`[Clairvoyant] Failed to fetch memory context: ${String(error)}`,
+				);
+			}
+
 			const topPlaces = places.slice(0, 3);
-			const placeLines = await b.SummarizePlaces(query, topPlaces);
+			const placeLines = await b.SummarizePlaces(
+				query,
+				topPlaces,
+				memoryContext,
+			);
 			const lines = placeLines.lines;
 
 			if (!lines?.length) {

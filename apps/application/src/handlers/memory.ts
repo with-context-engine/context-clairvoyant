@@ -1,6 +1,6 @@
+import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { api } from "@convex/_generated/api";
 import { b } from "../baml_client";
 import { checkUserIsPro, convexClient } from "../core/convex";
 
@@ -127,12 +127,6 @@ export async function MemoryRecall(
 				},
 			]);
 
-			// Show loading message
-			session.layouts.showTextWall("// Clairvoyant\nR: Trying to remember...", {
-				view: ViewType.MAIN,
-				durationMs: 30000,
-			});
-
 			// Get context data from Honcho
 			let contextData: {
 				messages: Array<{ content: string }>;
@@ -153,15 +147,6 @@ export async function MemoryRecall(
 				session.logger.error(
 					`[startMemoryRecallFlow] Error getting context after ${contextDuration}ms: ${error}`,
 				);
-				if (memoryRunCallIds.get(session) === runId) {
-					session.layouts.showTextWall(
-						"// Clairvoyant\nR: Couldn't remember!",
-						{
-							view: ViewType.MAIN,
-							durationMs: 2000,
-						},
-					);
-				}
 				return;
 			}
 
@@ -211,15 +196,6 @@ export async function MemoryRecall(
 				session.logger.error(
 					`[startMemoryRecallFlow] Error during synthesis after ${synthesisDuration}ms: ${error}`,
 				);
-				if (memoryRunCallIds.get(session) === runId) {
-					session.layouts.showTextWall(
-						"// Clairvoyant\nR: Couldn't remember!",
-						{
-							view: ViewType.MAIN,
-							durationMs: 2000,
-						},
-					);
-				}
 				return;
 			}
 
@@ -258,26 +234,11 @@ export async function MemoryRecall(
 				session.logger.error(
 					`[startMemoryRecallFlow] No lines in synthesis results`,
 				);
-				if (memoryRunCallIds.get(session) === runId) {
-					session.layouts.showTextWall(
-						"// Clairvoyant\nR: No memories found.",
-						{
-							view: ViewType.MAIN,
-							durationMs: 2000,
-						},
-					);
-				}
 			}
 		}
 	} catch (error) {
 		session.logger.error(
 			`[startMemoryRecallFlow] Error recalling memory: ${error}`,
 		);
-		if (memoryRunCallIds.get(session) === runId) {
-			session.layouts.showTextWall("// Clairvoyant\nR: Couldn't remember!", {
-				view: ViewType.MAIN,
-				durationMs: 2000,
-			});
-		}
 	}
 }

@@ -1,7 +1,7 @@
+import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { ViewType } from "@mentra/sdk";
-import { api } from "@convex/_generated/api";
 import { b } from "../baml_client";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
@@ -140,9 +140,13 @@ export async function startKnowledgeFlow(
 			try {
 				const queryEnhancement = await b.EnhanceQuery(query, memoryContext);
 				enhancedQuery = queryEnhancement.enhanced;
-				session.logger.info(`[Clairvoyant] Enhanced knowledge query: "${enhancedQuery}"`);
+				session.logger.info(
+					`[Clairvoyant] Enhanced knowledge query: "${enhancedQuery}"`,
+				);
 			} catch (error) {
-				session.logger.warn(`[Clairvoyant] Query enhancement failed, using original: ${String(error)}`);
+				session.logger.warn(
+					`[Clairvoyant] Query enhancement failed, using original: ${String(error)}`,
+				);
 			}
 		}
 
@@ -230,15 +234,5 @@ export async function startKnowledgeFlow(
 		session.logger.error(
 			`[startKnowledgeFlow] Knowledge flow error: ${String(error)}`,
 		);
-
-		if (knowledgeRunIds.get(session) === runId) {
-			session.layouts.showTextWall(
-				"// Clairvoyant\nK: Couldn't figure that out.",
-				{
-					view: ViewType.MAIN,
-					durationMs: 3000,
-				},
-			);
-		}
 	}
 }

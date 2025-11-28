@@ -163,7 +163,7 @@ export class HttpRequest {
   }
   
   SummarizePlaces(
-      query: string,places: types.PlaceSuggestion[],
+      query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -174,7 +174,7 @@ export class HttpRequest {
       return this.runtime.buildRequestSync(
         "SummarizePlaces",
         {
-          "query": query,"places": places
+          "query": query,"places": places,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -369,7 +369,7 @@ export class HttpStreamRequest {
   }
   
   SummarizePlaces(
-      query: string,places: types.PlaceSuggestion[],
+      query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
   ): HTTPRequest {
     try {
@@ -380,7 +380,7 @@ export class HttpStreamRequest {
       return this.runtime.buildRequestSync(
         "SummarizePlaces",
         {
-          "query": query,"places": places
+          "query": query,"places": places,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
