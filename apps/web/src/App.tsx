@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { BottomTabBar } from "./components/BottomTabBar";
 import { ChatPage } from "./components/ChatPage";
+import ClairvoyantMobile from "./components/Clairvoyant";
 import { HomePage } from "./components/HomePage";
 import { NavBar } from "./components/NavBar";
 import { SettingsPage } from "./components/SettingsPage";
@@ -38,7 +39,7 @@ export function App() {
 	if (!isAuthenticated) {
 		return (
 			<div className="p-5 font-sans">
-				<h1>Clairvoyant</h1>
+				<ClairvoyantMobile />
 				<p>Not authenticated. Please open from MentraOS app.</p>
 			</div>
 		);
@@ -106,9 +107,8 @@ export function App() {
 		<ConvexProvider client={authState.convexClient}>
 			<BrowserRouter>
 				<div
-					className={`max-w-2xl mx-auto min-h-screen ${isMobile ? "pb-24" : "p-5"}`}
+					className={`max-w-2xl mx-auto min-h-screen overflow-x-hidden ${isMobile ? "pb-24" : "p-5"}`}
 				>
-					{!isMobile && <h1 className="px-5 pt-5">Clairvoyant</h1>}
 					{!isMobile && <NavBar />}
 
 					<div className={isMobile ? "p-5 pb-8" : ""}>
