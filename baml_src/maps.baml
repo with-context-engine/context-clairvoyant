@@ -9,7 +9,7 @@ class PlaceLines {
   lines string[]
 }
 
-function SummarizePlaces(query: string, places: PlaceSuggestion[]) -> PlaceLines {
+function SummarizePlaces(query: string, places: PlaceSuggestion[], memory: MemoryCore?) -> PlaceLines {
   client "Groq"
   prompt #"
     {{ _.role("system")}}
@@ -19,6 +19,22 @@ function SummarizePlaces(query: string, places: PlaceSuggestion[]) -> PlaceLines
     Include the place name first, then a short hook (address or snippet).
     If snippet missing, mention cuisine/type inferred from query if possible.
     If there are zero places, output a single line encouraging a retry.
+
+    {% if memory %}
+    {% set hasUserName = memory.userName is defined and memory.userName %}
+    {% set hasUserFacts = memory.userFacts|length > 0 %}
+    {% set hasDeductiveFacts = memory.deductiveFacts|length > 0 %}
+    {% if hasUserName or hasUserFacts or hasDeductiveFacts %}
+    User Context (weave naturally if relevant):
+    {% if memory.userName %}Name: {{ memory.userName }}{% endif %}
+    {% for fact in memory.userFacts %}
+    - {{ fact }}
+    {% endfor %}
+    {% for fact in memory.deductiveFacts %}
+    - {{ fact }}
+    {% endfor %}
+    {% endif %}
+    {% endif %}
 
     {{ ctx.output_format }}
     {{ _.role("user") }}

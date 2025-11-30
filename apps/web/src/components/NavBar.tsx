@@ -26,7 +26,7 @@ export function NavBar() {
 	];
 
 	return (
-		<nav className="mb-6 border-b-2 border-border pb-4">
+		<nav className="mb-6 border-b-2 border-border pb-4 safe-area-inset-top">
 			<div className="flex gap-2 w-full">
 				{tabs.map((tab) => {
 					const Icon = tab.icon;

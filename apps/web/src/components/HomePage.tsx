@@ -1,4 +1,5 @@
 import type { Id } from "@convex/_generated/dataModel";
+import ClairvoyantMobile from "./Clairvoyant";
 import { ToolUsageChart } from "./charts/ToolUsageChart";
 import {
 	Card,
@@ -10,20 +11,16 @@ import {
 
 export function HomePage({ userId }: { userId: Id<"users"> }) {
 	return (
-		<div className="space-y-6">
-			<div>
-				<h2>Welcome to Clairvoyant</h2>
-				<p className="text-muted-foreground">
-					Voice-powered AI assistant for your smart glasses.
-				</p>
+		<div className="space-y-2 overflow-x-hidden">
+			<div className="flex items-center justify-center overflow-hidden">
+				<div className="scale-75 origin-center">
+					<ClairvoyantMobile />
+				</div>
 			</div>
 
 			<Card>
 				<CardHeader>
 					<CardTitle>Features</CardTitle>
-					<CardDescription>
-						Clairvoyant brings powerful AI capabilities to your smart glasses.
-					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<ul className="space-y-2">

@@ -307,7 +307,7 @@ export class BamlSyncClient {
   }
   
   SummarizePlaces(
-      query: string,places: types.PlaceSuggestion[],
+      query: string,places: types.PlaceSuggestion[],memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
   ): types.PlaceLines {
     try {
@@ -331,7 +331,7 @@ export class BamlSyncClient {
       const raw = this.runtime.callFunctionSync(
         "SummarizePlaces",
         {
-          "query": query,"places": places
+          "query": query,"places": places,"memory": memory?? null
         },
         this.ctxManager.cloneContext(),
         options.tb?.__tb(),

@@ -33,11 +33,6 @@ const ROUTER_STYLES: Record<
 		label: "Web Search",
 		color: "var(--chart-3)",
 	},
-	KNOWLEDGE: {
-		key: "knowledge",
-		label: "Knowledge",
-		color: "var(--chart-4)",
-	},
 	MEMORY_RECALL: {
 		key: "memoryRecall",
 		label: "Memory Recall",
@@ -89,11 +84,25 @@ export function ToolUsageChart({
 			};
 		}
 
+		// Filter out KNOWLEDGE entries
+		const filteredInvocations = toolInvocations.filter(
+			({ router }) => router !== "KNOWLEDGE",
+		);
+
+		if (!filteredInvocations.length) {
+			return {
+				config: {} as ChartConfig,
+				data: [] as Array<Record<string, number | string>>,
+				keys: [] as string[],
+				total: 0,
+			};
+		}
+
 		const routerOrder: string[] = [];
 		const routerKeyMap = new Map<string, string>();
 		const configEntries: Array<[string, { label: string; color: string }]> = [];
 
-		toolInvocations.forEach(({ router }) => {
+		filteredInvocations.forEach(({ router }) => {
 			if (!routerOrder.includes(router)) {
 				routerOrder.push(router);
 			}
@@ -121,7 +130,7 @@ export function ToolUsageChart({
 		const dataByDate = new Map<string, Record<string, number | string>>();
 		let total = 0;
 
-		toolInvocations.forEach(({ date, router, count }) => {
+		filteredInvocations.forEach(({ date, router, count }) => {
 			const key = routerKeyMap.get(router);
 			if (!key) return;
 
