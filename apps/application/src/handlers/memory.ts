@@ -137,6 +137,7 @@ export async function MemoryRecall(
 			try {
 				contextData = (await memorySession.getContext({
 					lastUserMessage: textQuery,
+					peerTarget: diatribePeer.id,
 				})) as typeof contextData;
 				const contextDuration = Date.now() - contextStartTime;
 				session.logger.info(
