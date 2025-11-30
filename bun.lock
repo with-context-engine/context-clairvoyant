@@ -104,6 +104,8 @@
       "version": "0.1.0",
       "dependencies": {
         "@convex-dev/polar": "^0.6.4",
+        "@honcho-ai/sdk": "^1.5",
+        "@polar-sh/sdk": "^0.41.5",
         "convex": "^1.29.3",
       },
     },

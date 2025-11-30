@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as honcho from "../honcho.js";
 import type * as http from "../http.js";
 import type * as polar from "../polar.js";
 import type * as preferences from "../preferences.js";
@@ -21,6 +22,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  honcho: typeof honcho;
   http: typeof http;
   polar: typeof polar;
   preferences: typeof preferences;

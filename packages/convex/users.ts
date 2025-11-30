@@ -68,3 +68,42 @@ export const getCurrentUser = query({
 		};
 	},
 });
+
+export const getByMentraId = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		return await getByMentraIdInternal(ctx, args.mentraUserId);
+	},
+});
+
+export const storeBillingInfo = mutation({
+	args: {
+		userId: v.id("users"),
+		billingName: v.optional(v.string()),
+		billingAddress: v.optional(
+			v.object({
+				city: v.string(),
+				country: v.string(),
+				line1: v.string(),
+				line2: v.optional(v.string()),
+				postalCode: v.string(),
+				state: v.string(),
+			}),
+		),
+	},
+	handler: async (ctx, args) => {
+		const { userId, billingName, billingAddress } = args;
+
+		const user = await ctx.db.get(userId);
+		if (!user) {
+			throw new Error(`User not found: ${userId}`);
+		}
+
+		await ctx.db.patch(userId, {
+			...(billingName !== undefined && { billingName }),
+			...(billingAddress !== undefined && { billingAddress }),
+		});
+
+		return { success: true };
+	},
+});

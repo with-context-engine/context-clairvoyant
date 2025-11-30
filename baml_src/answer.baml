@@ -97,3 +97,11 @@ test test_answer_question_with_no_memory_related_interest {
         memory null
     }
 }
+
+test test_answer_question_with_no_memory_related_interest_2 {
+    functions [AnswerQuestion]
+    args {
+        text "How does machine learning work?"
+        memory null
+    }
+}
