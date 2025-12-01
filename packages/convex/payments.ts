@@ -10,6 +10,10 @@ import {
 	query,
 } from "./_generated/server";
 
+// =============================================================================
+// Polar Configuration
+// =============================================================================
+
 export const polar = new Polar(components.polar, {
 	getUserInfo: async (ctx): Promise<{ userId: Id<"users">; email: string }> => {
 		const user = await ctx.runQuery(api.users.getCurrentUser);
@@ -21,6 +25,10 @@ export const polar = new Polar(components.polar, {
 	server: process.env.POLAR_SERVER as "production" | "sandbox" | undefined,
 });
 
+// =============================================================================
+// Public Actions (from polar.api())
+// =============================================================================
+
 export const {
 	changeCurrentSubscription,
 	cancelCurrentSubscription,
@@ -29,6 +37,10 @@ export const {
 	generateCheckoutLink,
 	generateCustomerPortalUrl,
 } = polar.api();
+
+// =============================================================================
+// Public Queries
+// =============================================================================
 
 export const getCurrentUserWithSubscription = query({
 	args: { mentraUserId: v.string() },
@@ -51,6 +63,10 @@ export const getCurrentUserWithSubscription = query({
 		};
 	},
 });
+
+// =============================================================================
+// Public Actions
+// =============================================================================
 
 export const syncProductsFromPolar = action({
 	handler: async (ctx) => {
@@ -120,6 +136,10 @@ export const getCustomerInfo = action({
 	},
 });
 
+// =============================================================================
+// Internal Mutations
+// =============================================================================
+
 /**
  * Internal mutation to schedule the subscription created handler.
  * This is called from the webhook callback which runs in a mutation context.
@@ -130,12 +150,20 @@ export const scheduleSubscriptionCreatedHandler = internalMutation({
 		customerId: v.union(v.string(), v.null()),
 	},
 	handler: async (ctx, args) => {
-		await ctx.scheduler.runAfter(0, internal.polar.handleSubscriptionCreated, {
-			userId: args.userId,
-			customerId: args.customerId,
-		});
+		await ctx.scheduler.runAfter(
+			0,
+			internal.payments.handleSubscriptionCreated,
+			{
+				userId: args.userId,
+				customerId: args.customerId,
+			},
+		);
 	},
 });
+
+// =============================================================================
+// Internal Actions
+// =============================================================================
 
 /**
  * Internal action called by the webhook handler when a subscription is created.
@@ -200,7 +228,7 @@ export const handleSubscriptionCreated = internalAction({
 						}
 					: undefined;
 
-				await ctx.runMutation(api.users.storeBillingInfo, {
+				await ctx.runMutation(internal.users.storeBillingInfo, {
 					userId: userId as Id<"users">,
 					billingName: billingName || undefined,
 					billingAddress: formattedBillingAddress,

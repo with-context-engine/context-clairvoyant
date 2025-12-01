@@ -69,7 +69,7 @@ export function ToolUsageChart({
 
 	const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe ?? 7);
 
-	const toolInvocations = useQuery(api.toolInvocations.getUserToolInvocations, {
+	const toolInvocations = useQuery(api.analytics.getUserToolInvocations, {
 		userId,
 		days: timeframe,
 	});

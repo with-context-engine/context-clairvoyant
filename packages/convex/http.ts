@@ -1,6 +1,6 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
-import { polar } from "./polar";
+import { polar } from "./payments";
 
 const http = httpRouter();
 
@@ -23,7 +23,7 @@ polar.registerRoutes(http, {
 		);
 
 		// Schedule the action via internal mutation since webhook callbacks run in mutation context
-		await ctx.runMutation(internal.polar.scheduleSubscriptionCreatedHandler, {
+		await ctx.runMutation(internal.payments.scheduleSubscriptionCreatedHandler, {
 			userId,
 			customerId: customerId ?? null,
 		});

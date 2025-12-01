@@ -6,7 +6,7 @@ const client = new ConvexHttpClient(env.CONVEX_URL);
 
 export async function getUserPreferences(mentraUserId: string) {
 	try {
-		const prefs = await client.query(api.preferences.getPreferencesByMentraId, {
+		const prefs = await client.query(api.users.getPreferencesByMentraId, {
 			mentraUserId,
 		});
 		return prefs;
@@ -21,9 +21,12 @@ export async function getUserPreferences(mentraUserId: string) {
 
 export async function checkUserIsPro(mentraUserId: string): Promise<boolean> {
 	try {
-		const user = await client.query(api.polar.getCurrentUserWithSubscription, {
-			mentraUserId,
-		});
+		const user = await client.query(
+			api.payments.getCurrentUserWithSubscription,
+			{
+				mentraUserId,
+			},
+		);
 		return user?.isPro ?? false;
 	} catch (error) {
 		console.error("[Convex] Failed to check Pro status:", error);
@@ -37,7 +40,7 @@ export async function recordToolInvocation(
 	date?: string,
 ) {
 	try {
-		await client.mutation(api.toolInvocations.increment, {
+		await client.mutation(api.analytics.increment, {
 			mentraUserId,
 			router,
 			date,

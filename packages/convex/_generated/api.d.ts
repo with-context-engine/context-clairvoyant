@@ -8,11 +8,10 @@
  * @module
  */
 
+import type * as analytics from "../analytics.js";
 import type * as honcho from "../honcho.js";
 import type * as http from "../http.js";
-import type * as polar from "../polar.js";
-import type * as preferences from "../preferences.js";
-import type * as toolInvocations from "../toolInvocations.js";
+import type * as payments from "../payments.js";
 import type * as users from "../users.js";
 
 import type {
@@ -22,11 +21,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  analytics: typeof analytics;
   honcho: typeof honcho;
   http: typeof http;
-  polar: typeof polar;
-  preferences: typeof preferences;
-  toolInvocations: typeof toolInvocations;
+  payments: typeof payments;
   users: typeof users;
 }>;
 
@@ -97,14 +95,17 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
-              recurringInterval?: "month" | "year" | null;
+              recurringInterval?: "day" | "week" | "month" | "year" | null;
               type?: string;
             }>;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
           };
         },
         any
@@ -130,7 +131,7 @@ export declare const components: {
             modifiedAt: string | null;
             priceId?: string;
             productId: string;
-            recurringInterval: "month" | "year" | null;
+            recurringInterval: "day" | "week" | "month" | "year" | null;
             startedAt: string | null;
             status: string;
           };
@@ -191,17 +192,20 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
-              recurringInterval?: "month" | "year" | null;
+              recurringInterval?: "day" | "week" | "month" | "year" | null;
               type?: string;
             }>;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
           };
           productId: string;
-          recurringInterval: "month" | "year" | null;
+          recurringInterval: "day" | "week" | "month" | "year" | null;
           startedAt: string | null;
           status: string;
         } | null
@@ -250,14 +254,17 @@ export declare const components: {
             createdAt: string;
             id: string;
             isArchived: boolean;
+            maximumAmount?: number | null;
+            minimumAmount?: number | null;
             modifiedAt: string | null;
+            presetAmount?: number | null;
             priceAmount?: number;
             priceCurrency?: string;
             productId: string;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
             type?: string;
           }>;
-          recurringInterval?: "month" | "year" | null;
+          recurringInterval?: "day" | "week" | "month" | "year" | null;
         } | null
       >;
       getSubscription: FunctionReference<
@@ -281,7 +288,7 @@ export declare const components: {
           modifiedAt: string | null;
           priceId?: string;
           productId: string;
-          recurringInterval: "month" | "year" | null;
+          recurringInterval: "day" | "week" | "month" | "year" | null;
           startedAt: string | null;
           status: string;
         } | null
@@ -313,7 +320,7 @@ export declare const components: {
           modifiedAt: string | null;
           priceId?: string;
           productId: string;
-          recurringInterval: "month" | "year" | null;
+          recurringInterval: "day" | "week" | "month" | "year" | null;
           startedAt: string | null;
           status: string;
         }>
@@ -357,14 +364,17 @@ export declare const components: {
             createdAt: string;
             id: string;
             isArchived: boolean;
+            maximumAmount?: number | null;
+            minimumAmount?: number | null;
             modifiedAt: string | null;
+            presetAmount?: number | null;
             priceAmount?: number;
             priceCurrency?: string;
             productId: string;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
             type?: string;
           }>;
-          recurringInterval?: "month" | "year" | null;
+          recurringInterval?: "day" | "week" | "month" | "year" | null;
         }>
       >;
       listUserSubscriptions: FunctionReference<
@@ -421,17 +431,20 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
-              recurringInterval?: "month" | "year" | null;
+              recurringInterval?: "day" | "week" | "month" | "year" | null;
               type?: string;
             }>;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
           } | null;
           productId: string;
-          recurringInterval: "month" | "year" | null;
+          recurringInterval: "day" | "week" | "month" | "year" | null;
           startedAt: string | null;
           status: string;
         }>
@@ -480,14 +493,17 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
-              recurringInterval?: "month" | "year" | null;
+              recurringInterval?: "day" | "week" | "month" | "year" | null;
               type?: string;
             }>;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
           };
         },
         any
@@ -531,14 +547,17 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
-              recurringInterval?: "month" | "year" | null;
+              recurringInterval?: "day" | "week" | "month" | "year" | null;
               type?: string;
             }>;
-            recurringInterval?: "month" | "year" | null;
+            recurringInterval?: "day" | "week" | "month" | "year" | null;
           }>;
         },
         any
@@ -564,7 +583,7 @@ export declare const components: {
             modifiedAt: string | null;
             priceId?: string;
             productId: string;
-            recurringInterval: "month" | "year" | null;
+            recurringInterval: "day" | "week" | "month" | "year" | null;
             startedAt: string | null;
             status: string;
           };

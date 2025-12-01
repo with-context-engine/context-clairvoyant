@@ -1,28 +1,11 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 
-export const getOrCreate = mutation({
-	args: { mentraUserId: v.string(), mentraToken: v.string() },
-	handler: async (ctx, args) => {
-		const existing = await getByMentraIdInternal(ctx, args.mentraUserId);
-		if (existing) {
-			return existing._id;
-		}
-		const userId = await ctx.db.insert("users", {
-			mentraUserId: args.mentraUserId,
-			mentraToken: args.mentraToken,
-		});
-
-		await ctx.db.insert("preferences", {
-			userId,
-			weatherUnit: "C",
-		});
-
-		return userId;
-	},
-});
+// =============================================================================
+// Utilities
+// =============================================================================
 
 async function getByMentraIdInternal(
 	ctx: QueryCtx | MutationCtx,
@@ -33,6 +16,10 @@ async function getByMentraIdInternal(
 		.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", mentraUserId))
 		.first();
 }
+
+// =============================================================================
+// Public Queries - User Identity
+// =============================================================================
 
 export const getById = query({
 	args: {
@@ -76,7 +63,121 @@ export const getByMentraId = query({
 	},
 });
 
-export const storeBillingInfo = mutation({
+// =============================================================================
+// Public Queries - Preferences
+// =============================================================================
+
+export const getPreferences = query({
+	args: { userId: v.id("users") },
+	handler: async (ctx, args) => {
+		const prefs = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.first();
+
+		if (!prefs) {
+			return {
+				userId: args.userId,
+				weatherUnit: "C" as const,
+				defaultLocation: undefined,
+			};
+		}
+
+		return prefs;
+	},
+});
+
+export const getPreferencesByMentraId = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		const prefs = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
+			.first();
+
+		if (!prefs) {
+			return {
+				userId: user._id,
+				weatherUnit: "C" as const,
+				defaultLocation: undefined,
+			};
+		}
+
+		return prefs;
+	},
+});
+
+// =============================================================================
+// Public Mutations - User Identity
+// =============================================================================
+
+export const getOrCreate = mutation({
+	args: { mentraUserId: v.string(), mentraToken: v.string() },
+	handler: async (ctx, args) => {
+		const existing = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (existing) {
+			return existing._id;
+		}
+		const userId = await ctx.db.insert("users", {
+			mentraUserId: args.mentraUserId,
+			mentraToken: args.mentraToken,
+		});
+
+		await ctx.db.insert("preferences", {
+			userId,
+			weatherUnit: "C",
+		});
+
+		return userId;
+	},
+});
+
+// =============================================================================
+// Public Mutations - Preferences
+// =============================================================================
+
+export const updatePreferences = mutation({
+	args: {
+		userId: v.id("users"),
+		weatherUnit: v.string(),
+		defaultLocation: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				weatherUnit: args.weatherUnit,
+				defaultLocation: args.defaultLocation,
+			});
+			return existing._id;
+		}
+
+		return await ctx.db.insert("preferences", {
+			userId: args.userId,
+			weatherUnit: args.weatherUnit,
+			defaultLocation: args.defaultLocation,
+		});
+	},
+});
+
+// =============================================================================
+// Internal Mutations
+// =============================================================================
+
+export const storeBillingInfo = internalMutation({
 	args: {
 		userId: v.id("users"),
 		billingName: v.optional(v.string()),

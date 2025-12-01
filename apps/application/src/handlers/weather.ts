@@ -1,8 +1,12 @@
+import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { api } from "@convex/_generated/api";
 import { b } from "../baml_client";
-import { checkUserIsPro, convexClient, getUserPreferences } from "../core/convex";
+import {
+	checkUserIsPro,
+	convexClient,
+	getUserPreferences,
+} from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { getWeatherData } from "../tools/weatherCall";
@@ -89,28 +93,39 @@ export async function startWeatherFlow(
 			}
 
 			// Fetch memory context if available
-			let memoryContext: { userName?: string; userFacts: string[]; deductiveFacts: string[] } | null = null;
+			let memoryContext: {
+				userName?: string;
+				userFacts: string[];
+				deductiveFacts: string[];
+			} | null = null;
 			if (memorySession && peers) {
 				try {
 					const isPro = await checkUserIsPro(mentraUserId);
 					if (isPro) {
 						const user = await convexClient.query(
-							api.polar.getCurrentUserWithSubscription,
+							api.payments.getCurrentUserWithSubscription,
 							{ mentraUserId },
 						);
 						if (user) {
 							const userId = user._id;
-							const diatribePeer = peers.find((peer) => peer.id === `${userId}-diatribe`);
-							
+							const diatribePeer = peers.find(
+								(peer) => peer.id === `${userId}-diatribe`,
+							);
+
 							if (diatribePeer) {
-								session.logger.info("[Clairvoyant] Fetching memory context for weather personalization");
-								const contextData = await memorySession.getContext({
+								session.logger.info(
+									"[Clairvoyant] Fetching memory context for weather personalization",
+								);
+								const contextData = (await memorySession.getContext({
 									peerTarget: diatribePeer.id,
 									lastUserMessage: "weather",
-								}) as {
+								})) as {
 									peerCard: string[];
 									peerRepresentation: string;
-									messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
+									messages: Array<{
+										content: string;
+										metadata?: { timestamp?: string };
+									}>;
 								};
 
 								// Parse peerRepresentation JSON for explicit and deductive facts
@@ -128,31 +143,38 @@ export async function startWeatherFlow(
 								}
 
 								// Extract name and relevant facts from peerCard
-								const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
-								const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
-								
+								const userName = contextData.peerCard
+									.find((fact: string) => fact.startsWith("Name:"))
+									?.replace("Name:", "")
+									.trim();
+								const relevantFacts = contextData.peerCard
+									.slice(0, 3)
+									.filter((fact: string) => !fact.startsWith("Name:"));
+
 								// Extract weather-relevant deductive conclusions (e.g., preferences about weather)
 								const weatherRelatedDeductions = peerRep.deductive
 									.map((d) => d.conclusion)
-									.filter((conclusion: string) => 
-										conclusion.toLowerCase().includes("weather") ||
-										conclusion.toLowerCase().includes("cold") ||
-										conclusion.toLowerCase().includes("hot") ||
-										conclusion.toLowerCase().includes("rain") ||
-										conclusion.toLowerCase().includes("sun")
+									.filter(
+										(conclusion: string) =>
+											conclusion.toLowerCase().includes("weather") ||
+											conclusion.toLowerCase().includes("cold") ||
+											conclusion.toLowerCase().includes("hot") ||
+											conclusion.toLowerCase().includes("rain") ||
+											conclusion.toLowerCase().includes("sun"),
 									)
 									.slice(0, 2); // Limit to top 2 relevant deductions
 
 								// Extract recent weather queries with timestamps
 								const recentMessages = contextData.messages || [];
-								const weatherPattern = /weather|temperature|forecast|rain|snow|sun|cold|hot/i;
+								const weatherPattern =
+									/weather|temperature|forecast|rain|snow|sun|cold|hot/i;
 								const recentWeatherQueries = recentMessages
-									.filter(msg => weatherPattern.test(msg.content))
+									.filter((msg) => weatherPattern.test(msg.content))
 									.slice(-5) // Get last 5 weather-related messages
-									.map(msg => {
+									.map((msg) => {
 										if (msg.metadata?.timestamp) {
 											const timeAgo = getTimeAgo(msg.metadata.timestamp);
-											return `Asked about weather "${msg.content.slice(0, 40)}${msg.content.length > 40 ? '...' : ''}" ${timeAgo}`;
+											return `Asked about weather "${msg.content.slice(0, 40)}${msg.content.length > 40 ? "..." : ""}" ${timeAgo}`;
 										}
 										return null;
 									})
@@ -160,24 +182,32 @@ export async function startWeatherFlow(
 
 								// Combine deductions with temporal information
 								const deductionsWithTiming = weatherRelatedDeductions.concat(
-									recentWeatherQueries.slice(0, 1) // Add up to 1 recent weather query timestamp
+									recentWeatherQueries.slice(0, 1), // Add up to 1 recent weather query timestamp
 								);
-								
+
 								memoryContext = {
 									userName,
 									userFacts: relevantFacts,
 									deductiveFacts: deductionsWithTiming,
 								};
-								session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
+								session.logger.info(
+									`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`,
+								);
 							}
 						}
 					}
 				} catch (error) {
-					session.logger.warn(`[Clairvoyant] Failed to fetch memory context: ${String(error)}`);
+					session.logger.warn(
+						`[Clairvoyant] Failed to fetch memory context: ${String(error)}`,
+					);
 				}
 			}
 
-			const weatherLines = await b.SummarizeWeatherFormatted(response, preferredUnit, memoryContext);
+			const weatherLines = await b.SummarizeWeatherFormatted(
+				response,
+				preferredUnit,
+				memoryContext,
+			);
 
 			for (let i = 0; i < weatherLines.lines.length; i++) {
 				const line = weatherLines.lines[i];
