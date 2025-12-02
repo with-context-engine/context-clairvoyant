@@ -22,8 +22,8 @@ interface SettingsPageProps {
 
 export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 	const [section, setSection] = useState<SettingsSection>("root");
-	const preferences = useQuery(api.preferences.getPreferences, { userId });
-	const updatePreferences = useMutation(api.preferences.updatePreferences);
+	const preferences = useQuery(api.users.getPreferences, { userId });
+	const updatePreferences = useMutation(api.users.updatePreferences);
 
 	const handleSaveUnit = async (unit: "C" | "F") => {
 		await updatePreferences({

@@ -49,7 +49,7 @@ export async function startWebSearchFlow(
 		} | null = null;
 		try {
 			const user = await convexClient.query(
-				api.polar.getCurrentUserWithSubscription,
+				api.payments.getCurrentUserWithSubscription,
 				{ mentraUserId },
 			);
 			if (user) {

@@ -1,13 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { Honcho, type Peer, type Session } from "@honcho-ai/sdk";
 import { api } from "@convex/_generated/api";
+import { Honcho, type Peer, type Session } from "@honcho-ai/sdk";
 import { convexClient } from "../core/convex";
 import { env } from "../core/env";
 
-export async function initializeMemory(mentraUserId: string): Promise<[Session, Peer[]]> {
+export async function initializeMemory(
+	mentraUserId: string,
+): Promise<[Session, Peer[]]> {
 	// Fetch user to get their _id
 	const user = await convexClient.query(
-		api.polar.getCurrentUserWithSubscription,
+		api.payments.getCurrentUserWithSubscription,
 		{ mentraUserId },
 	);
 

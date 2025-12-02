@@ -35,7 +35,7 @@ export async function startKnowledgeFlow(
 			const isPro = await checkUserIsPro(mentraUserId);
 			if (isPro) {
 				const user = await convexClient.query(
-					api.polar.getCurrentUserWithSubscription,
+					api.payments.getCurrentUserWithSubscription,
 					{ mentraUserId },
 				);
 				if (user) {

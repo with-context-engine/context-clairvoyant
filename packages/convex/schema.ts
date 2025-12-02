@@ -5,6 +5,17 @@ export default defineSchema({
 	users: defineTable({
 		mentraUserId: v.string(),
 		mentraToken: v.optional(v.string()),
+		billingName: v.optional(v.string()),
+		billingAddress: v.optional(
+			v.object({
+				city: v.string(),
+				country: v.string(),
+				line1: v.string(),
+				line2: v.optional(v.string()),
+				postalCode: v.string(),
+				state: v.string(),
+			}),
+		),
 	}).index("by_mentra_id", ["mentraUserId"]),
 	preferences: defineTable({
 		userId: v.id("users"),

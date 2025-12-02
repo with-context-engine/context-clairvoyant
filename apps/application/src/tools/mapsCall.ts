@@ -66,10 +66,12 @@ export async function getPlaces(
 			}
 		}) || [];
 
-	return validatedPlaces.map((place: MapSearchResult): PlaceSuggestion => ({
-		id: place.id,
-		name: place.displayName.text,
-		address: place.shortFormattedAddress,
-		snippet: place.reviewSummary?.text?.text,
-	}));
+	return validatedPlaces.map(
+		(place: MapSearchResult): PlaceSuggestion => ({
+			id: place.id,
+			name: place.displayName.text,
+			address: place.shortFormattedAddress,
+			snippet: place.reviewSummary?.text?.text,
+		}),
+	);
 }

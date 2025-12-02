@@ -103,7 +103,9 @@
       "name": "@clairvoyant/convex",
       "version": "0.1.0",
       "dependencies": {
-        "@convex-dev/polar": "^0.6.4",
+        "@convex-dev/polar": "^0.7",
+        "@honcho-ai/sdk": "^1.5",
+        "@polar-sh/sdk": "^0.41.5",
         "convex": "^1.29.3",
       },
     },
@@ -192,7 +194,7 @@
 
     "@clairvoyant/web": ["@clairvoyant/web@workspace:apps/web"],
 
-    "@convex-dev/polar": ["@convex-dev/polar@0.6.4", "", { "dependencies": { "buffer": "^6.0.3", "convex-helpers": "^0.1.63", "remeda": "^2.20.2", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "@polar-sh/checkout": ">=0.1.10", "@polar-sh/sdk": ">=0.32.11", "convex": "^1.25.4", "react": "^18 || ^19", "react-dom": "^18 || ^19" } }, "sha512-QXWe+URjSMIkJI9vB8u4ghNA3IPa1fCnlhP3lXg0kDV5CvW7imZx7TzXx2Yce9ZQA7EhMfSJH6GNBV7zYa7vhQ=="],
+    "@convex-dev/polar": ["@convex-dev/polar@0.7.3", "", { "dependencies": { "buffer": "^6.0.3", "convex-helpers": "^0.1.63", "remeda": "^2.20.2", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "@polar-sh/checkout": ">=0.1.10", "@polar-sh/sdk": ">=0.32.11", "convex": "^1.29.0", "react": "^18 || ^19", "react-dom": "^18 || ^19" } }, "sha512-0WT8ty+vbo5WhPgvq2WyMucg00kqkkwfbQ+dvEu3B2E6uXLWzAwSBZgDiKDDnglNacEHvkKU4sMnNF7A4pyMiQ=="],
 
     "@date-fns/tz": ["@date-fns/tz@1.4.1", "", {}, "sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA=="],
 
@@ -1449,6 +1451,8 @@
     "@babel/helper-compilation-targets/semver": ["semver@6.3.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA=="],
 
     "@babel/traverse/debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
+
+    "@clairvoyant/web/@convex-dev/polar": ["@convex-dev/polar@0.6.4", "", { "dependencies": { "buffer": "^6.0.3", "convex-helpers": "^0.1.63", "remeda": "^2.20.2", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "@polar-sh/checkout": ">=0.1.10", "@polar-sh/sdk": ">=0.32.11", "convex": "^1.25.4", "react": "^18 || ^19", "react-dom": "^18 || ^19" } }, "sha512-QXWe+URjSMIkJI9vB8u4ghNA3IPa1fCnlhP3lXg0kDV5CvW7imZx7TzXx2Yce9ZQA7EhMfSJH6GNBV7zYa7vhQ=="],
 
     "@eslint-community/eslint-utils/eslint-visitor-keys": ["eslint-visitor-keys@3.4.3", "", {}, "sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag=="],
 
