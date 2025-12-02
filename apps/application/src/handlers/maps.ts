@@ -7,6 +7,7 @@ import {
 	checkUserIsPro,
 	convexClient,
 	getDefaultLocation,
+	setCurrentLocation,
 } from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
@@ -232,6 +233,12 @@ export async function startMapsFlow(
 			session.logger.info(
 				`[startMapsFlow] Location received: ${location.lat}, ${location.lng}`,
 			);
+
+			// Update the user's current location in Convex (fire and forget)
+			void setCurrentLocation(mentraUserId, {
+				lat: location.lat,
+				lng: location.lng,
+			});
 
 			statusWallActive = true;
 
