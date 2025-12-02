@@ -208,3 +208,38 @@ export const storeBillingInfo = internalMutation({
 		return { success: true };
 	},
 });
+
+export const updateDefaultLocation = internalMutation({
+	args: {
+		userId: v.id("users"),
+		defaultLocation: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const { userId, defaultLocation } = args;
+
+		const user = await ctx.db.get(userId);
+		if (!user) {
+			throw new Error(`User not found: ${userId}`);
+		}
+
+		// Get existing preferences or create new ones
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				defaultLocation,
+			});
+			return existing._id;
+		}
+
+		// Create new preferences record if it doesn't exist
+		return await ctx.db.insert("preferences", {
+			userId,
+			weatherUnit: "C",
+			defaultLocation,
+		});
+	},
+});

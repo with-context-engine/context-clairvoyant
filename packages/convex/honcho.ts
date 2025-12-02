@@ -3,6 +3,8 @@
 import { randomUUID } from "node:crypto";
 import { Honcho } from "@honcho-ai/sdk";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
 
 /**
@@ -24,9 +26,90 @@ function formatBillingAddress(address: {
 }
 
 /**
+ * Google Geocoding API response types
+ */
+interface GeocodeResponse {
+	status: string;
+	results: Array<{
+		geometry: {
+			location: {
+				lat: number;
+				lng: number;
+			};
+		};
+	}>;
+}
+
+/**
+ * Geocodes a billing address using Google Geocoding API
+ * @returns { lat, lng } or null if geocoding fails
+ */
+async function geocodeBillingAddress(address: {
+	city: string;
+	country: string;
+	line1: string;
+	line2?: string | null;
+	postalCode: string;
+	state: string;
+}): Promise<{ lat: number; lng: number } | null> {
+	const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+	if (!apiKey) {
+		console.error(
+			"[Honcho] GOOGLE_MAPS_API_KEY environment variable is not set",
+		);
+		return null;
+	}
+
+	// Format address for geocoding API
+	const formattedAddress = formatBillingAddress(address);
+	const encodedAddress = encodeURIComponent(formattedAddress);
+	const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}`;
+
+	try {
+		const response = await fetch(url);
+		if (!response.ok) {
+			console.error(
+				`[Honcho] Geocoding API HTTP error: ${response.status} ${response.statusText}`,
+			);
+			return null;
+		}
+
+		const data = (await response.json()) as GeocodeResponse;
+
+		if (data.status !== "OK" || !data.results || data.results.length === 0) {
+			console.warn(
+				`[Honcho] Geocoding returned no results for address: ${formattedAddress}, status: ${data.status}`,
+			);
+			return null;
+		}
+
+		const location = data.results[0]?.geometry?.location;
+		if (
+			!location ||
+			typeof location.lat !== "number" ||
+			typeof location.lng !== "number"
+		) {
+			console.warn("[Honcho] Geocoding response missing location data");
+			return null;
+		}
+
+		console.log(
+			`[Honcho] Successfully geocoded address to lat=${location.lat}, lng=${location.lng}`,
+		);
+		return { lat: location.lat, lng: location.lng };
+	} catch (error) {
+		console.error(
+			`[Honcho] Error geocoding address: ${error instanceof Error ? error.message : String(error)}`,
+		);
+		return null;
+	}
+}
+
+/**
  * Adds billing information as a memory to the user's diatribe peer in Honcho.
  * This action is called when a subscription is created to store the user's
  * billing details as persistent memory for personalization.
+ * Also geocodes the billing address and stores the lat/lng as the user's default location.
  */
 export const addBillingMemory = internalAction({
 	args: {
@@ -43,7 +126,7 @@ export const addBillingMemory = internalAction({
 			}),
 		),
 	},
-	handler: async (_ctx, args) => {
+	handler: async (ctx, args) => {
 		const { userId, billingName, billingAddress } = args;
 
 		// Skip if no billing information provided
@@ -58,6 +141,29 @@ export const addBillingMemory = internalAction({
 		if (!apiKey) {
 			console.error("[Honcho] HONCHO_API_KEY environment variable is not set");
 			return { success: false, reason: "missing_api_key" };
+		}
+
+		// Geocode the billing address and store as default location (runs in parallel with Honcho)
+		let geocodePromise: Promise<void> | null = null;
+		if (billingAddress) {
+			geocodePromise = (async () => {
+				const location = await geocodeBillingAddress(billingAddress);
+				if (location) {
+					try {
+						await ctx.runMutation(internal.users.updateDefaultLocation, {
+							userId: userId as Id<"users">,
+							defaultLocation: JSON.stringify(location),
+						});
+						console.log(
+							`[Honcho] Stored default location for user ${userId}: ${JSON.stringify(location)}`,
+						);
+					} catch (error) {
+						console.error(
+							`[Honcho] Failed to store default location for user ${userId}: ${error instanceof Error ? error.message : String(error)}`,
+						);
+					}
+				}
+			})();
 		}
 
 		try {
@@ -107,6 +213,11 @@ export const addBillingMemory = internalAction({
 					},
 				},
 			]);
+
+			// Wait for geocoding to complete (if it was started)
+			if (geocodePromise) {
+				await geocodePromise;
+			}
 
 			console.log(
 				`[Honcho] Successfully stored billing memory for user ${userId}`,

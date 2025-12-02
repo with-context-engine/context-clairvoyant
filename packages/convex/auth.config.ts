@@ -8,15 +8,13 @@ const normalizeUrl = (value: string) => {
 	return withProtocol.replace(/\/+$/, "");
 };
 
-const issuerCandidates = [
-	process.env.RAILWAY_PUBLIC_DOMAIN,
-	"https://with-context-engine.ngrok.dev",
-	"https://with-context-engine-api.ngrok.dev",
-]
-	.filter(
-		(value): value is string =>
-			typeof value === "string" && value.trim().length > 0,
-	)
+const issuerCandidates = (
+	process.env.RAILWAY_PUBLIC_DOMAIN
+		? process.env.RAILWAY_PUBLIC_DOMAIN.split(",")
+		: []
+)
+	.map((value) => value.trim())
+	.filter((value) => value.length > 0)
 	.map((value) => normalizeUrl(value));
 
 export default {

@@ -202,13 +202,12 @@ export const handleSubscriptionCreated = internalAction({
 		});
 
 		try {
-			// Fetch customer information from Polar API
-			const customer = await polarSDK.customers.get({
+			const customerState = await polarSDK.customers.getState({
 				id: customerId,
 			});
 
-			const billingName = customer.name || null;
-			const billingAddress = customer.billingAddress;
+			const billingName = customerState.name || null;
+			const billingAddress = customerState.billingAddress;
 
 			console.log(
 				`[Polar] Retrieved billing info for customer ${customerId}: name=${billingName}`,

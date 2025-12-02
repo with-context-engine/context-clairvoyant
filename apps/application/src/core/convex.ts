@@ -19,6 +19,40 @@ export async function getUserPreferences(mentraUserId: string) {
 	}
 }
 
+/**
+ * Fetches and parses the user's default location from preferences.
+ * The location is stored as a JSON string: '{"lat": number, "lng": number}'
+ * @returns The parsed location object or null if not available/invalid
+ */
+export async function getDefaultLocation(
+	mentraUserId: string,
+): Promise<{ lat: number; lng: number } | null> {
+	try {
+		const prefs = await getUserPreferences(mentraUserId);
+		if (!prefs.defaultLocation) {
+			return null;
+		}
+
+		const location = JSON.parse(prefs.defaultLocation) as {
+			lat?: number;
+			lng?: number;
+		};
+
+		if (typeof location.lat !== "number" || typeof location.lng !== "number") {
+			console.warn(
+				"[Convex] Invalid defaultLocation format:",
+				prefs.defaultLocation,
+			);
+			return null;
+		}
+
+		return { lat: location.lat, lng: location.lng };
+	} catch (error) {
+		console.error("[Convex] Failed to parse default location:", error);
+		return null;
+	}
+}
+
 export async function checkUserIsPro(mentraUserId: string): Promise<boolean> {
 	try {
 		const user = await client.query(
