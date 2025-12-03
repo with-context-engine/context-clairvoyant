@@ -173,6 +173,69 @@ export const updatePreferences = mutation({
 	},
 });
 
+export const setCurrentLocation = mutation({
+	args: {
+		userId: v.id("users"),
+		defaultLocation: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const { userId, defaultLocation } = args;
+
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				defaultLocation,
+			});
+			return existing._id;
+		}
+
+		// Create new preferences record if it doesn't exist
+		return await ctx.db.insert("preferences", {
+			userId,
+			weatherUnit: "C",
+			defaultLocation,
+		});
+	},
+});
+
+export const setCurrentLocationByMentraId = mutation({
+	args: {
+		mentraUserId: v.string(),
+		defaultLocation: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const { mentraUserId, defaultLocation } = args;
+
+		const user = await getByMentraIdInternal(ctx, mentraUserId);
+		if (!user) {
+			throw new Error(`User not found for mentraUserId: ${mentraUserId}`);
+		}
+
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				defaultLocation,
+			});
+			return existing._id;
+		}
+
+		// Create new preferences record if it doesn't exist
+		return await ctx.db.insert("preferences", {
+			userId: user._id,
+			weatherUnit: "C",
+			defaultLocation,
+		});
+	},
+});
+
 // =============================================================================
 // Internal Mutations
 // =============================================================================

@@ -2,6 +2,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useMemo, useState } from "react";
+import { LocationSelector } from "./LocationSelector";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { Button } from "./ui/button";
 import {
@@ -91,23 +92,48 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 			)}
 
 			{section === "preferences" && (
-				<Card>
-					<CardHeader>
-						<CardTitle>Weather Unit</CardTitle>
-						<CardDescription>
-							Choose how temperatures are displayed
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						{!hasPreferencesLoaded ? (
-							<p className="text-sm text-foreground/60">
-								Loading preferences...
-							</p>
-						) : (
-							<WeatherUnitToggle value={weatherUnit} onSave={handleSaveUnit} />
-						)}
-					</CardContent>
-				</Card>
+				<div className="space-y-6">
+					<Card>
+						<CardHeader>
+							<CardTitle>Weather Unit</CardTitle>
+							<CardDescription>
+								Choose how temperatures are displayed
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{!hasPreferencesLoaded ? (
+								<p className="text-sm text-foreground/60">
+									Loading preferences...
+								</p>
+							) : (
+								<WeatherUnitToggle
+									value={weatherUnit}
+									onSave={handleSaveUnit}
+								/>
+							)}
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Your Location</CardTitle>
+							<CardDescription>
+								Your location is used to improve weather and nearby searches.
+								This is pulled from your Mentra Glasses, from your billing
+								information, or from a location you set manually.
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{!hasPreferencesLoaded ? (
+								<p className="text-sm text-foreground/60">
+									Loading preferences...
+								</p>
+							) : (
+								<LocationSelector userId={userId} />
+							)}
+						</CardContent>
+					</Card>
+				</div>
 			)}
 
 			{section === "billing" && (

@@ -84,4 +84,25 @@ export async function recordToolInvocation(
 	}
 }
 
+/**
+ * Updates the user's current location in preferences.
+ * Called when GPS location is received to keep the stored location fresh.
+ */
+export async function setCurrentLocation(
+	mentraUserId: string,
+	location: { lat: number; lng: number },
+) {
+	try {
+		await client.mutation(api.users.setCurrentLocationByMentraId, {
+			mentraUserId,
+			defaultLocation: JSON.stringify(location),
+		});
+		console.log(
+			`[Convex] Updated current location: ${location.lat}, ${location.lng}`,
+		);
+	} catch (error) {
+		console.error("[Convex] Failed to update current location:", error);
+	}
+}
+
 export { client as convexClient };
