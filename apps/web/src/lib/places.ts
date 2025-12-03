@@ -6,7 +6,6 @@ import type {
 } from "../types/places";
 
 const PLACES_API_BASE = "https://places.googleapis.com/v1";
-const GEOCODING_API_BASE = "https://maps.googleapis.com/maps/api/geocode/json";
 
 /**
  * Fetches autocomplete suggestions from Google Places API
@@ -89,68 +88,69 @@ export async function fetchAutocompleteSuggestions(
 	return predictions;
 }
 
-// Geocoding API response types
-interface GeocodingResult {
-	geometry: {
-		location: {
-			lat: number;
-			lng: number;
-		};
+// Places API (New) Place Details response types
+interface PlaceDetailsResponse {
+	location?: {
+		latitude: number;
+		longitude: number;
+	};
+	displayName?: {
+		text: string;
+		languageCode?: string;
 	};
 }
 
-interface GeocodingResponse {
-	status: string;
-	results: GeocodingResult[];
-}
-
 /**
- * Fetches coordinates for a place using the Geocoding API with place_id
- * This works from the browser unlike the Places Details API
+ * Fetches coordinates for a place using the Places API (New) Place Details
+ * Uses POST request which has better CORS support than GET
  */
 export async function fetchPlaceCoordinates(
 	placeId: string,
 	apiKey: string,
 ): Promise<LatLng> {
-	const url = new URL(GEOCODING_API_BASE);
-	url.searchParams.set("place_id", placeId);
-	url.searchParams.set("key", apiKey);
+	// The Places API (New) uses the resource name format
+	const resourceName = placeId.startsWith("places/")
+		? placeId
+		: `places/${placeId}`;
+	const url = `${PLACES_API_BASE}/${resourceName}`;
 
-	const response = await fetch(url.toString(), {
+	const response = await fetch(url, {
 		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+			"X-Goog-Api-Key": apiKey,
+			"X-Goog-FieldMask": "location,displayName",
+		},
 	});
 
 	if (!response.ok) {
 		const errorText = await response.text();
-		throw new Error(`Geocoding API error: ${response.status} ${errorText}`);
+		throw new Error(
+			`Places Details API error: ${response.status} ${errorText}`,
+		);
 	}
 
-	const data = (await response.json()) as GeocodingResponse;
+	const data = (await response.json()) as PlaceDetailsResponse;
 
-	if (data.status !== "OK" || !data.results || data.results.length === 0) {
-		throw new Error(`Geocoding failed with status: ${data.status}`);
+	if (!data.location) {
+		throw new Error("Place details response missing location data");
 	}
 
-	const location = data.results[0]?.geometry?.location;
-
-	if (!location) {
-		throw new Error("Geocoding response missing location data");
-	}
+	const location = data.location;
 
 	// Validate coordinate types
 	if (
-		typeof location.lat !== "number" ||
-		typeof location.lng !== "number" ||
-		Number.isNaN(location.lat) ||
-		Number.isNaN(location.lng)
+		typeof location.latitude !== "number" ||
+		typeof location.longitude !== "number" ||
+		Number.isNaN(location.latitude) ||
+		Number.isNaN(location.longitude)
 	) {
-		throw new Error("Invalid coordinate values in geocoding response");
+		throw new Error("Invalid coordinate values in place details response");
 	}
 
-	// Convert to our LatLng format (latitude/longitude)
 	return {
-		latitude: location.lat,
-		longitude: location.lng,
+		latitude: location.latitude,
+		longitude: location.longitude,
 	};
 }
 
