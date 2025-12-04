@@ -38,7 +38,7 @@ export async function MemoryCapture(
 
 	// Fetch user to get their _id for peer lookup
 	const user = await convexClient.query(
-		api.polar.getCurrentUserWithSubscription,
+		api.payments.getCurrentUserWithSubscription,
 		{ mentraUserId },
 	);
 
@@ -99,7 +99,7 @@ export async function MemoryRecall(
 
 	// Fetch user to get their _id for peer lookup
 	const user = await convexClient.query(
-		api.polar.getCurrentUserWithSubscription,
+		api.payments.getCurrentUserWithSubscription,
 		{ mentraUserId },
 	);
 

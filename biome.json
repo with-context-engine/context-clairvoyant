@@ -3,10 +3,20 @@
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
-		"useIgnoreFile": false
+		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": false
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!baml_src",
+			"!**/_generated",
+			"!**/baml_client",
+			"!**/components/ui",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/.vscode/settings.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,

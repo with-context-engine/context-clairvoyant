@@ -1,4 +1,4 @@
-import { Home, MessageSquare, Settings } from "lucide-react";
+import { Brain, Home, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 interface NavTab {
@@ -21,7 +21,7 @@ export function NavBar() {
 
 	const tabs: NavTab[] = [
 		{ path: "/", label: "Home", icon: Home },
-		{ path: "/chat", label: "Chat", icon: MessageSquare },
+		{ path: "/memory", label: "Memory", icon: Brain },
 		{ path: "/settings", label: "Settings", icon: Settings },
 	];
 

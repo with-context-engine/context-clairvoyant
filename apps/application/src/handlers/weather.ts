@@ -1,13 +1,167 @@
+import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { api } from "@convex/_generated/api";
 import { b } from "../baml_client";
-import { checkUserIsPro, convexClient, getUserPreferences } from "../core/convex";
+import type { FormattedWeather } from "../baml_client/types";
+import {
+	checkUserIsPro,
+	convexClient,
+	getDefaultLocation,
+	getUserPreferences,
+	setCurrentLocation,
+} from "../core/convex";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { getWeatherData } from "../tools/weatherCall";
 
 const weatherRunIds = new WeakMap<AppSession, number>();
+
+/**
+ * Helper function to process weather data and display it.
+ * Used by both GPS location callback and fallback location handler.
+ */
+async function processWeatherData(
+	session: AppSession,
+	mentraUserId: string,
+	response: FormattedWeather,
+	preferredUnit: "C" | "F",
+	runId: number,
+	memorySession?: Session,
+	peers?: Peer[],
+) {
+	// Fetch memory context if available
+	let memoryContext: {
+		userName?: string;
+		userFacts: string[];
+		deductiveFacts: string[];
+	} | null = null;
+	if (memorySession && peers) {
+		try {
+			const isPro = await checkUserIsPro(mentraUserId);
+			if (isPro) {
+				const user = await convexClient.query(
+					api.payments.getCurrentUserWithSubscription,
+					{ mentraUserId },
+				);
+				if (user) {
+					const userId = user._id;
+					const diatribePeer = peers.find(
+						(peer) => peer.id === `${userId}-diatribe`,
+					);
+
+					if (diatribePeer) {
+						session.logger.info(
+							"[Clairvoyant] Fetching memory context for weather personalization",
+						);
+						const contextData = (await memorySession.getContext({
+							peerTarget: diatribePeer.id,
+							lastUserMessage: "weather",
+						})) as {
+							peerCard: string[];
+							peerRepresentation: string;
+							messages: Array<{
+								content: string;
+								metadata?: { timestamp?: string };
+							}>;
+						};
+
+						// Parse peerRepresentation JSON for explicit and deductive facts
+						let peerRep: {
+							explicit: Array<{ content: string }>;
+							deductive: Array<{ conclusion: string; premises: string[] }>;
+						};
+						try {
+							peerRep = JSON.parse(contextData.peerRepresentation);
+						} catch (error) {
+							session.logger.error(
+								`[Clairvoyant] Error parsing peerRepresentation: ${error}`,
+							);
+							peerRep = { explicit: [], deductive: [] };
+						}
+
+						// Extract name and relevant facts from peerCard
+						const userName = contextData.peerCard
+							.find((fact: string) => fact.startsWith("Name:"))
+							?.replace("Name:", "")
+							.trim();
+						const relevantFacts = contextData.peerCard
+							.slice(0, 3)
+							.filter((fact: string) => !fact.startsWith("Name:"));
+
+						// Extract weather-relevant deductive conclusions (e.g., preferences about weather)
+						const weatherRelatedDeductions = peerRep.deductive
+							.map((d) => d.conclusion)
+							.filter(
+								(conclusion: string) =>
+									conclusion.toLowerCase().includes("weather") ||
+									conclusion.toLowerCase().includes("cold") ||
+									conclusion.toLowerCase().includes("hot") ||
+									conclusion.toLowerCase().includes("rain") ||
+									conclusion.toLowerCase().includes("sun"),
+							)
+							.slice(0, 2); // Limit to top 2 relevant deductions
+
+						// Extract recent weather queries with timestamps
+						const recentMessages = contextData.messages || [];
+						const weatherPattern =
+							/weather|temperature|forecast|rain|snow|sun|cold|hot/i;
+						const recentWeatherQueries = recentMessages
+							.filter((msg) => weatherPattern.test(msg.content))
+							.slice(-5) // Get last 5 weather-related messages
+							.map((msg) => {
+								if (msg.metadata?.timestamp) {
+									const timeAgo = getTimeAgo(msg.metadata.timestamp);
+									return `Asked about weather "${msg.content.slice(0, 40)}${msg.content.length > 40 ? "..." : ""}" ${timeAgo}`;
+								}
+								return null;
+							})
+							.filter(Boolean) as string[];
+
+						// Combine deductions with temporal information
+						const deductionsWithTiming = weatherRelatedDeductions.concat(
+							recentWeatherQueries.slice(0, 1), // Add up to 1 recent weather query timestamp
+						);
+
+						memoryContext = {
+							userName,
+							userFacts: relevantFacts,
+							deductiveFacts: deductionsWithTiming,
+						};
+						session.logger.info(
+							`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`,
+						);
+					}
+				}
+			}
+		} catch (error) {
+			session.logger.warn(
+				`[Clairvoyant] Failed to fetch memory context: ${String(error)}`,
+			);
+		}
+	}
+
+	const weatherLines = await b.SummarizeWeatherFormatted(
+		response,
+		preferredUnit,
+		memoryContext,
+	);
+
+	for (let i = 0; i < weatherLines.lines.length; i++) {
+		const line = weatherLines.lines[i];
+
+		if (weatherRunIds.get(session) !== runId) return;
+
+		session.logger.info(`[Clairvoyant] Weather: ${line}`);
+		session.layouts.showTextWall(`// Clairvoyant\nW: ${line}`, {
+			view: ViewType.MAIN,
+			durationMs: 3000,
+		});
+
+		if (i < weatherLines.lines.length - 1) {
+			await new Promise((resolve) => setTimeout(resolve, 3000));
+		}
+	}
+}
 
 export async function startWeatherFlow(
 	session: AppSession,
@@ -64,6 +218,12 @@ export async function startWeatherFlow(
 				`[Clairvoyant] Location received: ${location.lat}, ${location.lng}`,
 			);
 
+			// Update the user's current location in Convex (fire and forget)
+			void setCurrentLocation(mentraUserId, {
+				lat: location.lat,
+				lng: location.lng,
+			});
+
 			weatherTextWallShown = true;
 
 			// Use the helper function to show "Getting the weather..." during the API call
@@ -88,112 +248,15 @@ export async function startWeatherFlow(
 				return;
 			}
 
-			// Fetch memory context if available
-			let memoryContext: { userName?: string; userFacts: string[]; deductiveFacts: string[] } | null = null;
-			if (memorySession && peers) {
-				try {
-					const isPro = await checkUserIsPro(mentraUserId);
-					if (isPro) {
-						const user = await convexClient.query(
-							api.polar.getCurrentUserWithSubscription,
-							{ mentraUserId },
-						);
-						if (user) {
-							const userId = user._id;
-							const diatribePeer = peers.find((peer) => peer.id === `${userId}-diatribe`);
-							
-							if (diatribePeer) {
-								session.logger.info("[Clairvoyant] Fetching memory context for weather personalization");
-								const contextData = await memorySession.getContext({
-									peerTarget: diatribePeer.id,
-									lastUserMessage: "weather",
-								}) as {
-									peerCard: string[];
-									peerRepresentation: string;
-									messages: Array<{ content: string; metadata?: { timestamp?: string } }>;
-								};
-
-								// Parse peerRepresentation JSON for explicit and deductive facts
-								let peerRep: {
-									explicit: Array<{ content: string }>;
-									deductive: Array<{ conclusion: string; premises: string[] }>;
-								};
-								try {
-									peerRep = JSON.parse(contextData.peerRepresentation);
-								} catch (error) {
-									session.logger.error(
-										`[Clairvoyant] Error parsing peerRepresentation: ${error}`,
-									);
-									peerRep = { explicit: [], deductive: [] };
-								}
-
-								// Extract name and relevant facts from peerCard
-								const userName = contextData.peerCard.find((fact: string) => fact.startsWith("Name:"))?.replace("Name:", "").trim();
-								const relevantFacts = contextData.peerCard.slice(0, 3).filter((fact: string) => !fact.startsWith("Name:"));
-								
-								// Extract weather-relevant deductive conclusions (e.g., preferences about weather)
-								const weatherRelatedDeductions = peerRep.deductive
-									.map((d) => d.conclusion)
-									.filter((conclusion: string) => 
-										conclusion.toLowerCase().includes("weather") ||
-										conclusion.toLowerCase().includes("cold") ||
-										conclusion.toLowerCase().includes("hot") ||
-										conclusion.toLowerCase().includes("rain") ||
-										conclusion.toLowerCase().includes("sun")
-									)
-									.slice(0, 2); // Limit to top 2 relevant deductions
-
-								// Extract recent weather queries with timestamps
-								const recentMessages = contextData.messages || [];
-								const weatherPattern = /weather|temperature|forecast|rain|snow|sun|cold|hot/i;
-								const recentWeatherQueries = recentMessages
-									.filter(msg => weatherPattern.test(msg.content))
-									.slice(-5) // Get last 5 weather-related messages
-									.map(msg => {
-										if (msg.metadata?.timestamp) {
-											const timeAgo = getTimeAgo(msg.metadata.timestamp);
-											return `Asked about weather "${msg.content.slice(0, 40)}${msg.content.length > 40 ? '...' : ''}" ${timeAgo}`;
-										}
-										return null;
-									})
-									.filter(Boolean) as string[];
-
-								// Combine deductions with temporal information
-								const deductionsWithTiming = weatherRelatedDeductions.concat(
-									recentWeatherQueries.slice(0, 1) // Add up to 1 recent weather query timestamp
-								);
-								
-								memoryContext = {
-									userName,
-									userFacts: relevantFacts,
-									deductiveFacts: deductionsWithTiming,
-								};
-								session.logger.info(`[Clairvoyant] Memory context: ${JSON.stringify(memoryContext)}`);
-							}
-						}
-					}
-				} catch (error) {
-					session.logger.warn(`[Clairvoyant] Failed to fetch memory context: ${String(error)}`);
-				}
-			}
-
-			const weatherLines = await b.SummarizeWeatherFormatted(response, preferredUnit, memoryContext);
-
-			for (let i = 0; i < weatherLines.lines.length; i++) {
-				const line = weatherLines.lines[i];
-
-				if (weatherRunIds.get(session) !== runId) return;
-
-				session.logger.info(`[Clairvoyant] Weather: ${line}`);
-				session.layouts.showTextWall(`// Clairvoyant\nW: ${line}`, {
-					view: ViewType.MAIN,
-					durationMs: 3000,
-				});
-
-				if (i < weatherLines.lines.length - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 3000));
-				}
-			}
+			await processWeatherData(
+				session,
+				mentraUserId,
+				response,
+				preferredUnit,
+				runId,
+				memorySession,
+				peers,
+			);
 
 			// TODO: Add a BAML to check if the weather is inclement and if so and if so, ask the user if they're appropriately dressed for the weather.
 			// TODO: Add a memory call to intercept the users' answer and add it to the memory.
@@ -215,7 +278,7 @@ export async function startWeatherFlow(
 
 	const TIMEOUT_MS = 6000;
 
-	setTimeout(() => {
+	setTimeout(async () => {
 		if (weatherRunIds.get(session) !== runId) return;
 
 		if (!locationReceived) {
@@ -232,25 +295,99 @@ export async function startWeatherFlow(
 				});
 			}
 
-			session.layouts.showTextWall(
-				"// Clairvoyant\nW: Still waiting on location…",
-				{
-					view: ViewType.MAIN,
-					durationMs: 2000,
-				},
+			// Try to use default location from preferences (geocoded billing address)
+			session.logger.info(
+				"[Clairvoyant] Attempting to use default location from preferences",
 			);
 
-			setTimeout(() => {
-				if (weatherRunIds.get(session) === runId && !locationReceived) {
-					session.layouts.showTextWall(
-						"// Clairvoyant\nW: Could not get your location.",
-						{
-							view: ViewType.MAIN,
-							durationMs: 2000,
-						},
+			const defaultLocation = await getDefaultLocation(mentraUserId);
+
+			if (defaultLocation) {
+				session.logger.info(
+					`[Clairvoyant] Using default location: ${defaultLocation.lat}, ${defaultLocation.lng}`,
+				);
+
+				locationReceived = true; // Prevent further timeout messages
+
+				session.layouts.showTextWall(
+					"// Clairvoyant\nW: Using your billing location…",
+					{
+						view: ViewType.MAIN,
+						durationMs: 2000,
+					},
+				);
+
+				try {
+					const response = await showTextDuringOperation(
+						session,
+						"// Clairvoyant\nW: Getting the weather...",
+						"// Clairvoyant\nW: Got the weather!",
+						"// Clairvoyant\nW: Couldn't get the weather.",
+						() =>
+							getWeatherData(
+								defaultLocation.lat,
+								defaultLocation.lng,
+								preferredUnit,
+							),
 					);
+
+					if (!response) {
+						throw new Error("No weather response");
+					}
+
+					if (weatherRunIds.get(session) !== runId) {
+						session.logger.info(
+							`[Clairvoyant] Weather response arrived for stale request, discarding`,
+						);
+						return;
+					}
+
+					await processWeatherData(
+						session,
+						mentraUserId,
+						response,
+						preferredUnit,
+						runId,
+						memorySession,
+						peers,
+					);
+				} catch (err) {
+					session.logger.error(
+						`[Clairvoyant] Weather flow error with fallback location: ${String(err)}`,
+					);
+
+					if (weatherRunIds.get(session) === runId) {
+						session.layouts.showTextWall(
+							"// Clairvoyant\nW: Couldn't figure out the weather.",
+							{
+								view: ViewType.MAIN,
+								durationMs: 2000,
+							},
+						);
+					}
 				}
-			}, 2000);
+			} else {
+				// No default location available
+				session.layouts.showTextWall(
+					"// Clairvoyant\nW: Still waiting on location…",
+					{
+						view: ViewType.MAIN,
+						durationMs: 2000,
+					},
+				);
+
+				setTimeout(() => {
+					if (weatherRunIds.get(session) === runId && !locationReceived) {
+						session.layouts.showTextWall(
+							"// Clairvoyant\nW: Could not get your location.",
+							{
+								view: ViewType.MAIN,
+								durationMs: 2000,
+							},
+						);
+					}
+				}, 2000);
+			}
 		}
 	}, TIMEOUT_MS);
 }

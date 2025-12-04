@@ -1,6 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// =============================================================================
+// Public Mutations
+// =============================================================================
+
 export const increment = mutation({
 	args: {
 		mentraUserId: v.string(),
@@ -43,6 +47,10 @@ export const increment = mutation({
 	},
 });
 
+// =============================================================================
+// Public Queries
+// =============================================================================
+
 export const getUserToolInvocations = query({
 	args: {
 		userId: v.id("users"),
@@ -80,3 +88,4 @@ export const getUserToolInvocations = query({
 			}));
 	},
 });
+
