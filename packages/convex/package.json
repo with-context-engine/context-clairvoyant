@@ -10,9 +10,9 @@
 		"test": "echo 'No tests configured for @clairvoyant/convex'"
 	},
 	"dependencies": {
-		"@convex-dev/polar": "^0.7",
-		"@honcho-ai/sdk": "^1.5",
+		"@convex-dev/polar": "^0.7.3",
+		"@honcho-ai/sdk": "^1.6.0",
 		"@polar-sh/sdk": "^0.41.5",
-		"convex": "^1.29.3"
+		"convex": "^1.31.2"
 	}
 }
