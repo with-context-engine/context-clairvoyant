@@ -22,7 +22,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryCore, MemoryRecall, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -112,31 +112,6 @@ export class HttpRequest {
     }
   }
   
-  MemoryQueryRecall(
-      query: string,context: string,
-      __baml_options__?: BamlCallOptions<never>
-  ): HTTPRequest {
-    try {
-      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const __env__: Record<string, string> = Object.fromEntries(
-        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
-      );
-      return this.runtime.buildRequestSync(
-        "MemoryQueryRecall",
-        {
-          "query": query,"context": context
-        },
-        this.ctxManager.cloneContext(),
-        __baml_options__?.tb?.__tb(),
-        __baml_options__?.clientRegistry,
-        false,
-        __env__,
-      )
-    } catch (error) {
-      throw toBamlError(error);
-    }
-  }
-  
   Route(
       text: string,
       __baml_options__?: BamlCallOptions<never>
@@ -175,6 +150,31 @@ export class HttpRequest {
         "SummarizePlaces",
         {
           "query": query,"places": places,"memory": memory?? null
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        false,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  SummarizeSession(
+      transcripts: string[],
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "SummarizeSession",
+        {
+          "transcripts": transcripts
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -318,31 +318,6 @@ export class HttpStreamRequest {
     }
   }
   
-  MemoryQueryRecall(
-      query: string,context: string,
-      __baml_options__?: BamlCallOptions<never>
-  ): HTTPRequest {
-    try {
-      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const __env__: Record<string, string> = Object.fromEntries(
-        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
-      );
-      return this.runtime.buildRequestSync(
-        "MemoryQueryRecall",
-        {
-          "query": query,"context": context
-        },
-        this.ctxManager.cloneContext(),
-        __baml_options__?.tb?.__tb(),
-        __baml_options__?.clientRegistry,
-        true,
-        __env__,
-      )
-    } catch (error) {
-      throw toBamlError(error);
-    }
-  }
-  
   Route(
       text: string,
       __baml_options__?: BamlCallOptions<never>
@@ -381,6 +356,31 @@ export class HttpStreamRequest {
         "SummarizePlaces",
         {
           "query": query,"places": places,"memory": memory?? null
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        true,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  SummarizeSession(
+      transcripts: string[],
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "SummarizeSession",
+        {
+          "transcripts": transcripts
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),

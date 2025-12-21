@@ -12,6 +12,7 @@ import type * as analytics from "../analytics.js";
 import type * as honcho from "../honcho.js";
 import type * as http from "../http.js";
 import type * as payments from "../payments.js";
+import type * as sessionSummaries from "../sessionSummaries.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   honcho: typeof honcho;
   http: typeof http;
   payments: typeof payments;
+  sessionSummaries: typeof sessionSummaries;
   users: typeof users;
 }>;
 

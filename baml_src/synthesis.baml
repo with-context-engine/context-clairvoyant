@@ -3,6 +3,7 @@ class MemoryContext {
   deductiveFacts string[]
   peerCard string[]
   recentMessages string[]
+  sessionSummaries string[] @description("Summaries of past sessions, e.g. 'Dec 20: discussed weather and navigation'")
 }
 
 class MemorySynthesisLines {
@@ -40,6 +41,11 @@ RECENT CONVERSATION:
 {{ msg }}
 {% endfor %}
 
+PAST SESSION SUMMARIES:
+{% for summary in context.sessionSummaries %}
+- {{ summary }}
+{% endfor %}
+
 QUERY: {{ query }}
 
 Instructions:
@@ -70,6 +76,7 @@ test test_memory_synthesis_name {
         "My name is Ajay Bhargava, that's spelled A-J-A-Y, last name B-H-A-R-G-A-V-A.",
         "What is my name?"
       ]
+      sessionSummaries []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -98,6 +105,7 @@ test test_memory_synthesis_children {
         "I have two girls, five and two. Their names are Koyal and Kavya.",
         "Tell me about my daughters"
       ]
+      sessionSummaries []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -120,6 +128,7 @@ test test_memory_synthesis_no_info {
       recentMessages [
         "What car do I drive?"
       ]
+      sessionSummaries []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -145,6 +154,7 @@ test test_memory_synthesis_age {
       recentMessages [
         "How old am I?"
       ]
+      sessionSummaries []
     }
   }
   @@assert({{ this.lines|length <= 3 }})

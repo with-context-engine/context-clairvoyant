@@ -41,11 +41,9 @@ export default class TypeBuilder {
     
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
     
-    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages">;
+    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages" | "sessionSummaries">;
     
     MemoryCore: ClassViewer<'MemoryCore', "userName" | "userFacts" | "deductiveFacts">;
-    
-    MemoryRecall: ClassViewer<'MemoryRecall', "query" | "results">;
     
     MemorySynthesisLines: ClassViewer<'MemorySynthesisLines', "lines">;
     
@@ -61,6 +59,8 @@ export default class TypeBuilder {
     
     RoutingBehavior: ClassViewer<'RoutingBehavior', "origin" | "routing">;
     
+    SessionSummaryOutput: ClassViewer<'SessionSummaryOutput', "summary" | "topics">;
+    
     TempBlock: ClassViewer<'TempBlock', "day" | "min" | "max" | "night">;
     
     WeatherConditionLite: ClassViewer<'WeatherConditionLite', "id" | "main" | "description" | "icon">;
@@ -74,7 +74,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","LocationLite","MemoryContext","MemoryCore","MemoryRecall","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "Router",
@@ -111,15 +111,11 @@ export default class TypeBuilder {
         ]);
         
         this.MemoryContext = this.tb.classViewer("MemoryContext", [
-          "explicitFacts","deductiveFacts","peerCard","recentMessages",
+          "explicitFacts","deductiveFacts","peerCard","recentMessages","sessionSummaries",
         ]);
         
         this.MemoryCore = this.tb.classViewer("MemoryCore", [
           "userName","userFacts","deductiveFacts",
-        ]);
-        
-        this.MemoryRecall = this.tb.classViewer("MemoryRecall", [
-          "query","results",
         ]);
         
         this.MemorySynthesisLines = this.tb.classViewer("MemorySynthesisLines", [
@@ -148,6 +144,10 @@ export default class TypeBuilder {
         
         this.RoutingBehavior = this.tb.classViewer("RoutingBehavior", [
           "origin","routing",
+        ]);
+        
+        this.SessionSummaryOutput = this.tb.classViewer("SessionSummaryOutput", [
+          "summary","topics",
         ]);
         
         this.TempBlock = this.tb.classViewer("TempBlock", [

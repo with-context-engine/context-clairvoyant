@@ -30,4 +30,14 @@ export default defineSchema({
 	})
 		.index("by_user", ["userId"])
 		.index("by_user_router_date", ["userId", "router", "date"]),
+	sessionSummaries: defineTable({
+		userId: v.id("users"),
+		mentraSessionId: v.string(),
+		summary: v.string(),
+		topics: v.array(v.string()),
+		startedAt: v.string(),
+		endedAt: v.string(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_user_session", ["userId", "mentraSessionId"]),
 });
