@@ -34,7 +34,7 @@ class Clairvoyant extends AppServer {
 		sessionId: string,
 		userId: string,
 	): Promise<void> {
-		const [memorySession, peers] = await initializeMemory(userId);
+		const [memorySession, peers] = await initializeMemory(userId, sessionId);
 
 		const unsubscribe = session.events.onTranscription(async (data) => {
 			if (
