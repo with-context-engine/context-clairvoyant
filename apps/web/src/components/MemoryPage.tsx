@@ -32,12 +32,12 @@ function formatDate(dateStr: string): string {
 }
 
 export function MemoryPage({ mentraUserId }: MemoryPageProps) {
-	const dailySummaries = useQuery(api.dailySummaries.getForUser, {
+	const result = useQuery(api.dailySummaries.getForUser, {
 		mentraUserId,
 		limit: 30,
 	});
 
-	if (dailySummaries === undefined) {
+	if (result === undefined) {
 		return (
 			<div className="space-y-6">
 				<h2 className="text-xl font-semibold">Memory</h2>
@@ -58,7 +58,34 @@ export function MemoryPage({ mentraUserId }: MemoryPageProps) {
 		);
 	}
 
-	if (dailySummaries.length === 0) {
+	// Show upgrade prompt for non-Pro users
+	if (!result.isPro) {
+		return (
+			<div className="space-y-6">
+				<h2 className="text-xl font-semibold">Memory</h2>
+				<Card>
+					<CardHeader>
+						<CardTitle>Memory is a Pro Feature</CardTitle>
+						<CardDescription>
+							Upgrade to Pro to unlock your personal memory log. Your daily
+							activities, conversations, and insights will be captured and
+							organized here.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<a
+							href="/settings"
+							className="inline-flex items-center justify-center rounded-base border-2 border-main bg-main px-4 py-2 text-sm font-medium text-white shadow-light transition-all hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none"
+						>
+							Upgrade to Pro
+						</a>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	if (result.summaries.length === 0) {
 		return (
 			<div className="space-y-6">
 				<h2 className="text-xl font-semibold">Memory</h2>
@@ -80,7 +107,7 @@ export function MemoryPage({ mentraUserId }: MemoryPageProps) {
 			<h2 className="text-xl font-semibold">Memory</h2>
 
 			<div className="space-y-4">
-				{dailySummaries.map((day) => (
+				{result.summaries.map((day) => (
 					<Card key={day.date}>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-lg flex items-center gap-2">

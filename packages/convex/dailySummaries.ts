@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
+import { polar } from "./payments";
 
 export const upsert = mutation({
 	args: {
@@ -42,7 +43,17 @@ export const getForUser = query({
 			.first();
 
 		if (!user) {
-			return [];
+			return { isPro: false, summaries: [] };
+		}
+
+		// Check Pro status
+		const subscription = await polar.getCurrentSubscription(ctx, {
+			userId: user._id,
+		});
+		const isPro = !!subscription;
+
+		if (!isPro) {
+			return { isPro: false, summaries: [] };
 		}
 
 		const limit = args.limit ?? 30;
@@ -53,12 +64,15 @@ export const getForUser = query({
 			.order("desc")
 			.take(limit);
 
-		return summaries.map((s) => ({
-			date: s.date,
-			summary: s.summary,
-			topics: s.topics,
-			sessionCount: s.sessionCount,
-		}));
+		return {
+			isPro: true,
+			summaries: summaries.map((s) => ({
+				date: s.date,
+				summary: s.summary,
+				topics: s.topics,
+				sessionCount: s.sessionCount,
+			})),
+		};
 	},
 });
 

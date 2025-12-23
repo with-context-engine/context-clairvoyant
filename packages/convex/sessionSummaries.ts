@@ -1,5 +1,7 @@
 import { v } from "convex/values";
+import { components } from "./_generated/api";
 import { internalQuery, mutation, query } from "./_generated/server";
+import { polar } from "./payments";
 
 export const upsert = mutation({
 	args: {
@@ -18,6 +20,15 @@ export const upsert = mutation({
 
 		if (!user) {
 			throw new Error(`User not found for mentraUserId: ${args.mentraUserId}`);
+		}
+
+		// Pro gate: only store session summaries for Pro users
+		const subscription = await polar.getCurrentSubscription(ctx, {
+			userId: user._id,
+		});
+		if (!subscription) {
+			// Silently skip for free users - no error, just don't store
+			return null;
 		}
 
 		const existing = await ctx.db
