@@ -9,9 +9,14 @@
  */
 
 import type * as analytics from "../analytics.js";
+import type * as cronManagement from "../cronManagement.js";
+import type * as dailySummaries from "../dailySummaries.js";
+import type * as dailySynthesis from "../dailySynthesis.js";
 import type * as honcho from "../honcho.js";
 import type * as http from "../http.js";
+import type * as init from "../init.js";
 import type * as payments from "../payments.js";
+import type * as sessionSummaries from "../sessionSummaries.js";
 import type * as users from "../users.js";
 
 import type {
@@ -22,9 +27,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
+  cronManagement: typeof cronManagement;
+  dailySummaries: typeof dailySummaries;
+  dailySynthesis: typeof dailySynthesis;
   honcho: typeof honcho;
   http: typeof http;
+  init: typeof init;
   payments: typeof payments;
+  sessionSummaries: typeof sessionSummaries;
   users: typeof users;
 }>;
 
@@ -594,6 +604,57 @@ export declare const components: {
         "mutation",
         "internal",
         { id: string; metadata?: Record<string, any>; userId: string },
+        string
+      >;
+    };
+  };
+  crons: {
+    public: {
+      del: FunctionReference<
+        "mutation",
+        "internal",
+        { identifier: { id: string } | { name: string } },
+        null
+      >;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { identifier: { id: string } | { name: string } },
+        {
+          args: Record<string, any>;
+          functionHandle: string;
+          id: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        } | null
+      >;
+      list: FunctionReference<
+        "query",
+        "internal",
+        {},
+        Array<{
+          args: Record<string, any>;
+          functionHandle: string;
+          id: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        }>
+      >;
+      register: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          args: Record<string, any>;
+          functionHandle: string;
+          name?: string;
+          schedule:
+            | { kind: "interval"; ms: number }
+            | { cronspec: string; kind: "cron"; tz?: string };
+        },
         string
       >;
     };

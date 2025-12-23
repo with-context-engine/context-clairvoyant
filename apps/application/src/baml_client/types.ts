@@ -54,6 +54,7 @@ export enum Router {
   KNOWLEDGE = "KNOWLEDGE",
   MEMORY_CAPTURE = "MEMORY_CAPTURE",
   MEMORY_RECALL = "MEMORY_RECALL",
+  PASSTHROUGH = "PASSTHROUGH",
 }
 
 export interface AlertLite {
@@ -121,6 +122,7 @@ export interface MemoryContext {
   deductiveFacts: string[]
   peerCard: string[]
   recentMessages: string[]
+  sessionSummaries: string[]
   
 }
 
@@ -128,12 +130,6 @@ export interface MemoryCore {
   userName?: string | null
   userFacts: string[]
   deductiveFacts: string[]
-  
-}
-
-export interface MemoryRecall {
-  query: string
-  results: AnswerLines
   
 }
 
@@ -178,6 +174,12 @@ export interface QuestionAnalysisResponse {
 export interface RoutingBehavior {
   origin: string
   routing: Router
+  
+}
+
+export interface SessionSummaryOutput {
+  summary: string
+  topics: string[]
   
 }
 

@@ -119,7 +119,12 @@ export function App() {
 									<HomePage userId={authState.convexUserId as Id<"users">} />
 								}
 							/>
-							<Route path="/memory" element={<MemoryPage />} />
+							<Route
+								path="/memory"
+								element={
+									<MemoryPage mentraUserId={authState.mentraUserId} />
+								}
+							/>
 							<Route
 								path="/settings"
 								element={
