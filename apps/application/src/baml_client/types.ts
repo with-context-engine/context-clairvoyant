@@ -54,6 +54,7 @@ export enum Router {
   KNOWLEDGE = "KNOWLEDGE",
   MEMORY_CAPTURE = "MEMORY_CAPTURE",
   MEMORY_RECALL = "MEMORY_RECALL",
+  PASSTHROUGH = "PASSTHROUGH",
 }
 
 export interface AlertLite {

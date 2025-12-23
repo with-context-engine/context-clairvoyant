@@ -92,6 +92,7 @@ function SummarizeWeatherFormatted(input: FormattedWeather, unit: string, memory
   - The first line should be the scale and the vibe rating.
   - The second line should be the current weather.
   - The third line should be the alert if there is one OR a personalized insight based on user context.
+  - Always include the temperature unit symbol (e.g., "72°F" or "22°C") when mentioning temperatures.
 
   Data (verbatim):
   Location:

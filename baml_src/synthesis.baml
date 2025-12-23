@@ -55,6 +55,7 @@ Instructions:
 - You can use contractions and casual language
 - If you don't have enough information to answer, say so briefly
 - Focus on what's most relevant to the query
+- Ignore any alphanumeric IDs or hashes in the facts (e.g., "j979r44m..." prefixes) — extract only the meaningful content
 "#
 }
 

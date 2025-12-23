@@ -18,7 +18,7 @@ function AnswerQuestion(text: string, memory: MemoryCore?) -> QuestionAnalysisRe
         - Set has_question to true only if a question is present; otherwise false.
         - If has_question is true:
           - question: concise (≤10 words) summary without prefixed phrases like 'You asked'.
-          - answer: direct answer in ≤50 words as an array of lines. Each item in the array cannot be more than 10 words.
+          - answer: 1-3 lines, each line ≤10 words. Keep it conversational.
         - If no question is present, set question and answer to null.
         - If the user is describing someone else's conversation, set has_question to false.
 

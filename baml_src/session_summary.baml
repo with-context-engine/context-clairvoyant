@@ -19,11 +19,12 @@ CONVERSATION TRANSCRIPTS:
 {% endfor %}
 
 Instructions:
+- First, filter out incomplete sentences, single words, filler words (e.g., "um", "uh", "okay"), and obvious transcription errors
 - Write a brief 1-2 sentence summary of what the user discussed or asked about
 - Extract 2-5 key topics or themes (e.g., "weather", "navigation", "family", "work")
 - Keep topics as single words or short phrases
 - Focus on what's memorable or might be referenced later
-- If transcripts are empty or trivial, return a minimal summary
+- If transcripts are empty, trivial, or only contain noise/filler, return summary "No meaningful activity" with topics ["none"]
 "#
 }
 
@@ -60,4 +61,30 @@ test test_summarize_session_empty {
     transcripts []
   }
   @@assert({{ this.summary|length > 0 }})
+}
+
+test test_summarize_session_noise {
+  functions [SummarizeSession]
+  args {
+    transcripts [
+      "um",
+      "okay",
+      "uh yeah",
+      "hmm"
+    ]
+  }
+  @@assert({{ this.topics|length >= 1 }})
+}
+
+test test_summarize_session_mixed_quality {
+  functions [SummarizeSession]
+  args {
+    transcripts [
+      "um",
+      "What's the weather today?",
+      "okay",
+      "Find me a coffee shop nearby"
+    ]
+  }
+  @@assert({{ this.topics|length >= 1 }})
 }

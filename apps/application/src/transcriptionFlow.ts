@@ -88,17 +88,15 @@ export async function handleTranscription(
 			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
+		case Router.PASSTHROUGH:
+			session.logger.info(
+				`[Clairvoyant] Passthrough route: ignoring ambient/filler speech`,
+			);
+			return;
+
 		default: {
 			session.logger.info(
-				`[Clairvoyant] Memory Insertion route: starting async flow`,
-			);
-			void MemoryCapture(
-				data.text,
-				session,
-				memorySession,
-				peers,
-				"diatribe",
-				mentraUserId,
+				`[Clairvoyant] Unknown route, defaulting to passthrough`,
 			);
 			return;
 		}

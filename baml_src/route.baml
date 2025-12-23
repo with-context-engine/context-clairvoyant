@@ -5,6 +5,7 @@ enum Router {
     KNOWLEDGE @description("General knowledge that does not fit into other categories.")
     MEMORY_CAPTURE @description("Commands to store new personal facts, preferences, or reminders for future recall.")
     MEMORY_RECALL @description("Questions about the user's memory and personal history, personal preferences, personal opinions, goals, information about the user, or anything that is not a fact.")
+    PASSTHROUGH @description("Ambient speech, filler words, incomplete sentences, or unclear utterances that don't require action.")
 }
 
 class RoutingBehavior {
@@ -16,12 +17,22 @@ function Route(text: string) -> RoutingBehavior {
     client "GroqHeavy"
     prompt #"
         Choose exactly one route for the user's utterance.
-        MEMORY_RECALL → questions about the user's past actions, preferences, or memories to retrieve.
-        MEMORY_CAPTURE → commands to remember or store new information about the user for later use.
-        WEATHER → questions about forecast or current weather for a place.
-        MAPS → requests to find locations, directions, or nearby businesses.
-        WEB_SEARCH → current events or information likely needing the internet.
-        KNOWLEDGE → general facts that are stable over time.
+        
+        Routes (in priority order when multiple could apply):
+        1. WEATHER → questions about forecast or current weather for a place
+        2. MAPS → requests to find locations, directions, or nearby businesses
+        3. WEB_SEARCH → current events or information likely needing the internet
+        4. KNOWLEDGE → general facts that are stable over time
+        5. MEMORY_CAPTURE → commands to remember or store new information about the user
+        6. MEMORY_RECALL → questions about the user's past, preferences, or personal information
+        7. PASSTHROUGH → filler words, incomplete sentences, ambient noise, or unclear speech (e.g., "hmm", "okay", "uh", single words without context)
+        
+        Guidelines:
+        - If the utterance mentions weather/forecast, choose WEATHER even if a location is mentioned
+        - If the utterance is primarily about finding a place or directions, choose MAPS
+        - If the utterance is a fragment, filler, or doesn't form a complete question/command, choose PASSTHROUGH
+        - When in doubt between KNOWLEDGE and WEB_SEARCH, prefer WEB_SEARCH for anything that might change
+        
         {{ _.role("user") }} {{ text }}
         {{ ctx.output_format }}
     "#
@@ -105,4 +116,36 @@ test test_memory_capture_task_2 {
         text "I need to call the dentist tomorrow."
     }
     @@assert( {{ this.routing == "MEMORY_CAPTURE"}})
+}
+
+test test_passthrough_filler {
+    functions [Route]
+    args {
+        text "hmm"
+    }
+    @@assert( {{ this.routing == "PASSTHROUGH"}})
+}
+
+test test_passthrough_okay {
+    functions [Route]
+    args {
+        text "okay"
+    }
+    @@assert( {{ this.routing == "PASSTHROUGH"}})
+}
+
+test test_passthrough_fragment {
+    functions [Route]
+    args {
+        text "uh yeah so"
+    }
+    @@assert( {{ this.routing == "PASSTHROUGH"}})
+}
+
+test test_weather_with_location {
+    functions [Route]
+    args {
+        text "What's the weather like for my trip to Paris?"
+    }
+    @@assert( {{ this.routing == "WEATHER"}})
 }
