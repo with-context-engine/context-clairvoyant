@@ -40,4 +40,13 @@ export default defineSchema({
 	})
 		.index("by_user", ["userId"])
 		.index("by_user_session", ["userId", "mentraSessionId"]),
+	dailySummaries: defineTable({
+		userId: v.id("users"),
+		date: v.string(),
+		summary: v.string(),
+		topics: v.array(v.string()),
+		sessionCount: v.number(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_user_date", ["userId", "date"]),
 });

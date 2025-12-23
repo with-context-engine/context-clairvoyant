@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 
 export const upsert = mutation({
 	args: {
@@ -47,6 +47,38 @@ export const upsert = mutation({
 	},
 });
 
+export const getByDate = query({
+	args: {
+		mentraUserId: v.string(),
+		date: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			return [];
+		}
+
+		const summaries = await ctx.db
+			.query("sessionSummaries")
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
+			.collect();
+
+		return summaries
+			.filter((s) => s.startedAt.startsWith(args.date))
+			.map((s) => ({
+				mentraSessionId: s.mentraSessionId,
+				summary: s.summary,
+				topics: s.topics,
+				startedAt: s.startedAt,
+				endedAt: s.endedAt,
+			}));
+	},
+});
+
 export const getRecentForUser = query({
 	args: {
 		mentraUserId: v.string(),
@@ -69,6 +101,64 @@ export const getRecentForUser = query({
 			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.order("desc")
 			.take(limit);
+
+		return summaries.map((s) => ({
+			mentraSessionId: s.mentraSessionId,
+			summary: s.summary,
+			topics: s.topics,
+			startedAt: s.startedAt,
+			endedAt: s.endedAt,
+		}));
+	},
+});
+
+export const getByDateInternal = internalQuery({
+	args: {
+		userId: v.id("users"),
+		date: v.string(),
+	},
+	handler: async (ctx, { userId, date }) => {
+		const summaries = await ctx.db
+			.query("sessionSummaries")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.collect();
+
+		return summaries
+			.filter((s) => s.startedAt.startsWith(date))
+			.map((s) => ({
+				mentraSessionId: s.mentraSessionId,
+				summary: s.summary,
+				topics: s.topics,
+				startedAt: s.startedAt,
+				endedAt: s.endedAt,
+			}));
+	},
+});
+
+export const getUsersWithSessionsOnDate = internalQuery({
+	args: {
+		date: v.string(),
+	},
+	handler: async (ctx, { date }) => {
+		const allSummaries = await ctx.db.query("sessionSummaries").collect();
+
+		const usersOnDate = allSummaries
+			.filter((s) => s.startedAt.startsWith(date))
+			.map((s) => s.userId);
+
+		return [...new Set(usersOnDate)];
+	},
+});
+
+export const getAllForUserInternal = internalQuery({
+	args: {
+		userId: v.id("users"),
+	},
+	handler: async (ctx, { userId }) => {
+		const summaries = await ctx.db
+			.query("sessionSummaries")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.collect();
 
 		return summaries.map((s) => ({
 			mentraSessionId: s.mentraSessionId,
