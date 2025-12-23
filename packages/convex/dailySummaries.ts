@@ -1,35 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { polar } from "./payments";
-
-export const upsert = mutation({
-	args: {
-		userId: v.id("users"),
-		date: v.string(),
-		summary: v.string(),
-		topics: v.array(v.string()),
-		sessionCount: v.number(),
-	},
-	handler: async (ctx, args) => {
-		const existing = await ctx.db
-			.query("dailySummaries")
-			.withIndex("by_user_date", (q) =>
-				q.eq("userId", args.userId).eq("date", args.date),
-			)
-			.first();
-
-		if (existing) {
-			await ctx.db.patch(existing._id, {
-				summary: args.summary,
-				topics: args.topics,
-				sessionCount: args.sessionCount,
-			});
-			return existing._id;
-		}
-
-		return await ctx.db.insert("dailySummaries", args);
-	},
-});
 
 export const getForUser = query({
 	args: {
