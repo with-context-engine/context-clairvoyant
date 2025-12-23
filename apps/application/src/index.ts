@@ -2,7 +2,7 @@ import { api } from "@convex/_generated/api";
 import type { Session } from "@honcho-ai/sdk";
 import { AppServer, type AppSession } from "@mentra/sdk";
 import { b } from "./baml_client";
-import { convexClient } from "./core/convex";
+import { checkUserIsPro, convexClient } from "./core/convex";
 import { env } from "./core/env";
 import { RateLimiter } from "./core/rateLimiting";
 import { initializeMemory } from "./tools/memoryCall";
@@ -107,6 +107,15 @@ class Clairvoyant extends AppServer {
 		transcripts: string[],
 		startedAt: string,
 	): Promise<void> {
+		// Pro gate: skip summarization for free users to save LLM tokens
+		const isPro = await checkUserIsPro(mentraUserId);
+		if (!isPro) {
+			console.log(
+				`[Clairvoyant] Skipping session summary for ${sessionId}: user is not Pro`,
+			);
+			return;
+		}
+
 		try {
 			const result = await b.SummarizeSession(transcripts);
 			const endedAt = new Date().toISOString();
