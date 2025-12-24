@@ -47,6 +47,11 @@ export function all_succeeded<CheckName extends string>(checks: Record<CheckName
 export function get_checks<CheckName extends string>(checks: Record<CheckName, Check>): Check[] {
     return Object.values(checks)
 }
+export enum HintCategory {
+  HINTABLE = "HINTABLE",
+  AMBIENT = "AMBIENT",
+}
+
 export enum Router {
   WEATHER = "WEATHER",
   WEB_SEARCH = "WEB_SEARCH",
@@ -107,6 +112,18 @@ export interface FormattedWeather {
   current: CurrentLite
   daily_forecast: DailyForecastItem[]
   alerts: AlertLite[]
+  
+}
+
+export interface HintEligibility {
+  category: HintCategory
+  topic?: string | null
+  
+}
+
+export interface HintResult {
+  should_show: boolean
+  hint?: string | null
   
 }
 

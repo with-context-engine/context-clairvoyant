@@ -1,12 +1,11 @@
 import { v } from "convex/values";
-import { components } from "./_generated/api";
 import { internalQuery, mutation, query } from "./_generated/server";
 import { polar } from "./payments";
 
 export const upsert = mutation({
 	args: {
 		mentraUserId: v.string(),
-		mentraSessionId: v.string(),
+		honchoSessionId: v.string(),
 		summary: v.string(),
 		topics: v.array(v.string()),
 		startedAt: v.string(),
@@ -33,8 +32,8 @@ export const upsert = mutation({
 
 		const existing = await ctx.db
 			.query("sessionSummaries")
-			.withIndex("by_user_session", (q) =>
-				q.eq("userId", user._id).eq("mentraSessionId", args.mentraSessionId),
+			.withIndex("by_honcho_session", (q) =>
+				q.eq("honchoSessionId", args.honchoSessionId),
 			)
 			.first();
 
@@ -49,7 +48,7 @@ export const upsert = mutation({
 
 		return await ctx.db.insert("sessionSummaries", {
 			userId: user._id,
-			mentraSessionId: args.mentraSessionId,
+			honchoSessionId: args.honchoSessionId,
 			summary: args.summary,
 			topics: args.topics,
 			startedAt: args.startedAt,
@@ -81,7 +80,7 @@ export const getByDate = query({
 		return summaries
 			.filter((s) => s.startedAt.startsWith(args.date))
 			.map((s) => ({
-				mentraSessionId: s.mentraSessionId,
+				honchoSessionId: s.honchoSessionId,
 				summary: s.summary,
 				topics: s.topics,
 				startedAt: s.startedAt,
@@ -114,7 +113,7 @@ export const getRecentForUser = query({
 			.take(limit);
 
 		return summaries.map((s) => ({
-			mentraSessionId: s.mentraSessionId,
+			honchoSessionId: s.honchoSessionId,
 			summary: s.summary,
 			topics: s.topics,
 			startedAt: s.startedAt,
@@ -137,7 +136,7 @@ export const getByDateInternal = internalQuery({
 		return summaries
 			.filter((s) => s.startedAt.startsWith(date))
 			.map((s) => ({
-				mentraSessionId: s.mentraSessionId,
+				honchoSessionId: s.honchoSessionId,
 				summary: s.summary,
 				topics: s.topics,
 				startedAt: s.startedAt,
@@ -172,7 +171,7 @@ export const getAllForUserInternal = internalQuery({
 			.collect();
 
 		return summaries.map((s) => ({
-			mentraSessionId: s.mentraSessionId,
+			honchoSessionId: s.honchoSessionId,
 			summary: s.summary,
 			topics: s.topics,
 			startedAt: s.startedAt,

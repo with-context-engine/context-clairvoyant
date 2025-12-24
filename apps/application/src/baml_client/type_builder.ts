@@ -39,6 +39,10 @@ export default class TypeBuilder {
     
     FormattedWeather: ClassViewer<'FormattedWeather', "location" | "current" | "daily_forecast" | "alerts">;
     
+    HintEligibility: ClassViewer<'HintEligibility', "category" | "topic">;
+    
+    HintResult: ClassViewer<'HintResult', "should_show" | "hint">;
+    
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
     
     MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages" | "sessionSummaries">;
@@ -68,16 +72,18 @@ export default class TypeBuilder {
     WeatherLines: ClassViewer<'WeatherLines', "lines">;
     
     
+    HintCategory: EnumViewer<'HintCategory', "HINTABLE" | "AMBIENT">;
+    
     Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "PASSTHROUGH">;
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
-            "Router",
+            "HintCategory","Router",
           ]),
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
@@ -104,6 +110,14 @@ export default class TypeBuilder {
         
         this.FormattedWeather = this.tb.classViewer("FormattedWeather", [
           "location","current","daily_forecast","alerts",
+        ]);
+        
+        this.HintEligibility = this.tb.classViewer("HintEligibility", [
+          "category","topic",
+        ]);
+        
+        this.HintResult = this.tb.classViewer("HintResult", [
+          "should_show","hint",
         ]);
         
         this.LocationLite = this.tb.classViewer("LocationLite", [
@@ -162,6 +176,10 @@ export default class TypeBuilder {
           "lines",
         ]);
         
+        
+        this.HintCategory = this.tb.enumViewer("HintCategory", [
+          "HINTABLE","AMBIENT",
+        ]);
         
         this.Router = this.tb.enumViewer("Router", [
           "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","PASSTHROUGH",

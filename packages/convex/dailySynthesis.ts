@@ -1,14 +1,15 @@
 "use node";
 
-import OpenAI from "openai";
+import { Honcho } from "@honcho-ai/sdk";
 import { v } from "convex/values";
+import OpenAI from "openai";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
 
 // Type for session summary from the query
 interface SessionSummary {
-	mentraSessionId: string;
+	honchoSessionId: string;
 	summary: string;
 	topics: string[];
 	startedAt: string;
@@ -44,20 +45,59 @@ export const synthesizeDailySummary = internalAction({
 			return { success: false, reason: "no_sessions" };
 		}
 
-		// 2. Call OpenAI to synthesize
-		const apiKey = process.env.OPENAI_API_KEY;
-		if (!apiKey) {
+		// 2. Check API keys
+		const openaiKey = process.env.OPENAI_API_KEY;
+		if (!openaiKey) {
 			console.error(
 				"[DailySummary] OPENAI_API_KEY environment variable is not set",
 			);
 			return { success: false, reason: "missing_api_key" };
 		}
 
-		const openai = new OpenAI({ apiKey });
+		const honchoKey = process.env.HONCHO_API_KEY;
+		if (!honchoKey) {
+			console.error(
+				"[DailySummary] HONCHO_API_KEY environment variable is not set",
+			);
+			return { success: false, reason: "missing_honcho_key" };
+		}
+
+		// 3. Fetch peer card from Honcho for personalization
+		let peerCard: string[] = [];
+		try {
+			const honchoClient = new Honcho({
+				apiKey: honchoKey,
+				workspaceId: "with-context",
+			});
+
+			const diatribePeer = await honchoClient.peer(`${userId}-diatribe`);
+			const peerContext = await diatribePeer.chat(
+				"Give me a brief profile of this user including their name, location, interests, and personality traits.",
+			);
+			if (typeof peerContext === "string" && peerContext) {
+				peerCard = peerContext
+					.split("\n")
+					.filter((line: string) => line.trim());
+			}
+			console.log(
+				`[DailySummary] Fetched peer card for user ${userId}: ${peerCard.length} facts`,
+			);
+		} catch (error) {
+			console.warn(
+				`[DailySummary] Could not fetch peer card for user ${userId}: ${error instanceof Error ? error.message : String(error)}`,
+			);
+		}
+
+		const openai = new OpenAI({ apiKey: openaiKey });
 
 		const sessionTexts: string = sessions
 			.map((s: SessionSummary, i: number) => `Session ${i + 1}: ${s.summary}`)
 			.join("\n");
+
+		const userProfileSection =
+			peerCard.length > 0
+				? `USER PROFILE:\n${peerCard.join("\n")}\n\n`
+				: "";
 
 		try {
 			const response = await openai.chat.completions.create({
@@ -66,11 +106,11 @@ export const synthesizeDailySummary = internalAction({
 					{
 						role: "system",
 						content:
-							"Summarize the user's day based on their glasses session notes. Write 1-2 casual sentences in second person ('You did X'). Be concise and friendly. Focus on what's memorable.",
+							"Summarize the user's day based on their glasses session notes. Write 1-2 casual sentences. Be concise and friendly. Focus on what's memorable. If you know the user's name, use it naturally. Personalize based on their profile if available.",
 					},
 					{
 						role: "user",
-						content: sessionTexts,
+						content: `${userProfileSection}SESSIONS:\n${sessionTexts}`,
 					},
 				],
 				max_tokens: 150,

@@ -2,6 +2,7 @@ import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
 import { b, Router } from "./baml_client";
 import { recordToolInvocation } from "./core/convex";
+import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
 import { startMapsFlow } from "./handlers/maps";
 import { MemoryCapture, MemoryRecall } from "./handlers/memory";
@@ -90,7 +91,14 @@ export async function handleTranscription(
 
 		case Router.PASSTHROUGH:
 			session.logger.info(
-				`[Clairvoyant] Passthrough route: ignoring ambient/filler speech`,
+				`[Clairvoyant] Passthrough route: checking for proactive hints`,
+			);
+			void tryPassthroughHint(
+				data.text,
+				session,
+				memorySession,
+				peers,
+				mentraUserId,
 			);
 			return;
 

@@ -13,6 +13,7 @@ import type * as cronManagement from "../cronManagement.js";
 import type * as dailySummaries from "../dailySummaries.js";
 import type * as dailySynthesis from "../dailySynthesis.js";
 import type * as honcho from "../honcho.js";
+import type * as honchoSessions from "../honchoSessions.js";
 import type * as http from "../http.js";
 import type * as init from "../init.js";
 import type * as payments from "../payments.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   dailySummaries: typeof dailySummaries;
   dailySynthesis: typeof dailySynthesis;
   honcho: typeof honcho;
+  honchoSessions: typeof honchoSessions;
   http: typeof http;
   init: typeof init;
   payments: typeof payments;

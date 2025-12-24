@@ -19,6 +19,7 @@ interface SessionResources {
 	transcriptBuffer: string[];
 	startedAt: string;
 	mentraUserId: string;
+	honchoSessionId: string;
 }
 
 class Clairvoyant extends AppServer {
@@ -40,7 +41,10 @@ class Clairvoyant extends AppServer {
 		sessionId: string,
 		userId: string,
 	): Promise<void> {
-		const [memorySession, peers] = await initializeMemory(userId, sessionId);
+		const [memorySession, peers, honchoSessionId] = await initializeMemory(
+			userId,
+			sessionId,
+		);
 		const transcriptBuffer: string[] = [];
 		const startedAt = new Date().toISOString();
 
@@ -54,7 +58,7 @@ class Clairvoyant extends AppServer {
 			}
 
 			transcriptBuffer.push(data.text);
-			await handleTranscription(data, session, memorySession, peers, userId);
+			void handleTranscription(data, session, memorySession, peers, userId);
 		});
 
 		this.sessionResources.set(sessionId, {
@@ -63,6 +67,7 @@ class Clairvoyant extends AppServer {
 			transcriptBuffer,
 			startedAt,
 			mentraUserId: userId,
+			honchoSessionId,
 		});
 
 		session.logger.info(
@@ -81,7 +86,7 @@ class Clairvoyant extends AppServer {
 
 			if (resources.transcriptBuffer.length > 0) {
 				this.summarizeAndStoreSession(
-					sessionId,
+					resources.honchoSessionId,
 					resources.mentraUserId,
 					resources.transcriptBuffer,
 					resources.startedAt,
@@ -102,7 +107,7 @@ class Clairvoyant extends AppServer {
 	}
 
 	private async summarizeAndStoreSession(
-		sessionId: string,
+		honchoSessionId: string,
 		mentraUserId: string,
 		transcripts: string[],
 		startedAt: string,
@@ -111,7 +116,7 @@ class Clairvoyant extends AppServer {
 		const isPro = await checkUserIsPro(mentraUserId);
 		if (!isPro) {
 			console.log(
-				`[Clairvoyant] Skipping session summary for ${sessionId}: user is not Pro`,
+				`[Clairvoyant] Skipping session summary for ${honchoSessionId}: user is not Pro`,
 			);
 			return;
 		}
@@ -122,7 +127,7 @@ class Clairvoyant extends AppServer {
 
 			await convexClient.mutation(api.sessionSummaries.upsert, {
 				mentraUserId,
-				mentraSessionId: sessionId,
+				honchoSessionId,
 				summary: result.summary,
 				topics: result.topics,
 				startedAt,
@@ -130,11 +135,11 @@ class Clairvoyant extends AppServer {
 			});
 
 			console.log(
-				`[Clairvoyant] Stored session summary for ${sessionId}: ${result.summary}`,
+				`[Clairvoyant] Stored session summary for ${honchoSessionId}: ${result.summary}`,
 			);
 		} catch (error) {
 			console.error(
-				`[Clairvoyant] Error summarizing session ${sessionId}:`,
+				`[Clairvoyant] Error summarizing session ${honchoSessionId}:`,
 				error,
 			);
 		}

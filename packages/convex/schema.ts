@@ -32,14 +32,14 @@ export default defineSchema({
 		.index("by_user_router_date", ["userId", "router", "date"]),
 	sessionSummaries: defineTable({
 		userId: v.id("users"),
-		mentraSessionId: v.string(),
+		honchoSessionId: v.string(),
 		summary: v.string(),
 		topics: v.array(v.string()),
 		startedAt: v.string(),
 		endedAt: v.string(),
 	})
 		.index("by_user", ["userId"])
-		.index("by_user_session", ["userId", "mentraSessionId"]),
+		.index("by_honcho_session", ["honchoSessionId"]),
 	dailySummaries: defineTable({
 		userId: v.id("users"),
 		date: v.string(),
@@ -49,4 +49,13 @@ export default defineSchema({
 	})
 		.index("by_user", ["userId"])
 		.index("by_user_date", ["userId", "date"]),
+	honchoSessions: defineTable({
+		userId: v.id("users"),
+		mentraSessionId: v.string(),
+		honchoSessionId: v.string(),
+		createdAt: v.string(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_mentra_session", ["mentraSessionId"])
+		.index("by_honcho_session", ["honchoSessionId"]),
 });
