@@ -12,11 +12,16 @@ import type * as analytics from "../analytics.js";
 import type * as cronManagement from "../cronManagement.js";
 import type * as dailySummaries from "../dailySummaries.js";
 import type * as dailySynthesis from "../dailySynthesis.js";
+import type * as emailEvents from "../emailEvents.js";
+import type * as emailNotes from "../emailNotes.js";
+import type * as emails_SessionNote from "../emails/SessionNote.js";
 import type * as honcho from "../honcho.js";
 import type * as honchoSessions from "../honchoSessions.js";
 import type * as http from "../http.js";
 import type * as init from "../init.js";
+import type * as notes from "../notes.js";
 import type * as payments from "../payments.js";
+import type * as resendClient from "../resendClient.js";
 import type * as sessionSummaries from "../sessionSummaries.js";
 import type * as users from "../users.js";
 
@@ -31,11 +36,16 @@ declare const fullApi: ApiFromModules<{
   cronManagement: typeof cronManagement;
   dailySummaries: typeof dailySummaries;
   dailySynthesis: typeof dailySynthesis;
+  emailEvents: typeof emailEvents;
+  emailNotes: typeof emailNotes;
+  "emails/SessionNote": typeof emails_SessionNote;
   honcho: typeof honcho;
   honchoSessions: typeof honchoSessions;
   http: typeof http;
   init: typeof init;
+  notes: typeof notes;
   payments: typeof payments;
+  resendClient: typeof resendClient;
   sessionSummaries: typeof sessionSummaries;
   users: typeof users;
 }>;
@@ -658,6 +668,155 @@ export declare const components: {
             | { cronspec: string; kind: "cron"; tz?: string };
         },
         string
+      >;
+    };
+  };
+  resend: {
+    lib: {
+      cancelEmail: FunctionReference<
+        "mutation",
+        "internal",
+        { emailId: string },
+        null
+      >;
+      cleanupAbandonedEmails: FunctionReference<
+        "mutation",
+        "internal",
+        { olderThan?: number },
+        null
+      >;
+      cleanupOldEmails: FunctionReference<
+        "mutation",
+        "internal",
+        { olderThan?: number },
+        null
+      >;
+      createManualEmail: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          from: string;
+          headers?: Array<{ name: string; value: string }>;
+          replyTo?: Array<string>;
+          subject: string;
+          to: Array<string> | string;
+        },
+        string
+      >;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { emailId: string },
+        {
+          bcc?: Array<string>;
+          bounced?: boolean;
+          cc?: Array<string>;
+          clicked?: boolean;
+          complained: boolean;
+          createdAt: number;
+          deliveryDelayed?: boolean;
+          errorMessage?: string;
+          failed?: boolean;
+          finalizedAt: number;
+          from: string;
+          headers?: Array<{ name: string; value: string }>;
+          html?: string;
+          opened: boolean;
+          replyTo: Array<string>;
+          resendId?: string;
+          segment: number;
+          status:
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
+          subject?: string;
+          template?: {
+            id: string;
+            variables?: Record<string, string | number>;
+          };
+          text?: string;
+          to: Array<string>;
+        } | null
+      >;
+      getStatus: FunctionReference<
+        "query",
+        "internal",
+        { emailId: string },
+        {
+          bounced: boolean;
+          clicked: boolean;
+          complained: boolean;
+          deliveryDelayed: boolean;
+          errorMessage: string | null;
+          failed: boolean;
+          opened: boolean;
+          status:
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
+        } | null
+      >;
+      handleEmailEvent: FunctionReference<
+        "mutation",
+        "internal",
+        { event: any },
+        null
+      >;
+      sendEmail: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          bcc?: Array<string>;
+          cc?: Array<string>;
+          from: string;
+          headers?: Array<{ name: string; value: string }>;
+          html?: string;
+          options: {
+            apiKey: string;
+            initialBackoffMs: number;
+            onEmailEvent?: { fnHandle: string };
+            retryAttempts: number;
+            testMode: boolean;
+          };
+          replyTo?: Array<string>;
+          subject?: string;
+          template?: {
+            id: string;
+            variables?: Record<string, string | number>;
+          };
+          text?: string;
+          to: Array<string>;
+        },
+        string
+      >;
+      updateManualEmail: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          emailId: string;
+          errorMessage?: string;
+          resendId?: string;
+          status:
+            | "waiting"
+            | "queued"
+            | "cancelled"
+            | "sent"
+            | "delivered"
+            | "delivery_delayed"
+            | "bounced"
+            | "failed";
+        },
+        null
       >;
     };
   };

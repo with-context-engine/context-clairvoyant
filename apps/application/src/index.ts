@@ -58,7 +58,7 @@ class Clairvoyant extends AppServer {
 			}
 
 			transcriptBuffer.push(data.text);
-			void handleTranscription(data, session, memorySession, peers, userId);
+			void handleTranscription(data, session, memorySession, peers, userId, transcriptBuffer);
 		});
 
 		this.sessionResources.set(sessionId, {

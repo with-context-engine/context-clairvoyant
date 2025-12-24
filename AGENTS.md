@@ -224,6 +224,7 @@ Key design principles:
 UX and Robustness Tips
 - Always guard against stale work with a runId `WeakMap<AppSession, number>` per handler.
 - Use `showTextDuringOperation` to keep the UI responsive and auto‑clear messages.
+- **No emojis in showTextWall** — text displays on glasses must be plain text only.
 - Time out location waits (see `src/utils/handlers/weather.ts`) and show a helpful fallback.
 - Keep `durationMs` around ~3000 per line for readability.
 - Respect the top‑level rate limiter in `src/index.ts` and avoid adding new global throttles unless necessary.

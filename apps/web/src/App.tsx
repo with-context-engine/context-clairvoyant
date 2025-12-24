@@ -9,6 +9,7 @@ import { HomePage } from "./components/HomePage";
 import { MemoryPage } from "./components/MemoryPage";
 import { NavBar } from "./components/NavBar";
 import { SettingsPage } from "./components/SettingsPage";
+import { UsagePage } from "./components/UsagePage";
 import { Card, CardContent, CardHeader } from "./components/ui/card";
 import { Skeleton } from "./components/ui/skeleton";
 import { useConvexAuth } from "./hooks/useConvexAuth";
@@ -113,16 +114,17 @@ export function App() {
 
 					<div className={isMobile ? "p-5 pb-8" : ""}>
 						<Routes>
-							<Route
-								path="/"
-								element={
-									<HomePage userId={authState.convexUserId as Id<"users">} />
-								}
-							/>
+							<Route path="/" element={<HomePage />} />
 							<Route
 								path="/memory"
 								element={
 									<MemoryPage mentraUserId={authState.mentraUserId} />
+								}
+							/>
+							<Route
+								path="/usage"
+								element={
+									<UsagePage userId={authState.convexUserId as Id<"users">} />
 								}
 							/>
 							<Route

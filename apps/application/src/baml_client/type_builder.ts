@@ -53,6 +53,8 @@ export default class TypeBuilder {
     
     NewsItem: ClassViewer<'NewsItem', "title" | "content">;
     
+    NoteContent: ClassViewer<'NoteContent', "title" | "summary" | "keyPoints">;
+    
     PlaceLines: ClassViewer<'PlaceLines', "lines">;
     
     PlaceSuggestion: ClassViewer<'PlaceSuggestion', "id" | "name" | "address" | "snippet">;
@@ -74,13 +76,13 @@ export default class TypeBuilder {
     
     HintCategory: EnumViewer<'HintCategory', "HINTABLE" | "AMBIENT">;
     
-    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "PASSTHROUGH">;
+    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "NOTE_THIS" | "PASSTHROUGH">;
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "HintCategory","Router",
@@ -140,6 +142,10 @@ export default class TypeBuilder {
           "title","content",
         ]);
         
+        this.NoteContent = this.tb.classViewer("NoteContent", [
+          "title","summary","keyPoints",
+        ]);
+        
         this.PlaceLines = this.tb.classViewer("PlaceLines", [
           "lines",
         ]);
@@ -182,7 +188,7 @@ export default class TypeBuilder {
         ]);
         
         this.Router = this.tb.enumViewer("Router", [
-          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","PASSTHROUGH",
+          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","NOTE_THIS","PASSTHROUGH",
         ]);
         
     }

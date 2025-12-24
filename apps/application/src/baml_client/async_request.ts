@@ -23,7 +23,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, CurrentLite, DailyForecastItem, EnhancedQuery, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -41,6 +41,31 @@ env?: Record<string, string | undefined>
   constructor(private runtime: BamlRuntime, private ctxManager: BamlCtxManager) {}
 
   
+  async AbridgeToNote(
+  transcripts: string[],
+  __baml_options__?: BamlCallOptions<never>
+  ): Promise<HTTPRequest> {
+    try {
+    const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+    const __env__: Record<string, string> = Object.fromEntries(
+      Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return await this.runtime.buildRequest(
+      "AbridgeToNote",
+      {
+      "transcripts": transcripts
+      },
+      this.ctxManager.cloneContext(),
+      __baml_options__?.tb?.__tb(),
+      __baml_options__?.clientRegistry,
+      false,
+      __env__
+      )
+      } catch (error) {
+      throw toBamlError(error);
+      }
+      }
+      
   async AnswerQuestion(
   text: string,memory?: types.MemoryCore | null,
   __baml_options__?: BamlCallOptions<never>
@@ -297,6 +322,31 @@ env?: Record<string, string | undefined>
       constructor(private runtime: BamlRuntime, private ctxManager: BamlCtxManager) {}
 
       
+      async AbridgeToNote(
+      transcripts: string[],
+      __baml_options__?: BamlCallOptions<never>
+      ): Promise<HTTPRequest> {
+        try {
+        const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+        const __env__: Record<string, string> = Object.fromEntries(
+          Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+          );
+          return await this.runtime.buildRequest(
+          "AbridgeToNote",
+          {
+          "transcripts": transcripts
+          },
+          this.ctxManager.cloneContext(),
+          __baml_options__?.tb?.__tb(),
+          __baml_options__?.clientRegistry,
+          true,
+          __env__
+          )
+          } catch (error) {
+          throw toBamlError(error);
+          }
+          }
+          
       async AnswerQuestion(
       text: string,memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>

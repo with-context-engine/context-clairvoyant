@@ -6,6 +6,7 @@ import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
 import { startMapsFlow } from "./handlers/maps";
 import { MemoryCapture, MemoryRecall } from "./handlers/memory";
+import { startNoteThisFlow } from "./handlers/noteThis";
 import { startWebSearchFlow } from "./handlers/search";
 import { startWeatherFlow } from "./handlers/weather";
 
@@ -15,6 +16,7 @@ export async function handleTranscription(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	transcriptBuffer: string[],
 ) {
 	session.logger.info(`[Clairvoyant] Transcription: ${data.text}`);
 	const routing = await b.Route(data.text);
@@ -100,6 +102,13 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 			);
+			return;
+
+		case Router.NOTE_THIS:
+			session.logger.info(
+				`[Clairvoyant] Note This route: starting async flow`,
+			);
+			void startNoteThisFlow(transcriptBuffer, session, mentraUserId);
 			return;
 
 		default: {

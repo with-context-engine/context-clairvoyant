@@ -5,6 +5,7 @@ export default defineSchema({
 	users: defineTable({
 		mentraUserId: v.string(),
 		mentraToken: v.optional(v.string()),
+		email: v.optional(v.string()),
 		billingName: v.optional(v.string()),
 		billingAddress: v.optional(
 			v.object({
@@ -58,4 +59,20 @@ export default defineSchema({
 		.index("by_user", ["userId"])
 		.index("by_mentra_session", ["mentraSessionId"])
 		.index("by_honcho_session", ["honchoSessionId"]),
+	emailNotes: defineTable({
+		mentraUserId: v.string(),
+		emailId: v.string(),
+		title: v.string(),
+		status: v.union(
+			v.literal("queued"),
+			v.literal("sent"),
+			v.literal("delivered"),
+			v.literal("bounced"),
+			v.literal("complained"),
+		),
+		createdAt: v.string(),
+		updatedAt: v.string(),
+	})
+		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_email_id", ["emailId"]),
 });
