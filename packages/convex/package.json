@@ -12,9 +12,18 @@
 	"dependencies": {
 		"@convex-dev/crons": "^0.2.0",
 		"@convex-dev/polar": "^0.7.3",
+		"@convex-dev/resend": "^0.2.3",
 		"@honcho-ai/sdk": "^1.6.0",
 		"@polar-sh/sdk": "^0.41.5",
+		"@react-email/components": "^1.0.2",
+		"@react-email/render": "^2.0.0",
 		"convex": "^1.31.2",
-		"openai": "^6.15.0"
+		"openai": "^6.15.0",
+		"react": "^19.2.3",
+		"react-dom": "^19.2.3",
+		"react-email": "^5.1.0"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.3"
 	}
 }

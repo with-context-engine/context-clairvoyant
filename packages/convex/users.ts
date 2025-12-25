@@ -63,6 +63,17 @@ export const getByMentraId = query({
 	},
 });
 
+export const getEmail = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+		return user.email ?? null;
+	},
+});
+
 // =============================================================================
 // Public Queries - Preferences
 // =============================================================================
@@ -138,6 +149,18 @@ export const getOrCreate = mutation({
 		});
 
 		return userId;
+	},
+});
+
+export const updateEmail = mutation({
+	args: { mentraUserId: v.string(), email: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+		await ctx.db.patch(user._id, { email: args.email });
+		return { success: true };
 	},
 });
 

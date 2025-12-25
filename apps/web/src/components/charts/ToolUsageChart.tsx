@@ -26,27 +26,32 @@ const ROUTER_STYLES: Record<
 	string,
 	{ key: string; label: string; color: string }
 > = {
-	WEATHER: { key: "weather", label: "Weather", color: "var(--chart-1)" },
-	MAPS: { key: "maps", label: "Maps", color: "var(--chart-2)" },
+	WEATHER: { key: "weather", label: "Weather", color: "#2be4ff" },
+	MAPS: { key: "maps", label: "Maps", color: "#ff6669" },
 	WEB_SEARCH: {
 		key: "webSearch",
 		label: "Web Search",
-		color: "var(--chart-3)",
+		color: "#facc00",
 	},
 	MEMORY_RECALL: {
 		key: "memoryRecall",
 		label: "Memory Recall",
-		color: "var(--chart-5)",
+		color: "#a855f7",
+	},
+	NOTE_THIS: {
+		key: "noteThis",
+		label: "Note This",
+		color: "#05e17a",
 	},
 };
 
 const FALLBACK_COLORS = [
-	"var(--chart-1)",
-	"var(--chart-2)",
-	"var(--chart-3)",
-	"var(--chart-4)",
-	"var(--chart-5)",
-	"var(--chart-6)",
+	"#2be4ff",
+	"#ff6669",
+	"#facc00",
+	"#05e17a",
+	"#a855f7",
+	"#f97316",
 ];
 
 export function ToolUsageChart({

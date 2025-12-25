@@ -5,6 +5,7 @@ enum Router {
     KNOWLEDGE @description("General knowledge that does not fit into other categories.")
     MEMORY_CAPTURE @description("Commands to store new personal facts, preferences, or reminders for future recall.")
     MEMORY_RECALL @description("Questions about the user's memory and personal history, personal preferences, personal opinions, goals, information about the user, or anything that is not a fact.")
+    NOTE_THIS @description("User wants to save the current conversation as a note to email. Triggered by phrases like 'add this to a note', 'send this to my email', 'this would be great to remember', 'note this down'.")
     PASSTHROUGH @description("Ambient speech, filler words, incomplete sentences, or unclear utterances that don't require action.")
 }
 
@@ -55,7 +56,9 @@ function Route(text: string) -> RoutingBehavior {
         5. MEMORY_CAPTURE → commands or clear intentions to remember/store personal facts, preferences,
            or reminders — including indirect phrasing like "I need to call the dentist tomorrow"
         6. MEMORY_RECALL → questions about the user's past, preferences, or personal information
-        7. PASSTHROUGH → pure filler, incomplete fragments with no clear request, ambient speech,
+        7. NOTE_THIS → requests to save/note/email the current conversation, e.g., "add this to a note",
+           "send this to my email", "this would be great to remember", "note this down", "save this"
+        8. PASSTHROUGH → pure filler, incomplete fragments with no clear request, ambient speech,
            or unclear utterances that don't require action
 
         Additional guidelines:
@@ -321,4 +324,39 @@ test test_self_talk_vague {
         text "maybe someday I should learn to play guitar"
     }
     @@assert( {{ this.routing == "PASSTHROUGH"}})
+}
+
+// ===== NOTE_THIS TESTS =====
+// Requests to save/note/email the current conversation
+
+test test_note_this_add_to_note {
+    functions [Route]
+    args {
+        text "add this to a note"
+    }
+    @@assert( {{ this.routing == "NOTE_THIS"}})
+}
+
+test test_note_this_email_me {
+    functions [Route]
+    args {
+        text "email me this conversation"
+    }
+    @@assert( {{ this.routing == "NOTE_THIS"}})
+}
+
+test test_note_this_remember {
+    functions [Route]
+    args {
+        text "this would be great to remember"
+    }
+    @@assert( {{ this.routing == "NOTE_THIS"}})
+}
+
+test test_note_this_save {
+    functions [Route]
+    args {
+        text "save this to my notes"
+    }
+    @@assert( {{ this.routing == "NOTE_THIS"}})
 }

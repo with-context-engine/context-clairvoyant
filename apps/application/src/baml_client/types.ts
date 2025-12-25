@@ -59,6 +59,7 @@ export enum Router {
   KNOWLEDGE = "KNOWLEDGE",
   MEMORY_CAPTURE = "MEMORY_CAPTURE",
   MEMORY_RECALL = "MEMORY_RECALL",
+  NOTE_THIS = "NOTE_THIS",
   PASSTHROUGH = "PASSTHROUGH",
 }
 
@@ -158,6 +159,13 @@ export interface MemorySynthesisLines {
 export interface NewsItem {
   title: string
   content: string
+  
+}
+
+export interface NoteContent {
+  title: string
+  summary: string
+  keyPoints: string[]
   
 }
 

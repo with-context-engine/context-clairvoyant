@@ -1,5 +1,7 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
+import { httpAction } from "./_generated/server";
+import { resend } from "./resendClient";
 import { polar } from "./payments";
 
 const http = httpRouter();
@@ -24,7 +26,6 @@ polar.registerRoutes(http, {
 			`[Polar Webhook] Subscription created for user ${userId}, customer ${customerId}`,
 		);
 
-		// Schedule the action via internal mutation since webhook callbacks run in mutation context
 		await ctx.runMutation(
 			internal.payments.scheduleSubscriptionCreatedHandler,
 			{
@@ -33,6 +34,14 @@ polar.registerRoutes(http, {
 			},
 		);
 	},
+});
+
+http.route({
+	path: "/notes/webhook",
+	method: "POST",
+	handler: httpAction(async (ctx, req) => {
+		return await resend.handleResendEventWebhook(ctx, req);
+	}),
 });
 
 export default http;
