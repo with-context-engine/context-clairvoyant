@@ -63,6 +63,8 @@ export default defineSchema({
 		mentraUserId: v.string(),
 		emailId: v.string(),
 		title: v.string(),
+		subject: v.string(),
+		sessionSummaryId: v.optional(v.id("sessionSummaries")),
 		status: v.union(
 			v.literal("queued"),
 			v.literal("sent"),
@@ -75,4 +77,19 @@ export default defineSchema({
 	})
 		.index("by_mentra_user", ["mentraUserId"])
 		.index("by_email_id", ["emailId"]),
+	emailThreadMessages: defineTable({
+		emailNoteId: v.id("emailNotes"),
+		messageId: v.string(),
+		direction: v.union(v.literal("outbound"), v.literal("inbound")),
+		resendEmailId: v.optional(v.string()),
+		textContent: v.optional(v.string()),
+		createdAt: v.string(),
+	}).index("by_email_note", ["emailNoteId"]),
+	chatMessages: defineTable({
+		userId: v.id("users"),
+		date: v.string(),
+		role: v.union(v.literal("user"), v.literal("assistant")),
+		content: v.string(),
+		createdAt: v.string(),
+	}).index("by_user_date", ["userId", "date"]),
 });

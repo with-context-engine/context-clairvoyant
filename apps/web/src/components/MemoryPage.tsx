@@ -1,5 +1,6 @@
 import { api } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
+import { useNavigate } from "react-router-dom";
 import {
 	Card,
 	CardContent,
@@ -32,6 +33,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function MemoryPage({ mentraUserId }: MemoryPageProps) {
+	const navigate = useNavigate();
 	const result = useQuery(api.dailySummaries.getForUser, {
 		mentraUserId,
 		limit: 30,
@@ -108,7 +110,11 @@ export function MemoryPage({ mentraUserId }: MemoryPageProps) {
 
 			<div className="space-y-4">
 				{result.summaries.map((day) => (
-					<Card key={day.date}>
+					<Card
+						key={day.date}
+						className="cursor-pointer"
+						onClick={() => navigate(`/memory/chat/${day.date}`)}
+					>
 						<CardHeader className="pb-2">
 							<CardTitle className="text-lg flex items-center gap-2">
 								<span>📅</span>

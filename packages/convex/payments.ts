@@ -11,6 +11,60 @@ import {
 } from "./_generated/server";
 
 // =============================================================================
+// Polar Types (inferred from polar.listProducts return type)
+// =============================================================================
+
+export type PolarPrice = {
+	id: string;
+	priceAmount?: number;
+	priceCurrency?: string;
+	recurringInterval?: "day" | "week" | "month" | "year" | null;
+	amountType?: string;
+	createdAt: string;
+	isArchived: boolean;
+	maximumAmount?: number | null;
+	minimumAmount?: number | null;
+	modifiedAt: string | null;
+	presetAmount?: number | null;
+	productId: string;
+	type?: string;
+};
+
+export type PolarProduct = {
+	id: string;
+	name: string;
+	description: string | null;
+	createdAt: string;
+	modifiedAt: string | null;
+	isArchived: boolean;
+	isRecurring: boolean;
+	organizationId: string;
+	priceAmount?: number;
+	recurringInterval?: "day" | "week" | "month" | "year" | null;
+	prices: PolarPrice[];
+	medias: Array<{
+		id: string;
+		name: string;
+		publicUrl: string;
+		mimeType: string;
+		size: number;
+		sizeReadable: string;
+		checksumEtag: string | null;
+		checksumSha256Base64: string | null;
+		checksumSha256Hex: string | null;
+		createdAt: string;
+		isUploaded: boolean;
+		lastModifiedAt: string | null;
+		organizationId: string;
+		path: string;
+		service?: string;
+		storageVersion: string | null;
+		version: string | null;
+	}>;
+	metadata?: Record<string, unknown>;
+};
+
+// =============================================================================
 // Polar Configuration
 // =============================================================================
 

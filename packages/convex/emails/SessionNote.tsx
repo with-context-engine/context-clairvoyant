@@ -54,6 +54,10 @@ export function SessionNoteEmail({
 
 					<Hr style={hr} />
 
+					<Text style={replyHint}>
+						💬 Reply to this email to continue the conversation
+					</Text>
+
 					<Text style={footer}>Sent by Clairvoyant</Text>
 				</Container>
 			</Body>
@@ -122,6 +126,16 @@ const bulletPoint = {
 const hr = {
 	borderColor: "#e6e6e6",
 	margin: "24px 0",
+};
+
+const replyHint = {
+	fontSize: "14px",
+	color: "#666666",
+	textAlign: "center" as const,
+	margin: "0 0 16px",
+	padding: "12px",
+	backgroundColor: "#f0f7ff",
+	borderRadius: "6px",
 };
 
 const footer = {
