@@ -202,6 +202,20 @@ export async function startMapsFlow(
 	const runId = Date.now();
 	mapsRunIds.set(session, runId);
 
+	// Pro gate: Maps is a Pro feature
+	const isPro = await checkUserIsPro(mentraUserId);
+	if (!isPro) {
+		session.logger.info(`[Clairvoyant] Maps: user is not Pro, skipping`);
+		session.layouts.showTextWall(
+			"// Clairvoyant\nM: Upgrade to Pro for maps.",
+			{
+				view: ViewType.MAIN,
+				durationMs: 3000,
+			},
+		);
+		return;
+	}
+
 	session.layouts.showTextWall("// Clairvoyant\nM: Checking nearby spots...", {
 		view: ViewType.MAIN,
 		durationMs: 2000,

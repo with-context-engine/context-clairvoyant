@@ -1,7 +1,7 @@
 import { api } from "@convex/_generated/api";
 import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "@clairvoyant/baml-client";
-import { convexClient, recordToolInvocation } from "../core/convex";
+import { checkUserIsPro, convexClient, recordToolInvocation } from "../core/convex";
 import { Router } from "@clairvoyant/baml-client";
 
 const noteThisRunIds = new WeakMap<AppSession, number>();
@@ -38,6 +38,23 @@ export async function startNoteThisFlow(
 			if (noteThisRunIds.get(session) !== runId) return;
 			session.layouts.showTextWall(
 				"// Clairvoyant\nN: Nothing to note yet.",
+				{
+					view: ViewType.MAIN,
+					durationMs: 3000,
+				},
+			);
+			return;
+		}
+
+		// Pro gate: Note This is a Pro feature
+		const isPro = await checkUserIsPro(mentraUserId);
+		if (!isPro) {
+			if (noteThisRunIds.get(session) !== runId) return;
+			session.logger.info(
+				`[Clairvoyant] Note This: user is not Pro, skipping`,
+			);
+			session.layouts.showTextWall(
+				"// Clairvoyant\nN: Upgrade to Pro for notes.",
 				{
 					view: ViewType.MAIN,
 					durationMs: 3000,

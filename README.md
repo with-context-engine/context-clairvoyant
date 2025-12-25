@@ -216,6 +216,21 @@ sequenceDiagram
 
 ## Key Features
 
+### 📊 Feature Comparison
+
+| Feature | Free | Pro |
+|---------|:----:|:---:|
+| **Weather** | ✅ | ✅ |
+| **Knowledge (Q&A)** | ✅ | ✅ |
+| **Maps & Nearby Places** | ❌ | ✅ |
+| **Web Search** | ❌ | ✅ |
+| **Memory Capture & Recall** | ❌ | ✅ |
+| **Session Notes via Email** | ❌ | ✅ |
+| **Proactive Hints** | ❌ | ✅ |
+| **Daily Summaries** | ❌ | ✅ |
+| **Interactive Chat with Memory** | ❌ | ✅ |
+| **Personalized Responses** | ❌ | ✅ |
+
 ### 🧠 Intelligent Routing System
 - **BAML-powered routing**: Automatically classifies queries into categories (weather, search, maps, memory, knowledge, chat, passthrough)
 - **Two-phase classification**: Distinguishes user-directed speech from ambient content (TV, podcasts, background speech)
@@ -224,18 +239,18 @@ sequenceDiagram
 - **Route categories**:
   - `WEATHER`: Current/upcoming weather for specific locations
   - `WEB_SEARCH`: News, current events, time-sensitive information (Pro only)
-  - `MAPS`: Nearby businesses, addresses, directions
+  - `MAPS`: Nearby businesses, addresses, directions (Pro only)
   - `KNOWLEDGE`: General factual information
-  - `MEMORY_RECALL`: Personal information, preferences, history
-  - `MEMORY_CAPTURE`: Commands to store new personal facts or reminders
-  - `CHAT`: Interactive conversation with memory context (Pro feature)
+  - `MEMORY_RECALL`: Personal information, preferences, history (Pro only)
+  - `MEMORY_CAPTURE`: Commands to store new personal facts or reminders (Pro only)
+  - `CHAT`: Interactive conversation with memory context (Pro only)
   - `PASSTHROUGH`: Ambient speech gating (no action, optional hint generation)
 
 ### 🔧 Modular Tool Architecture
 - **Weather Tool**: OpenWeatherMap integration with location services and user preference support
-- **Web Search Tool**: Tavily-powered real-time web search (Pro feature)
-- **Maps Tool**: Google Places API for location queries
-- **Memory Tool**: Honcho-powered persistent context and personalization
+- **Web Search Tool**: Tavily-powered real-time web search (Pro only)
+- **Maps Tool**: Google Places API for location queries (Pro only)
+- **Memory Tool**: Honcho-powered persistent context and personalization (Pro only)
 - **Knowledge Tool**: General knowledge questions via AI
 
 ### 🎯 Handler-Based Flow Management
