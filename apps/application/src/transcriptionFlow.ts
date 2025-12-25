@@ -1,10 +1,12 @@
+import { b, Router } from "@clairvoyant/baml-client";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
-import { b, Router } from "./baml_client";
 import { recordToolInvocation } from "./core/convex";
+import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
 import { startMapsFlow } from "./handlers/maps";
 import { MemoryCapture, MemoryRecall } from "./handlers/memory";
+import { startNoteThisFlow } from "./handlers/noteThis";
 import { startWebSearchFlow } from "./handlers/search";
 import { startWeatherFlow } from "./handlers/weather";
 
@@ -14,6 +16,7 @@ export async function handleTranscription(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	transcriptBuffer: string[],
 ) {
 	session.logger.info(`[Clairvoyant] Transcription: ${data.text}`);
 	const routing = await b.Route(data.text);
@@ -88,17 +91,27 @@ export async function handleTranscription(
 			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId);
 			return;
 
-		default: {
+		case Router.PASSTHROUGH:
 			session.logger.info(
-				`[Clairvoyant] Memory Insertion route: starting async flow`,
+				`[Clairvoyant] Passthrough route: checking for proactive hints`,
 			);
-			void MemoryCapture(
+			void tryPassthroughHint(
 				data.text,
 				session,
 				memorySession,
 				peers,
-				"diatribe",
 				mentraUserId,
+			);
+			return;
+
+		case Router.NOTE_THIS:
+			session.logger.info(`[Clairvoyant] Note This route: starting async flow`);
+			void startNoteThisFlow(transcriptBuffer, session, mentraUserId);
+			return;
+
+		default: {
+			session.logger.info(
+				`[Clairvoyant] Unknown route, defaulting to passthrough`,
 			);
 			return;
 		}

@@ -140,9 +140,91 @@ Adding “Maps” Next (suggested shape)
    - Calls `b.SummarizePlaces(data.text, places)` and presents returned lines on the text wall.
 5) Wire in `src/utils/transcriptionFlow.ts` for `Router.MAPS`.
 
+Two-Phase Classification Pattern (Proactive Hints)
+
+Use this pattern when you need to:
+- Gate ambient/passive speech (movie dialogue, TV, announcements) vs user-directed speech
+- Surface proactive information without being intrusive
+- Minimize LLM costs by filtering early before expensive operations
+
+Architecture:
+1. Phase 1 (Fast Gate): Lightweight LLM call to classify eligibility
+   - Use cheaper/faster model (e.g., `Groq` with 20b model)
+   - Binary or simple enum classification
+   - Returns early if not eligible → no further LLM calls
+2. Phase 2 (Memory + Generation): Only if Phase 1 passes
+   - Query memory/context for relevant knowledge
+   - LLM decides if knowledge is worth surfacing
+   - Generate the actual hint/response
+
+Reference Implementation: `baml_src/hints.baml` + `src/utils/handlers/hints.ts`
+
+BAML Pattern:
+```baml
+// Phase 1: Fast classification
+enum HintCategory {
+    HINTABLE @description("User self-talk, thinking aloud, discussing a topic.")
+    AMBIENT @description("Movie/TV dialogue, announcements, reactions, background speech.")
+}
+
+class HintEligibility {
+    category HintCategory
+    topic string? @description("Core topic if HINTABLE, null if AMBIENT.")
+}
+
+function ClassifyForHint(text: string) -> HintEligibility {
+    client "Groq"  // Fast, cheap model
+    prompt #"..."#
+}
+
+// Phase 2: Generate hint (only called if Phase 1 returns HINTABLE)
+class HintResult {
+    should_show bool
+    hint string?
+}
+
+function GenerateHint(topic: string, userSpeech: string, memory: MemoryCore?) -> HintResult {
+    client "Groq"
+    prompt #"..."#
+}
+```
+
+Handler Pattern:
+```ts
+export async function tryPassthroughHint(text: string, session: AppSession, ...) {
+  // Phase 1: Fast gate
+  const eligibility = await b.ClassifyForHint(text);
+  if (eligibility.category !== HintCategory.HINTABLE) return; // Early exit
+
+  // Phase 2: Query memory (only for eligible utterances)
+  const memoryContext = await fetchMemoryContext(...);
+  if (!memoryContext.userFacts.length) return; // No knowledge to hint from
+
+  // Phase 3: Generate and show hint
+  const hint = await b.GenerateHint(eligibility.topic, text, memoryContext);
+  if (hint.should_show) {
+    session.layouts.showTextWall(`// Clairvoyant\n💡 ${hint.hint}`, ...);
+  }
+}
+```
+
+When to use this pattern:
+- Proactive hints during passive speech (PASSTHROUGH route)
+- Any feature where you want to "chime in" without being asked
+- Filtering ambient noise (TV, podcasts, other people's conversations) from user intent
+- Cost-sensitive flows where you want to minimize LLM calls
+
+Key design principles:
+- Phase 1 should be very fast and cheap (small model, simple output schema)
+- Phase 1 prompt should clearly distinguish directed vs ambient speech
+- Phase 2 only runs if Phase 1 passes AND relevant data exists
+- Always give the LLM final say on whether to show (should_show bool)
+- Keep hints brief and natural ("💡 Sarah likes pottery" not "I noticed you mentioned...")
+
 UX and Robustness Tips
 - Always guard against stale work with a runId `WeakMap<AppSession, number>` per handler.
 - Use `showTextDuringOperation` to keep the UI responsive and auto‑clear messages.
+- **No emojis in showTextWall** — text displays on glasses must be plain text only.
 - Time out location waits (see `src/utils/handlers/weather.ts`) and show a helpful fallback.
 - Keep `durationMs` around ~3000 per line for readability.
 - Respect the top‑level rate limiter in `src/index.ts` and avoid adding new global throttles unless necessary.

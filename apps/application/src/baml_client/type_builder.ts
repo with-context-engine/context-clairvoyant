@@ -39,17 +39,21 @@ export default class TypeBuilder {
     
     FormattedWeather: ClassViewer<'FormattedWeather', "location" | "current" | "daily_forecast" | "alerts">;
     
+    HintEligibility: ClassViewer<'HintEligibility', "category" | "topic">;
+    
+    HintResult: ClassViewer<'HintResult', "should_show" | "hint">;
+    
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
     
-    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages">;
+    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages" | "sessionSummaries">;
     
     MemoryCore: ClassViewer<'MemoryCore', "userName" | "userFacts" | "deductiveFacts">;
-    
-    MemoryRecall: ClassViewer<'MemoryRecall', "query" | "results">;
     
     MemorySynthesisLines: ClassViewer<'MemorySynthesisLines', "lines">;
     
     NewsItem: ClassViewer<'NewsItem', "title" | "content">;
+    
+    NoteContent: ClassViewer<'NoteContent', "title" | "summary" | "keyPoints">;
     
     PlaceLines: ClassViewer<'PlaceLines', "lines">;
     
@@ -61,6 +65,8 @@ export default class TypeBuilder {
     
     RoutingBehavior: ClassViewer<'RoutingBehavior', "origin" | "routing">;
     
+    SessionSummaryOutput: ClassViewer<'SessionSummaryOutput', "summary" | "topics">;
+    
     TempBlock: ClassViewer<'TempBlock', "day" | "min" | "max" | "night">;
     
     WeatherConditionLite: ClassViewer<'WeatherConditionLite', "id" | "main" | "description" | "icon">;
@@ -68,16 +74,18 @@ export default class TypeBuilder {
     WeatherLines: ClassViewer<'WeatherLines', "lines">;
     
     
-    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL">;
+    HintCategory: EnumViewer<'HintCategory', "HINTABLE" | "AMBIENT">;
+    
+    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "NOTE_THIS" | "PASSTHROUGH">;
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","LocationLite","MemoryContext","MemoryCore","MemoryRecall","MemorySynthesisLines","NewsItem","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","CurrentLite","DailyForecastItem","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
-            "Router",
+            "HintCategory","Router",
           ]),
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
@@ -106,20 +114,24 @@ export default class TypeBuilder {
           "location","current","daily_forecast","alerts",
         ]);
         
+        this.HintEligibility = this.tb.classViewer("HintEligibility", [
+          "category","topic",
+        ]);
+        
+        this.HintResult = this.tb.classViewer("HintResult", [
+          "should_show","hint",
+        ]);
+        
         this.LocationLite = this.tb.classViewer("LocationLite", [
           "lat","lon","timezone",
         ]);
         
         this.MemoryContext = this.tb.classViewer("MemoryContext", [
-          "explicitFacts","deductiveFacts","peerCard","recentMessages",
+          "explicitFacts","deductiveFacts","peerCard","recentMessages","sessionSummaries",
         ]);
         
         this.MemoryCore = this.tb.classViewer("MemoryCore", [
           "userName","userFacts","deductiveFacts",
-        ]);
-        
-        this.MemoryRecall = this.tb.classViewer("MemoryRecall", [
-          "query","results",
         ]);
         
         this.MemorySynthesisLines = this.tb.classViewer("MemorySynthesisLines", [
@@ -128,6 +140,10 @@ export default class TypeBuilder {
         
         this.NewsItem = this.tb.classViewer("NewsItem", [
           "title","content",
+        ]);
+        
+        this.NoteContent = this.tb.classViewer("NoteContent", [
+          "title","summary","keyPoints",
         ]);
         
         this.PlaceLines = this.tb.classViewer("PlaceLines", [
@@ -150,6 +166,10 @@ export default class TypeBuilder {
           "origin","routing",
         ]);
         
+        this.SessionSummaryOutput = this.tb.classViewer("SessionSummaryOutput", [
+          "summary","topics",
+        ]);
+        
         this.TempBlock = this.tb.classViewer("TempBlock", [
           "day","min","max","night",
         ]);
@@ -163,8 +183,12 @@ export default class TypeBuilder {
         ]);
         
         
+        this.HintCategory = this.tb.enumViewer("HintCategory", [
+          "HINTABLE","AMBIENT",
+        ]);
+        
         this.Router = this.tb.enumViewer("Router", [
-          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL",
+          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","NOTE_THIS","PASSTHROUGH",
         ]);
         
     }

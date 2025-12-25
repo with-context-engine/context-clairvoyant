@@ -5,6 +5,7 @@ export default defineSchema({
 	users: defineTable({
 		mentraUserId: v.string(),
 		mentraToken: v.optional(v.string()),
+		email: v.optional(v.string()),
 		billingName: v.optional(v.string()),
 		billingAddress: v.optional(
 			v.object({
@@ -30,4 +31,68 @@ export default defineSchema({
 	})
 		.index("by_user", ["userId"])
 		.index("by_user_router_date", ["userId", "router", "date"]),
+	sessionSummaries: defineTable({
+		userId: v.id("users"),
+		honchoSessionId: v.string(),
+		summary: v.string(),
+		topics: v.array(v.string()),
+		startedAt: v.string(),
+		endedAt: v.string(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_honcho_session", ["honchoSessionId"]),
+	dailySummaries: defineTable({
+		userId: v.id("users"),
+		date: v.string(),
+		summary: v.string(),
+		topics: v.array(v.string()),
+		sessionCount: v.number(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_user_date", ["userId", "date"]),
+	honchoSessions: defineTable({
+		userId: v.id("users"),
+		mentraSessionId: v.string(),
+		honchoSessionId: v.string(),
+		createdAt: v.string(),
+	})
+		.index("by_user", ["userId"])
+		.index("by_mentra_session", ["mentraSessionId"])
+		.index("by_honcho_session", ["honchoSessionId"]),
+	emailNotes: defineTable({
+		mentraUserId: v.string(),
+		emailId: v.string(),
+		title: v.string(),
+		subject: v.string(),
+		sessionSummaryId: v.optional(v.id("sessionSummaries")),
+		status: v.union(
+			v.literal("queued"),
+			v.literal("sent"),
+			v.literal("delivered"),
+			v.literal("bounced"),
+			v.literal("complained"),
+		),
+		createdAt: v.string(),
+		updatedAt: v.string(),
+	})
+		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_email_id", ["emailId"]),
+	emailThreadMessages: defineTable({
+		emailNoteId: v.id("emailNotes"),
+		messageId: v.string(),
+		direction: v.union(v.literal("outbound"), v.literal("inbound")),
+		resendEmailId: v.optional(v.string()),
+		textContent: v.optional(v.string()),
+		createdAt: v.string(),
+	}).index("by_email_note", ["emailNoteId"]),
+	chatMessages: defineTable({
+		userId: v.id("users"),
+		dailySummaryId: v.optional(v.id("dailySummaries")),
+		date: v.string(),
+		role: v.union(v.literal("user"), v.literal("assistant")),
+		content: v.string(),
+		createdAt: v.string(),
+	})
+		.index("by_user_date", ["userId", "date"])
+		.index("by_daily_summary", ["dailySummaryId"]),
 });

@@ -4,11 +4,13 @@ import { ConvexProvider } from "convex/react";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { BottomTabBar } from "./components/BottomTabBar";
+import { ChatPage } from "./components/ChatPage";
 import ClairvoyantMobile from "./components/Clairvoyant";
 import { HomePage } from "./components/HomePage";
 import { MemoryPage } from "./components/MemoryPage";
 import { NavBar } from "./components/NavBar";
 import { SettingsPage } from "./components/SettingsPage";
+import { UsagePage } from "./components/UsagePage";
 import { Card, CardContent, CardHeader } from "./components/ui/card";
 import { Skeleton } from "./components/ui/skeleton";
 import { useConvexAuth } from "./hooks/useConvexAuth";
@@ -113,13 +115,21 @@ export function App() {
 
 					<div className={isMobile ? "p-5 pb-8" : ""}>
 						<Routes>
+							<Route path="/" element={<HomePage />} />
 							<Route
-								path="/"
+								path="/memory"
+								element={<MemoryPage mentraUserId={authState.mentraUserId} />}
+							/>
+							<Route
+								path="/memory/chat/:date"
+								element={<ChatPage mentraUserId={authState.mentraUserId} />}
+							/>
+							<Route
+								path="/usage"
 								element={
-									<HomePage userId={authState.convexUserId as Id<"users">} />
+									<UsagePage userId={authState.convexUserId as Id<"users">} />
 								}
 							/>
-							<Route path="/memory" element={<MemoryPage />} />
 							<Route
 								path="/settings"
 								element={

@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { api } from "@convex/_generated/api";
 import { Honcho, type Peer, type Session } from "@honcho-ai/sdk";
 import { convexClient } from "../core/convex";
@@ -6,7 +5,8 @@ import { env } from "../core/env";
 
 export async function initializeMemory(
 	mentraUserId: string,
-): Promise<[Session, Peer[]]> {
+	mentraSessionId: string,
+): Promise<[Session, Peer[], string]> {
 	// Fetch user to get their _id
 	const user = await convexClient.query(
 		api.payments.getCurrentUserWithSubscription,
@@ -19,12 +19,19 @@ export async function initializeMemory(
 
 	const userId = user._id;
 
+	// Create a new Honcho session for each app-open (isolated sessions)
+	const honchoSessionId = await convexClient.mutation(
+		api.honchoSessions.createHonchoSession,
+		{ mentraUserId, mentraSessionId },
+	);
+
 	const honchoClient = new Honcho({
 		apiKey: env.HONCHO_API_KEY,
 		environment: "production",
 		workspaceId: "with-context",
 	});
-	const session = await honchoClient.session(randomUUID());
+
+	const session = await honchoClient.session(honchoSessionId);
 	const diatribePeer = await honchoClient.peer(`${userId}-diatribe`, {
 		metadata: {
 			name: "Diatribe",
@@ -40,5 +47,5 @@ export async function initializeMemory(
 		},
 	});
 	await session.addPeers([diatribePeer, synthesisedPeer]);
-	return [session, [diatribePeer, synthesisedPeer]];
+	return [session, [diatribePeer, synthesisedPeer], honchoSessionId];
 }

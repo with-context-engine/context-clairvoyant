@@ -47,6 +47,11 @@ export function all_succeeded<CheckName extends string>(checks: Record<CheckName
 export function get_checks<CheckName extends string>(checks: Record<CheckName, Check>): Check[] {
     return Object.values(checks)
 }
+export enum HintCategory {
+  HINTABLE = "HINTABLE",
+  AMBIENT = "AMBIENT",
+}
+
 export enum Router {
   WEATHER = "WEATHER",
   WEB_SEARCH = "WEB_SEARCH",
@@ -54,6 +59,8 @@ export enum Router {
   KNOWLEDGE = "KNOWLEDGE",
   MEMORY_CAPTURE = "MEMORY_CAPTURE",
   MEMORY_RECALL = "MEMORY_RECALL",
+  NOTE_THIS = "NOTE_THIS",
+  PASSTHROUGH = "PASSTHROUGH",
 }
 
 export interface AlertLite {
@@ -109,6 +116,18 @@ export interface FormattedWeather {
   
 }
 
+export interface HintEligibility {
+  category: HintCategory
+  topic?: string | null
+  
+}
+
+export interface HintResult {
+  should_show: boolean
+  hint?: string | null
+  
+}
+
 export interface LocationLite {
   lat: number
   lon: number
@@ -121,6 +140,7 @@ export interface MemoryContext {
   deductiveFacts: string[]
   peerCard: string[]
   recentMessages: string[]
+  sessionSummaries: string[]
   
 }
 
@@ -128,12 +148,6 @@ export interface MemoryCore {
   userName?: string | null
   userFacts: string[]
   deductiveFacts: string[]
-  
-}
-
-export interface MemoryRecall {
-  query: string
-  results: AnswerLines
   
 }
 
@@ -145,6 +159,13 @@ export interface MemorySynthesisLines {
 export interface NewsItem {
   title: string
   content: string
+  
+}
+
+export interface NoteContent {
+  title: string
+  summary: string
+  keyPoints: string[]
   
 }
 
@@ -178,6 +199,12 @@ export interface QuestionAnalysisResponse {
 export interface RoutingBehavior {
   origin: string
   routing: Router
+  
+}
+
+export interface SessionSummaryOutput {
+  summary: string
+  topics: string[]
   
 }
 

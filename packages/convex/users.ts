@@ -1,7 +1,12 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+	internalMutation,
+	internalQuery,
+	mutation,
+	query,
+} from "./_generated/server";
 
 // =============================================================================
 // Utilities
@@ -60,6 +65,27 @@ export const getByMentraId = query({
 	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {
 		return await getByMentraIdInternal(ctx, args.mentraUserId);
+	},
+});
+
+export const getByMentraIdInternalQuery = internalQuery({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+	},
+});
+
+export const getEmail = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+		return user.email ?? null;
 	},
 });
 
@@ -138,6 +164,18 @@ export const getOrCreate = mutation({
 		});
 
 		return userId;
+	},
+});
+
+export const updateEmail = mutation({
+	args: { mentraUserId: v.string(), email: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+		await ctx.db.patch(user._id, { email: args.email });
+		return { success: true };
 	},
 });
 

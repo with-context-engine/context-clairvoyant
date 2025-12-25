@@ -1,7 +1,7 @@
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { b } from "../baml_client";
+import { b } from "@clairvoyant/baml-client";
 import { checkUserIsPro, convexClient } from "../core/convex";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
@@ -127,7 +127,27 @@ export async function MemoryRecall(
 				},
 			]);
 
-			// Get context data from Honcho
+			// Fetch session summaries from Convex (cross-session episodic memory)
+			let sessionSummaries: string[] = [];
+			try {
+				const summaries = await convexClient.query(
+					api.sessionSummaries.getRecentForUser,
+					{ mentraUserId, limit: 5 },
+				);
+				sessionSummaries = summaries.map((s) => {
+					const date = new Date(s.startedAt).toLocaleDateString("en-US", {
+						month: "short",
+						day: "numeric",
+					});
+					return `${date}: ${s.summary}`;
+				});
+			} catch (error) {
+				session.logger.warn(
+					`[startMemoryRecallFlow] Failed to fetch session summaries: ${error}`,
+				);
+			}
+
+			// Get context data from Honcho (within-session + peer facts)
 			let contextData: {
 				messages: Array<{ content: string }>;
 				peerRepresentation: string;
@@ -138,6 +158,7 @@ export async function MemoryRecall(
 				contextData = (await memorySession.getContext({
 					lastUserMessage: textQuery,
 					peerTarget: diatribePeer.id,
+					limitToSession: true,
 				})) as typeof contextData;
 				const contextDuration = Date.now() - contextStartTime;
 				session.logger.info(
@@ -181,6 +202,7 @@ export async function MemoryRecall(
 				),
 				peerCard: contextData.peerCard,
 				recentMessages: contextData.messages.slice(-5).map((m) => m.content),
+				sessionSummaries,
 			};
 
 			// Synthesize response with BAML (replaces .chat() call)

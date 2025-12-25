@@ -1,5 +1,8 @@
+import { api } from "@convex/_generated/api";
 import type { Session } from "@honcho-ai/sdk";
 import { AppServer, type AppSession } from "@mentra/sdk";
+import { b } from "@clairvoyant/baml-client";
+import { checkUserIsPro, convexClient } from "./core/convex";
 import { env } from "./core/env";
 import { RateLimiter } from "./core/rateLimiting";
 import { initializeMemory } from "./tools/memoryCall";
@@ -13,6 +16,10 @@ const MIN_AUDIO_DURATION_MS = 200;
 interface SessionResources {
 	unsubscribeTranscription: () => void;
 	memorySession: Session;
+	transcriptBuffer: string[];
+	startedAt: string;
+	mentraUserId: string;
+	honchoSessionId: string;
 }
 
 class Clairvoyant extends AppServer {
@@ -34,7 +41,12 @@ class Clairvoyant extends AppServer {
 		sessionId: string,
 		userId: string,
 	): Promise<void> {
-		const [memorySession, peers] = await initializeMemory(userId);
+		const [memorySession, peers, honchoSessionId] = await initializeMemory(
+			userId,
+			sessionId,
+		);
+		const transcriptBuffer: string[] = [];
+		const startedAt = new Date().toISOString();
 
 		const unsubscribe = session.events.onTranscription(async (data) => {
 			if (
@@ -45,12 +57,17 @@ class Clairvoyant extends AppServer {
 				return;
 			}
 
-			await handleTranscription(data, session, memorySession, peers, userId);
+			transcriptBuffer.push(data.text);
+			void handleTranscription(data, session, memorySession, peers, userId, transcriptBuffer);
 		});
 
 		this.sessionResources.set(sessionId, {
 			unsubscribeTranscription: unsubscribe,
 			memorySession,
+			transcriptBuffer,
+			startedAt,
+			mentraUserId: userId,
+			honchoSessionId,
 		});
 
 		session.logger.info(
@@ -66,12 +83,66 @@ class Clairvoyant extends AppServer {
 		const resources = this.sessionResources.get(sessionId);
 		if (resources) {
 			resources.unsubscribeTranscription();
+
+			if (resources.transcriptBuffer.length > 0) {
+				this.summarizeAndStoreSession(
+					resources.honchoSessionId,
+					resources.mentraUserId,
+					resources.transcriptBuffer,
+					resources.startedAt,
+				).catch((error) => {
+					console.error(
+						`[Clairvoyant] Failed to summarize session ${sessionId}:`,
+						error,
+					);
+				});
+			}
+
 			this.sessionResources.delete(sessionId);
 		}
 
 		console.log(
 			`[Clairvoyant] Session ${sessionId} ended for user ${userId}: ${reason}`,
 		);
+	}
+
+	private async summarizeAndStoreSession(
+		honchoSessionId: string,
+		mentraUserId: string,
+		transcripts: string[],
+		startedAt: string,
+	): Promise<void> {
+		// Pro gate: skip summarization for free users to save LLM tokens
+		const isPro = await checkUserIsPro(mentraUserId);
+		if (!isPro) {
+			console.log(
+				`[Clairvoyant] Skipping session summary for ${honchoSessionId}: user is not Pro`,
+			);
+			return;
+		}
+
+		try {
+			const result = await b.SummarizeSession(transcripts);
+			const endedAt = new Date().toISOString();
+
+			await convexClient.mutation(api.sessionSummaries.upsert, {
+				mentraUserId,
+				honchoSessionId,
+				summary: result.summary,
+				topics: result.topics,
+				startedAt,
+				endedAt,
+			});
+
+			console.log(
+				`[Clairvoyant] Stored session summary for ${honchoSessionId}: ${result.summary}`,
+			);
+		} catch (error) {
+			console.error(
+				`[Clairvoyant] Error summarizing session ${honchoSessionId}:`,
+				error,
+			);
+		}
 	}
 }
 

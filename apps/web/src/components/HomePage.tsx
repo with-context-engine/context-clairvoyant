@@ -1,15 +1,7 @@
-import type { Id } from "@convex/_generated/dataModel";
 import ClairvoyantMobile from "./Clairvoyant";
-import { ToolUsageChart } from "./charts/ToolUsageChart";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
-export function HomePage({ userId }: { userId: Id<"users"> }) {
+export function HomePage() {
 	return (
 		<div className="space-y-2 overflow-x-hidden">
 			<div className="flex items-center justify-center overflow-hidden">
@@ -41,22 +33,6 @@ export function HomePage({ userId }: { userId: Id<"users"> }) {
 							<span>Personalized preferences</span>
 						</li>
 					</ul>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>Recent tool usage</CardTitle>
-					<CardDescription>
-						See what you’ve used most this week.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<ToolUsageChart
-						userId={userId}
-						defaultTimeframe={7}
-						showControls={false}
-					/>
 				</CardContent>
 			</Card>
 		</div>

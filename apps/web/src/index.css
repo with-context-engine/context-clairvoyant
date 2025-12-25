@@ -4,18 +4,18 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ---- COLOR SYSTEM (OKLCH) ---- */
-/* Background: #080d32 → oklch(18% 18% 272deg) */
+/* Background: white */
 /* Accent: #2BE4FF → ~oklch(82% 0.17 210) */
 
 :root {
-	--background: oklch(18% 18% 272deg);
-	--secondary-background: oklch(22% 0.01 260);
-	--foreground: oklch(95% 0 0);
-	--main-foreground: oklch(98% 0 0);
+	--background: oklch(100% 0 0);
+	--secondary-background: oklch(97% 0.01 260);
+	--foreground: oklch(15% 0 0);
+	--main-foreground: oklch(10% 0 0);
 
 	--main: oklch(82% 0.17 210); /* Electric Cyan Accent */
-	--border: oklch(95% 0 0);
-	--ring: oklch(98% 0 0);
+	--border: oklch(20% 0 0);
+	--ring: oklch(15% 0 0);
 
 	--overlay: oklch(0% 0 0 / 0.8);
 	--shadow: 0px 0px 0px 0px var(--border);
@@ -29,14 +29,14 @@
 }
 
 .dark {
-	--background: oklch(18% 18% 272deg);
-	--secondary-background: oklch(10% 0.01 260);
-	--foreground: oklch(92% 0 0);
-	--main-foreground: oklch(98% 0 0);
+	--background: oklch(100% 0 0);
+	--secondary-background: oklch(95% 0.01 260);
+	--foreground: oklch(15% 0 0);
+	--main-foreground: oklch(10% 0 0);
 
 	--main: oklch(78% 0.17 210); /* Slightly dimmed cyan */
-	--border: oklch(95% 0 0);
-	--ring: oklch(100% 0 0);
+	--border: oklch(20% 0 0);
+	--ring: oklch(15% 0 0);
 
 	--shadow: 0px 0px 0px 0px var(--border);
 
@@ -95,5 +95,9 @@
 
 	.safe-area-inset-bottom {
 		padding-bottom: env(safe-area-inset-bottom);
+	}
+
+	.safe-area-bottom {
+		padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 	}
 }

@@ -10,9 +10,24 @@
 		"test": "echo 'No tests configured for @clairvoyant/convex'"
 	},
 	"dependencies": {
-		"@convex-dev/polar": "^0.7",
-		"@honcho-ai/sdk": "^1.5",
+		"@boundaryml/baml": "0.215.0",
+		"@clairvoyant/baml-client": "workspace:*",
+		"@convex-dev/crons": "^0.2.0",
+		"@convex-dev/polar": "^0.7.3",
+		"@convex-dev/resend": "^0.2.3",
+		"@honcho-ai/sdk": "^1.6.0",
 		"@polar-sh/sdk": "^0.41.5",
-		"convex": "^1.29.3"
+		"@react-email/components": "^1.0.2",
+		"@react-email/render": "^2.0.0",
+		"convex": "^1.31.2",
+		"groq-sdk": "^0.18.0",
+		"react": "^19.2.3",
+		"react-dom": "^19.2.3",
+		"react-email": "^5.1.0",
+		"svix": "^1.82.0",
+		"zod": "^3.25.76"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.3"
 	}
 }

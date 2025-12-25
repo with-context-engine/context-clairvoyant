@@ -61,12 +61,6 @@ const FRAMES: Frame[] = [
 				color: "#9999CC",
 			},
 			{
-				x: -1,
-				y: 1,
-				char: "+",
-				color: "#6666CC",
-			},
-			{
 				x: 0,
 				y: 1,
 				char: ";",
@@ -113,18 +107,6 @@ const FRAMES: Frame[] = [
 				y: 1,
 				char: "@",
 				color: "#9966CC",
-			},
-			{
-				x: -2,
-				y: 2,
-				char: "*",
-				color: "#6699CC",
-			},
-			{
-				x: -1,
-				y: 2,
-				char: ";",
-				color: "#6666CC",
 			},
 			{
 				x: 0,
@@ -181,24 +163,6 @@ const FRAMES: Frame[] = [
 				color: "#9966CC",
 			},
 			{
-				x: -3,
-				y: 3,
-				char: "@",
-				color: "#99CCFF",
-			},
-			{
-				x: -2,
-				y: 3,
-				char: ";",
-				color: "#6699CC",
-			},
-			{
-				x: -1,
-				y: 3,
-				char: ";",
-				color: "#9999CC",
-			},
-			{
 				x: 0,
 				y: 3,
 				char: "+",
@@ -259,24 +223,6 @@ const FRAMES: Frame[] = [
 				color: "#9999CC",
 			},
 			{
-				x: -3,
-				y: 4,
-				char: "@",
-				color: "#99CCFF",
-			},
-			{
-				x: -2,
-				y: 4,
-				char: "+",
-				color: "#9999FF",
-			},
-			{
-				x: -1,
-				y: 4,
-				char: "+",
-				color: "#9999CC",
-			},
-			{
 				x: 0,
 				y: 4,
 				char: "+",
@@ -337,18 +283,6 @@ const FRAMES: Frame[] = [
 				color: "#9999CC",
 			},
 			{
-				x: -2,
-				y: 5,
-				char: "#",
-				color: "#9999FF",
-			},
-			{
-				x: -1,
-				y: 5,
-				char: "+",
-				color: "#9999CC",
-			},
-			{
 				x: 0,
 				y: 5,
 				char: ";",
@@ -403,12 +337,6 @@ const FRAMES: Frame[] = [
 				color: "#9999CC",
 			},
 			{
-				x: -1,
-				y: 6,
-				char: "+",
-				color: "#9999FF",
-			},
-			{
 				x: 0,
 				y: 6,
 				char: ";",
@@ -455,12 +383,6 @@ const FRAMES: Frame[] = [
 				y: 6,
 				char: "+",
 				color: "#9999CC",
-			},
-			{
-				x: -1,
-				y: 7,
-				char: "#",
-				color: "#FFFFCC",
 			},
 			{
 				x: 0,
@@ -509,12 +431,6 @@ const FRAMES: Frame[] = [
 				y: 7,
 				char: "#",
 				color: "#CC9966",
-			},
-			{
-				x: -1,
-				y: 8,
-				char: "@",
-				color: "#996633",
 			},
 			{
 				x: 0,
@@ -13048,10 +12964,10 @@ const CELL_HEIGHT = 18;
 const FONT_SIZE = 18;
 const FONT_FAMILY =
 	"SF Mono, Monaco, Cascadia Code, Consolas, JetBrains Mono, Fira Code, Monaspace Neon, Geist Mono, Courier New, monospace";
-const BACKGROUND_COLOR = null;
+const BACKGROUND_COLOR = "#ffffff";
 
-const ClairvoyantMobile = (props: AsciiMotionComponentProps = {}) => {
-	const { showControls = true, autoPlay = true, onReady } = props;
+const Clairvoyant = (props: AsciiMotionComponentProps = {}) => {
+	const { autoPlay = true, onReady = () => {} } = props;
 	const initialAutoPlay = autoPlay !== false;
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const animationFrameRef = useRef<number | null>(null);
@@ -13167,13 +13083,6 @@ const ClairvoyantMobile = (props: AsciiMotionComponentProps = {}) => {
 			lastTimestampRef.current = timestamp;
 
 			if (isPlayingRef.current) {
-				// Stop if we're already at the last frame
-				if (frameIndexRef.current >= FRAMES.length - 1) {
-					updatePlayingState(false);
-					drawFrame(frameIndexRef.current);
-					return;
-				}
-
 				frameElapsedRef.current += delta;
 
 				let nextIndex = frameIndexRef.current;
@@ -13182,15 +13091,7 @@ const ClairvoyantMobile = (props: AsciiMotionComponentProps = {}) => {
 
 				while (remaining >= duration && FRAMES.length > 0) {
 					remaining -= duration;
-					nextIndex = nextIndex + 1;
-
-					// Stop at the last frame instead of looping
-					if (nextIndex >= FRAMES.length) {
-						nextIndex = FRAMES.length - 1;
-						updatePlayingState(false);
-						break;
-					}
-
+					nextIndex = (nextIndex + 1) % FRAMES.length;
 					duration = FRAMES[nextIndex]?.duration ?? duration;
 				}
 
@@ -13224,7 +13125,7 @@ const ClairvoyantMobile = (props: AsciiMotionComponentProps = {}) => {
 				animationFrameRef.current = null;
 			}
 		};
-	}, [updatePlayingState]);
+	}, []);
 
 	useEffect(() => {
 		if (typeof onReady === "function") {
@@ -13259,4 +13160,4 @@ const ClairvoyantMobile = (props: AsciiMotionComponentProps = {}) => {
 	);
 };
 
-export default ClairvoyantMobile;
+export default Clairvoyant;

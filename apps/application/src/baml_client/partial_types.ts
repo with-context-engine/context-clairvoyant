@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  AlertLite,  AnswerLines,  CurrentLite,  DailyForecastItem,  EnhancedQuery,  FormattedWeather,  LocationLite,  MemoryContext,  MemoryCore,  MemoryRecall,  MemorySynthesisLines,  NewsItem,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
+import type {  AlertLite,  AnswerLines,  CurrentLite,  DailyForecastItem,  EnhancedQuery,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -77,6 +77,14 @@ export namespace partial_types {
       daily_forecast: DailyForecastItem[]
       alerts: AlertLite[]
     }
+    export interface HintEligibility {
+      category?: types.HintCategory | null
+      topic?: string | null
+    }
+    export interface HintResult {
+      should_show?: boolean | null
+      hint?: string | null
+    }
     export interface LocationLite {
       lat?: number | null
       lon?: number | null
@@ -87,15 +95,12 @@ export namespace partial_types {
       deductiveFacts: string[]
       peerCard: string[]
       recentMessages: string[]
+      sessionSummaries: string[]
     }
     export interface MemoryCore {
       userName?: string | null
       userFacts: string[]
       deductiveFacts: string[]
-    }
-    export interface MemoryRecall {
-      query?: string | null
-      results?: AnswerLines | null
     }
     export interface MemorySynthesisLines {
       lines: string[]
@@ -103,6 +108,11 @@ export namespace partial_types {
     export interface NewsItem {
       title?: string | null
       content?: string | null
+    }
+    export interface NoteContent {
+      title?: string | null
+      summary?: string | null
+      keyPoints: string[]
     }
     export interface PlaceLines {
       lines: string[]
@@ -126,6 +136,10 @@ export namespace partial_types {
     export interface RoutingBehavior {
       origin?: string | null
       routing?: types.Router | null
+    }
+    export interface SessionSummaryOutput {
+      summary?: string | null
+      topics: string[]
     }
     export interface TempBlock {
       day?: number | null
