@@ -1,9 +1,9 @@
+import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
-import { ViewType } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
 import { checkUserIsPro, convexClient } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { performWebSearch } from "../tools/webSearch";
@@ -17,6 +17,7 @@ export async function startWebSearchFlow(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	webSearchRunIds.set(session, runId);
@@ -30,13 +31,12 @@ export async function startWebSearchFlow(
 		session.logger.warn(
 			"[startWebSearchFlow] User isn't subscribed, web search disabled.",
 		);
-		session.layouts.showTextWall(
-			"// Clairvoyant\nS: Web search is a Pro feature.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nS: Web search is a Pro feature.",
+			prefix: "S",
+			durationMs: 3000,
+			priority: 1,
+		});
 		return;
 	}
 
@@ -162,10 +162,12 @@ export async function startWebSearchFlow(
 
 		const searchResults = await showTextDuringOperation(
 			session,
+			displayQueue,
 			"// Clairvoyant\nS: Searching the web...",
 			"// Clairvoyant\nS: Found it!",
 			"// Clairvoyant\nS: Couldn't search the web.",
 			() => performWebSearch(searchQuery),
+			{ prefix: "S", durationMs: 2000 },
 		);
 
 		await MemoryCapture(
@@ -175,6 +177,7 @@ export async function startWebSearchFlow(
 			peers,
 			"diatribe",
 			mentraUserId,
+			displayQueue,
 		);
 
 		if (!searchResults) {
@@ -203,6 +206,7 @@ export async function startWebSearchFlow(
 				peers,
 				"synthesis",
 				mentraUserId,
+				displayQueue,
 			);
 		}
 
@@ -220,13 +224,12 @@ export async function startWebSearchFlow(
 				const line = lines[i];
 				if (webSearchRunIds.get(session) !== runId) return;
 				session.logger.info(`[startWebSearchFlow] Web search result: ${line}`);
-				session.layouts.showTextWall(`// Clairvoyant\nS: ${line}`, {
-					view: ViewType.MAIN,
+				displayQueue.enqueue({
+					text: `// Clairvoyant\nS: ${line}`,
+					prefix: "S",
 					durationMs: 3000,
+					priority: 2,
 				});
-				if (i < lines.length - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 3000));
-				}
 			}
 		} else {
 			session.logger.error(`[startWebSearchFlow] No lines in answerLines`);

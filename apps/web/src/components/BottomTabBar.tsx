@@ -1,4 +1,4 @@
-import { BarChart3, Brain, Home, Settings } from "lucide-react";
+import { BarChart3, Brain, Home, ListOrdered, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export function BottomTabBar() {
@@ -9,6 +9,7 @@ export function BottomTabBar() {
 	const tabs = [
 		{ path: "/", label: "Home", icon: Home },
 		{ path: "/memory", label: "Memory", icon: Brain },
+		{ path: "/queue", label: "Queue", icon: ListOrdered },
 		{ path: "/usage", label: "Usage", icon: BarChart3 },
 		{ path: "/settings", label: "Settings", icon: Settings },
 	];

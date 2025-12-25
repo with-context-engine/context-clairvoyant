@@ -4,17 +4,26 @@ import { env } from "./env";
 
 const client = new ConvexHttpClient(env.CONVEX_URL);
 
+const DEFAULT_PREFIX_ORDER = ["W", "K", "S", "M", "H", "R", "N"];
+
 export async function getUserPreferences(mentraUserId: string) {
 	try {
 		const prefs = await client.query(api.users.getPreferencesByMentraId, {
 			mentraUserId,
 		});
-		return prefs;
+		return {
+			...prefs,
+			prefixPriorities: prefs.prefixPriorities ?? DEFAULT_PREFIX_ORDER,
+			messageGapSpeed:
+				(prefs.messageGapSpeed as "short" | "medium" | "long") ?? "medium",
+		};
 	} catch (error) {
 		console.error("[Convex] Failed to fetch user preferences:", error);
 		return {
 			weatherUnit: "C" as const,
 			defaultLocation: undefined,
+			prefixPriorities: DEFAULT_PREFIX_ORDER,
+			messageGapSpeed: "medium" as const,
 		};
 	}
 }

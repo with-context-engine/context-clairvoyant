@@ -22,6 +22,8 @@ export default defineSchema({
 		userId: v.id("users"),
 		weatherUnit: v.string(),
 		defaultLocation: v.optional(v.string()),
+		prefixPriorities: v.optional(v.array(v.string())),
+		messageGapSpeed: v.optional(v.string()),
 	}).index("by_user", ["userId"]),
 	toolInvocations: defineTable({
 		userId: v.id("users"),
@@ -95,4 +97,21 @@ export default defineSchema({
 	})
 		.index("by_user_date", ["userId", "date"])
 		.index("by_daily_summary", ["dailySummaryId"]),
+	displayQueue: defineTable({
+		mentraUserId: v.string(),
+		sessionId: v.string(),
+		message: v.string(),
+		prefix: v.string(),
+		status: v.union(
+			v.literal("queued"),
+			v.literal("displayed"),
+			v.literal("cancelled"),
+		),
+		priority: v.number(),
+		createdAt: v.string(),
+		displayedAt: v.optional(v.string()),
+	})
+		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_session", ["sessionId"])
+		.index("by_status", ["status"]),
 });

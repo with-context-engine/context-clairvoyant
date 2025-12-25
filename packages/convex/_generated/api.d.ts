@@ -15,6 +15,7 @@ import type * as chatQueries from "../chatQueries.js";
 import type * as cronManagement from "../cronManagement.js";
 import type * as dailySummaries from "../dailySummaries.js";
 import type * as dailySynthesis from "../dailySynthesis.js";
+import type * as displayQueue from "../displayQueue.js";
 import type * as emailEvents from "../emailEvents.js";
 import type * as emailNotes from "../emailNotes.js";
 import type * as emailReply from "../emailReply.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   cronManagement: typeof cronManagement;
   dailySummaries: typeof dailySummaries;
   dailySynthesis: typeof dailySynthesis;
+  displayQueue: typeof displayQueue;
   emailEvents: typeof emailEvents;
   emailNotes: typeof emailNotes;
   emailReply: typeof emailReply;

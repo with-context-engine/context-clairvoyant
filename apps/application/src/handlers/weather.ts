@@ -1,8 +1,8 @@
-import { api } from "@convex/_generated/api";
-import type { Peer, Session } from "@honcho-ai/sdk";
-import { type AppSession, ViewType } from "@mentra/sdk";
 import { b } from "@clairvoyant/baml-client";
 import type { FormattedWeather } from "@clairvoyant/baml-client/types";
+import { api } from "@convex/_generated/api";
+import type { Peer, Session } from "@honcho-ai/sdk";
+import type { AppSession } from "@mentra/sdk";
 import {
 	checkUserIsPro,
 	convexClient,
@@ -10,6 +10,7 @@ import {
 	getUserPreferences,
 	setCurrentLocation,
 } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { getWeatherData } from "../tools/weatherCall";
@@ -26,6 +27,7 @@ async function processWeatherData(
 	response: FormattedWeather,
 	preferredUnit: "C" | "F",
 	runId: number,
+	displayQueue: DisplayQueueManager,
 	memorySession?: Session,
 	peers?: Peer[],
 ) {
@@ -152,21 +154,20 @@ async function processWeatherData(
 		if (weatherRunIds.get(session) !== runId) return;
 
 		session.logger.info(`[Clairvoyant] Weather: ${line}`);
-		session.layouts.showTextWall(`// Clairvoyant\nW: ${line}`, {
-			view: ViewType.MAIN,
+		displayQueue.enqueue({
+			text: `// Clairvoyant\nW: ${line}`,
+			prefix: "W",
 			durationMs: 3000,
+			priority: 2,
 		});
-
-		if (i < weatherLines.lines.length - 1) {
-			await new Promise((resolve) => setTimeout(resolve, 3000));
-		}
 	}
 }
 
 export async function startWeatherFlow(
 	session: AppSession,
-	memorySession?: Session,
-	peers?: Peer[],
+	memorySession: Session | undefined,
+	peers: Peer[] | undefined,
+	displayQueue: DisplayQueueManager,
 ) {
 	const mentraUserId = session.userId;
 	let preferredUnit: "C" | "F" = "C";
@@ -182,29 +183,23 @@ export async function startWeatherFlow(
 			`[Clairvoyant] Failed to fetch preferences, using default (C): ${String(error)}`,
 		);
 	}
-	session.layouts.showTextWall("// Clairvoyant\nW: Looking outside...", {
-		view: ViewType.MAIN,
+	displayQueue.enqueue({
+		text: "// Clairvoyant\nW: Looking outside...",
+		prefix: "W",
 		durationMs: 2000,
+		priority: 1,
 	});
 
 	const runId = Date.now();
 	weatherRunIds.set(session, runId);
 
 	let locationReceived = false;
-	let weatherTextWallShown = false;
 
 	const unsubscribe = session.events.onLocation(async (location) => {
 		if (weatherRunIds.get(session) !== runId) {
 			session.logger.info(
 				`[Clairvoyant] Ignoring stale location callback (runId: ${runId})`,
 			);
-			// Clear any lingering text wall from stale requests
-			if (weatherTextWallShown) {
-				session.layouts.showTextWall("", {
-					view: ViewType.MAIN,
-					durationMs: 500,
-				});
-			}
 			return;
 		}
 
@@ -224,18 +219,16 @@ export async function startWeatherFlow(
 				lng: location.lng,
 			});
 
-			weatherTextWallShown = true;
-
 			// Use the helper function to show "Getting the weather..." during the API call
 			const response = await showTextDuringOperation(
 				session,
+				displayQueue,
 				"// Clairvoyant\nW: Getting the weather...",
 				"// Clairvoyant\nW: Got the weather!",
 				"// Clairvoyant\nW: Couldn't get the weather.",
 				() => getWeatherData(location.lat, location.lng, preferredUnit),
+				{ prefix: "W", durationMs: 2000 },
 			);
-
-			weatherTextWallShown = false;
 
 			if (!response) {
 				throw new Error("No weather response");
@@ -254,6 +247,7 @@ export async function startWeatherFlow(
 				response,
 				preferredUnit,
 				runId,
+				displayQueue,
 				memorySession,
 				peers,
 			);
@@ -261,17 +255,15 @@ export async function startWeatherFlow(
 			// TODO: Add a BAML to check if the weather is inclement and if so and if so, ask the user if they're appropriately dressed for the weather.
 			// TODO: Add a memory call to intercept the users' answer and add it to the memory.
 		} catch (err) {
-			weatherTextWallShown = false;
 			session.logger.error(`[Clairvoyant] Weather flow error: ${String(err)}`);
 
 			if (weatherRunIds.get(session) === runId) {
-				session.layouts.showTextWall(
-					"// Clairvoyant\nW: Couldn't figure out the weather.",
-					{
-						view: ViewType.MAIN,
-						durationMs: 2000,
-					},
-				);
+				displayQueue.enqueue({
+					text: "// Clairvoyant\nW: Couldn't figure out the weather.",
+					prefix: "W",
+					durationMs: 2000,
+					priority: 2,
+				});
 			}
 		}
 	});
@@ -288,13 +280,6 @@ export async function startWeatherFlow(
 
 			unsubscribe?.();
 
-			if (weatherTextWallShown) {
-				session.layouts.showTextWall("", {
-					view: ViewType.MAIN,
-					durationMs: 500,
-				});
-			}
-
 			// Try to use default location from preferences (geocoded billing address)
 			session.logger.info(
 				"[Clairvoyant] Attempting to use default location from preferences",
@@ -309,17 +294,17 @@ export async function startWeatherFlow(
 
 				locationReceived = true; // Prevent further timeout messages
 
-				session.layouts.showTextWall(
-					"// Clairvoyant\nW: Using your billing location…",
-					{
-						view: ViewType.MAIN,
-						durationMs: 2000,
-					},
-				);
+				displayQueue.enqueue({
+					text: "// Clairvoyant\nW: Using your billing location…",
+					prefix: "W",
+					durationMs: 2000,
+					priority: 1,
+				});
 
 				try {
 					const response = await showTextDuringOperation(
 						session,
+						displayQueue,
 						"// Clairvoyant\nW: Getting the weather...",
 						"// Clairvoyant\nW: Got the weather!",
 						"// Clairvoyant\nW: Couldn't get the weather.",
@@ -329,6 +314,7 @@ export async function startWeatherFlow(
 								defaultLocation.lng,
 								preferredUnit,
 							),
+						{ prefix: "W", durationMs: 2000 },
 					);
 
 					if (!response) {
@@ -348,6 +334,7 @@ export async function startWeatherFlow(
 						response,
 						preferredUnit,
 						runId,
+						displayQueue,
 						memorySession,
 						peers,
 					);
@@ -357,34 +344,31 @@ export async function startWeatherFlow(
 					);
 
 					if (weatherRunIds.get(session) === runId) {
-						session.layouts.showTextWall(
-							"// Clairvoyant\nW: Couldn't figure out the weather.",
-							{
-								view: ViewType.MAIN,
-								durationMs: 2000,
-							},
-						);
+						displayQueue.enqueue({
+							text: "// Clairvoyant\nW: Couldn't figure out the weather.",
+							prefix: "W",
+							durationMs: 2000,
+							priority: 2,
+						});
 					}
 				}
 			} else {
 				// No default location available
-				session.layouts.showTextWall(
-					"// Clairvoyant\nW: Still waiting on location…",
-					{
-						view: ViewType.MAIN,
-						durationMs: 2000,
-					},
-				);
+				displayQueue.enqueue({
+					text: "// Clairvoyant\nW: Still waiting on location…",
+					prefix: "W",
+					durationMs: 2000,
+					priority: 1,
+				});
 
 				setTimeout(() => {
 					if (weatherRunIds.get(session) === runId && !locationReceived) {
-						session.layouts.showTextWall(
-							"// Clairvoyant\nW: Could not get your location.",
-							{
-								view: ViewType.MAIN,
-								durationMs: 2000,
-							},
-						);
+						displayQueue.enqueue({
+							text: "// Clairvoyant\nW: Could not get your location.",
+							prefix: "W",
+							durationMs: 2000,
+							priority: 2,
+						});
 					}
 				}, 2000);
 			}

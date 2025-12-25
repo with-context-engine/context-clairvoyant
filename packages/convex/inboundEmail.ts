@@ -2,6 +2,7 @@
 
 import { v } from "convex/values";
 import { Webhook } from "svix";
+import { z } from "zod";
 import { internal } from "./_generated/api";
 import { internalAction } from "./_generated/server";
 
@@ -27,21 +28,21 @@ interface InboundEmailEvent {
 	};
 }
 
-interface EmailContentResponse {
-	object: "email";
-	id: string;
-	from: string;
-	to: string[];
-	created_at: string;
-	subject: string;
-	html: string;
-	text: string;
-}
+const emailContentSchema = z.object({
+	object: z.literal("email"),
+	id: z.string(),
+	from: z.string(),
+	to: z.array(z.string()),
+	created_at: z.string(),
+	subject: z.string(),
+	html: z.string(),
+	text: z.string(),
+});
 
 function parseEmailNoteIdFromAddress(toAddresses: string[]): string | null {
 	for (const addr of toAddresses) {
 		const match = addr.match(/chat\+([a-z0-9]+)@/i);
-		if (match) {
+		if (match?.[1]) {
 			return match[1];
 		}
 	}
@@ -144,7 +145,7 @@ export const processInboundWebhook = internalAction({
 			`[Inbound Email] ✓ Resend API responded in ${Date.now() - fetchStartTime}ms`,
 		);
 
-		const emailContent: EmailContentResponse = await response.json();
+		const emailContent = emailContentSchema.parse(await response.json());
 		const textContent = emailContent.text || "";
 
 		console.log("[Inbound Email] Email content retrieved:", {

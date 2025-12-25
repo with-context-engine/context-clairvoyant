@@ -3,6 +3,11 @@ import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useState } from "react";
 import { LocationSelector } from "./LocationSelector";
+import { MessageSpeedSelector } from "./MessageSpeedSelector";
+import {
+	DEFAULT_PREFIX_ORDER,
+	PrefixPriorityEditor,
+} from "./PrefixPriorityEditor";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { Button } from "./ui/button";
 import {
@@ -26,6 +31,8 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 	const [section, setSection] = useState<SettingsSection>("root");
 	const preferences = useQuery(api.users.getPreferences, { userId });
 	const updatePreferences = useMutation(api.users.updatePreferences);
+	const updatePrefixPriorities = useMutation(api.users.updatePrefixPriorities);
+	const updateMessageGapSpeed = useMutation(api.users.updateMessageGapSpeed);
 
 	const storedEmail = useQuery(
 		api.users.getEmail,
@@ -72,6 +79,22 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 			weatherUnit: unit,
 		});
 		console.log(`Preference saved: weatherUnit=${unit}`);
+	};
+
+	const handleSavePriorities = async (priorities: string[]) => {
+		await updatePrefixPriorities({
+			userId,
+			prefixPriorities: priorities,
+		});
+		console.log(`Preference saved: prefixPriorities=${priorities.join(",")}`);
+	};
+
+	const handleSaveGapSpeed = async (speed: "short" | "medium" | "long") => {
+		await updateMessageGapSpeed({
+			userId,
+			messageGapSpeed: speed,
+		});
+		console.log(`Preference saved: messageGapSpeed=${speed}`);
 	};
 
 	const hasPreferencesLoaded = preferences !== undefined;
@@ -212,6 +235,53 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 								</p>
 							) : (
 								<LocationSelector userId={userId} />
+							)}
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Message Priority</CardTitle>
+							<CardDescription>
+								Reorder which message types display first on your glasses
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{!hasPreferencesLoaded ? (
+								<p className="text-sm text-foreground/60">
+									Loading preferences...
+								</p>
+							) : (
+								<PrefixPriorityEditor
+									value={preferences?.prefixPriorities ?? DEFAULT_PREFIX_ORDER}
+									onSave={handleSavePriorities}
+								/>
+							)}
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Message Speed</CardTitle>
+							<CardDescription>
+								How quickly messages cycle on your glasses
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{!hasPreferencesLoaded ? (
+								<p className="text-sm text-foreground/60">
+									Loading preferences...
+								</p>
+							) : (
+								<MessageSpeedSelector
+									value={
+										(preferences?.messageGapSpeed as
+											| "short"
+											| "medium"
+											| "long") ?? "medium"
+									}
+									onSave={handleSaveGapSpeed}
+								/>
 							)}
 						</CardContent>
 					</Card>

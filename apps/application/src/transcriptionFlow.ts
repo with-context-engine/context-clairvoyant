@@ -2,6 +2,7 @@ import { b, Router } from "@clairvoyant/baml-client";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
 import { recordToolInvocation } from "./core/convex";
+import type { DisplayQueueManager } from "./core/displayQueue";
 import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
 import { startMapsFlow } from "./handlers/maps";
@@ -17,6 +18,7 @@ export async function handleTranscription(
 	peers: Peer[],
 	mentraUserId: string,
 	transcriptBuffer: string[],
+	displayQueue: DisplayQueueManager,
 ) {
 	session.logger.info(`[Clairvoyant] Transcription: ${data.text}`);
 	const routing = await b.Route(data.text);
@@ -28,7 +30,7 @@ export async function handleTranscription(
 		case Router.WEATHER:
 			session.logger.info(`[Clairvoyant] Weather route: starting async flow`);
 			void recordToolInvocation(mentraUserId, Router.WEATHER);
-			void startWeatherFlow(session, memorySession, peers);
+			void startWeatherFlow(session, memorySession, peers, displayQueue);
 			return;
 
 		case Router.MAPS:
@@ -40,6 +42,7 @@ export async function handleTranscription(
 				memorySession,
 				peers,
 				mentraUserId,
+				displayQueue,
 			);
 			return;
 
@@ -54,6 +57,7 @@ export async function handleTranscription(
 				memorySession,
 				peers,
 				mentraUserId,
+				displayQueue,
 			);
 			return;
 
@@ -66,6 +70,7 @@ export async function handleTranscription(
 				memorySession,
 				peers,
 				mentraUserId,
+				displayQueue,
 			);
 			return;
 
@@ -80,6 +85,7 @@ export async function handleTranscription(
 				peers,
 				"diatribe",
 				mentraUserId,
+				displayQueue,
 			);
 			return;
 
@@ -88,7 +94,7 @@ export async function handleTranscription(
 				`[Clairvoyant] Memory Recall route: starting async flow`,
 			);
 			void recordToolInvocation(mentraUserId, Router.MEMORY_RECALL);
-			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId);
+			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId, displayQueue);
 			return;
 
 		case Router.PASSTHROUGH:
@@ -101,12 +107,13 @@ export async function handleTranscription(
 				memorySession,
 				peers,
 				mentraUserId,
+				displayQueue,
 			);
 			return;
 
 		case Router.NOTE_THIS:
 			session.logger.info(`[Clairvoyant] Note This route: starting async flow`);
-			void startNoteThisFlow(transcriptBuffer, session, mentraUserId);
+			void startNoteThisFlow(transcriptBuffer, session, mentraUserId, displayQueue);
 			return;
 
 		default: {
