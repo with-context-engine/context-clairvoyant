@@ -6,7 +6,9 @@ generator target {
     output_type "typescript"
 
     // Where the generated code will be saved (relative to baml_src/)
-    output_dir "../apps/application/src/"
+    // Centralized location accessible by both apps/application and packages/convex
+    // Outputs to packages/baml_client/ which is the @clairvoyant/baml-client workspace package
+    output_dir "../packages/baml_client/"
 
     // The version of the BAML package you have installed (e.g. same version as your baml-py or @boundaryml/baml).
     // The BAML VSCode extension version should also match this version.

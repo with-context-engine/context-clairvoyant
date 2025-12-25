@@ -9,6 +9,7 @@
  */
 
 import type * as analytics from "../analytics.js";
+import type * as bamlActions from "../bamlActions.js";
 import type * as chat from "../chat.js";
 import type * as chatQueries from "../chatQueries.js";
 import type * as cronManagement from "../cronManagement.js";
@@ -38,6 +39,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
+  bamlActions: typeof bamlActions;
   chat: typeof chat;
   chatQueries: typeof chatQueries;
   cronManagement: typeof cronManagement;

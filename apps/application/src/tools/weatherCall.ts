@@ -1,7 +1,7 @@
 import type {
 	FormattedWeather,
 	WeatherConditionLite,
-} from "../baml_client/types";
+} from "@clairvoyant/baml-client/types";
 import { env } from "../core/env";
 
 // Weather API interfaces based on OpenWeatherMap OneCall API

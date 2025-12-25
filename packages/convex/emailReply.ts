@@ -3,12 +3,10 @@
 import { randomUUID } from "node:crypto";
 import { Honcho } from "@honcho-ai/sdk";
 import { v } from "convex/values";
-import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { z } from "zod";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
+import type { EmailInterpretation } from "./bamlActions";
 import { resend } from "./resendClient";
 
 interface EmailNote {
@@ -53,122 +51,12 @@ function generateMessageId(): string {
 	return `<${randomUUID()}@notes.clairvoyant.with-context.co>`;
 }
 
-// Structured output schema for email reply interpretation
-const EmailInterpretationSchema = z.object({
-	response: z
-		.string()
-		.describe("Conversational reply to send back (2-3 sentences max)"),
-	extractedFacts: z
-		.array(z.string())
-		.describe("New facts about the user to store in memory"),
-	newTopics: z
-		.array(z.string())
-		.describe("New topics to add to session (1-2 word tags)"),
-	shouldUpdateSummary: z
-		.boolean()
-		.describe("Whether the session summary should be enriched"),
-	summaryAddition: z
-		.string()
-		.optional()
-		.describe(
-			"Text to append to session summary if shouldUpdateSummary is true",
-		),
-});
-
-type EmailInterpretation = z.infer<typeof EmailInterpretationSchema>;
-
-interface InterpretationContext {
-	originalSubject: string;
-	originalTitle: string;
-	sessionSummary: string | null;
-	sessionTopics: string[];
-	peerCard: string[];
-	conversationHistory: Array<{
-		direction: "outbound" | "inbound";
-		content: string;
-		createdAt: string;
-	}>;
-}
-
-/**
- * Interprets a user's email reply using OpenAI with structured output.
- * Extracts: response to send, new facts, new topics, and summary updates.
- */
-async function interpretEmailReply(
-	userMessage: string,
-	context: InterpretationContext,
-): Promise<EmailInterpretation | null> {
-	const openaiKey = process.env.OPENAI_API_KEY;
-	if (!openaiKey) {
-		console.error("[EmailReply] OPENAI_API_KEY not set");
-		return null;
-	}
-
-	const openai = new OpenAI({ apiKey: openaiKey });
-
-	const systemPrompt = `You are Clairvoyant, a friendly AI assistant that helps users reflect on their day through email conversations.
-
-The user is replying to a session note email. Analyze their reply and provide:
-1. A warm, conversational response (2-3 sentences max)
-2. Any new facts about the user worth remembering
-3. New topics to tag this session with
-4. Whether to update the session summary, and if so, what to add
-
-Style:
-- Be warm and casual, like a friend
-- Use their name if known
-- Reference session context naturally
-- Keep responses brief - this is email, not an essay
-- Don't be overly enthusiastic or use excessive exclamation marks`;
-
-	const userPrompt = `EMAIL SUBJECT: ${context.originalSubject}
-
-${context.sessionSummary ? `SESSION CONTEXT:\n${context.sessionSummary}\nTopics: ${context.sessionTopics.join(", ")}\n` : ""}
-
-${context.peerCard.length > 0 ? `USER PROFILE:\n${context.peerCard.join("\n")}\n` : ""}
-
-${context.conversationHistory.length > 1 ? `CONVERSATION HISTORY:\n${context.conversationHistory.map((m) => `[${m.direction}] ${m.content}`).join("\n---\n")}\n` : ""}
-
-USER'S NEW REPLY:
-${userMessage}
-
-Interpret this reply and generate a response.`;
-
-	try {
-		const completion = await openai.chat.completions.parse({
-			model: "gpt-4o-mini",
-			messages: [
-				{ role: "system", content: systemPrompt },
-				{ role: "user", content: userPrompt },
-			],
-			response_format: zodResponseFormat(
-				EmailInterpretationSchema,
-				"email_interpretation",
-			),
-			max_tokens: 500,
-		});
-
-		const parsed = completion.choices[0]?.message?.parsed;
-		if (!parsed) {
-			console.error("[EmailReply] No parsed response from OpenAI");
-			return null;
-		}
-
-		return parsed;
-	} catch (error) {
-		console.error(
-			`[EmailReply] OpenAI interpretation failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		return null;
-	}
-}
-
 /**
  * Processes an inbound email reply:
  * 1. Loads context (emailNote, sessionSummary, Honcho peerCard)
- * 2. Calls OpenAI InterpretEmailReply function (Step 5)
- * 3. Updates memory (Step 6)
- * 4. Sends threaded reply back to user (Step 7)
+ * 2. Calls BAML InterpretEmailReply function
+ * 3. Updates memory
+ * 4. Sends threaded reply back to user
  */
 export const processEmailReply = internalAction({
 	args: {
@@ -311,10 +199,32 @@ export const processEmailReply = internalAction({
 			historyCount: context.conversationHistory.length,
 		});
 
-		// Step 7: Interpret the email reply with LLM
-		console.log("[EmailReply] Step 7: Calling OpenAI to interpret reply...");
+		// Step 7: Interpret the email reply with BAML
+		console.log("[EmailReply] Step 7: Calling BAML to interpret reply...");
 		const llmStartTime = Date.now();
-		const interpretation = await interpretEmailReply(textContent, context);
+		let interpretation: EmailInterpretation | null = null;
+		try {
+			interpretation = await ctx.runAction(
+				internal.bamlActions.interpretEmailReply,
+				{
+					userMessage: textContent,
+					context: {
+						originalSubject: context.originalSubject,
+						sessionSummary: context.sessionSummary ?? undefined,
+						sessionTopics: context.sessionTopics,
+						peerCard: context.peerCard,
+						conversationHistory: context.conversationHistory.map((m) => ({
+							direction: m.direction,
+							content: m.content,
+						})),
+					},
+				},
+			);
+		} catch (error) {
+			console.error(
+				`[EmailReply] ✗ BAML interpretation failed: ${error instanceof Error ? error.message : String(error)}`,
+			);
+		}
 
 		if (!interpretation) {
 			console.error(
