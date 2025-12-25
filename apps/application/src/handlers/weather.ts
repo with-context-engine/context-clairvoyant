@@ -1,8 +1,8 @@
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { b } from "../baml_client";
-import type { FormattedWeather } from "../baml_client/types";
+import { b } from "@clairvoyant/baml-client";
+import type { FormattedWeather } from "@clairvoyant/baml-client/types";
 import {
 	checkUserIsPro,
 	convexClient,

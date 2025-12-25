@@ -1,0 +1,4 @@
+[install]
+# Use hoisted linker for Convex compatibility with native modules
+# Bun 1.3's isolated installs don't work well with Convex's externalPackages
+linker = "hoisted"

@@ -2,11 +2,10 @@
 
 import { Honcho } from "@honcho-ai/sdk";
 import { v } from "convex/values";
-import Groq from "groq-sdk";
-import { z } from "zod";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action } from "./_generated/server";
+import type { ChatInterpretation } from "./bamlActions";
 
 interface User {
 	_id: Id<"users">;
@@ -31,140 +30,10 @@ interface ChatMessage {
 	createdAt: string;
 }
 
-const ChatInterpretationSchema = z.object({
-	response: z
-		.string()
-		.describe("Conversational reply to send back (2-3 sentences max)"),
-	extractedFacts: z
-		.array(z.string())
-		.describe("New facts about the user to store in memory"),
-	newTopics: z
-		.array(z.string())
-		.describe("New topics to add to session (1-2 word tags)"),
-	shouldUpdateSummary: z
-		.boolean()
-		.describe("Whether the session summary should be enriched"),
-	summaryAddition: z
-		.string()
-		.nullable()
-		.describe(
-			"Text to append to session summary if shouldUpdateSummary is true",
-		),
-});
-
-type ChatInterpretation = z.infer<typeof ChatInterpretationSchema>;
-
 interface MemoryContext {
 	userName?: string;
 	userFacts: string[];
 	deductiveFacts: string[];
-}
-
-interface ChatContext {
-	date: string;
-	sessionSummaries: SessionSummary[];
-	memoryContext: MemoryContext | null;
-	conversationHistory: Array<{
-		role: "user" | "assistant";
-		content: string;
-		createdAt: string;
-	}>;
-}
-
-async function interpretChatMessage(
-	userMessage: string,
-	context: ChatContext,
-): Promise<ChatInterpretation | null> {
-	const groqKey = process.env.GROQ_API_KEY;
-	if (!groqKey) {
-		console.error("[Chat] GROQ_API_KEY not set");
-		return null;
-	}
-
-	const groq = new Groq({ apiKey: groqKey });
-
-	const systemPrompt = `You are Clairvoyant, a friendly AI assistant that helps users reflect on their day through chat conversations.
-
-The user is chatting with you about their day. Analyze their message and provide a JSON response with:
-1. "response": A warm, conversational reply (2-3 sentences max)
-2. "extractedFacts": Array of new facts about the user worth remembering (empty array if none)
-3. "newTopics": Array of new topics to tag this session with (1-2 word tags, empty if none)
-4. "shouldUpdateSummary": Boolean - whether to update the session summary
-5. "summaryAddition": String or null - text to append to session summary if shouldUpdateSummary is true
-
-Style:
-- Be warm and casual, like a friend
-- Use their name if known
-- Reference session context naturally
-- Keep responses brief - this is chat, not an essay
-- Don't be overly enthusiastic or use excessive exclamation marks
-
-IMPORTANT: Respond with ONLY valid JSON matching the schema above. No markdown, no code blocks, just the JSON object.`;
-
-	const sessionsContext =
-		context.sessionSummaries.length > 0
-			? `SESSIONS FROM ${context.date}:\n${context.sessionSummaries.map((s) => `- ${s.summary}\n  Topics: ${s.topics.join(", ")}\n  Time: ${s.startedAt} to ${s.endedAt}`).join("\n")}\n`
-			: `No sessions recorded for ${context.date} yet.\n`;
-
-	let userProfileSection = "";
-	if (context.memoryContext) {
-		const { userName, userFacts, deductiveFacts } = context.memoryContext;
-		const profileParts: string[] = [];
-		if (userName) profileParts.push(`Name: ${userName}`);
-		if (userFacts.length > 0)
-			profileParts.push(
-				`Known facts:\n${userFacts.map((f) => `- ${f}`).join("\n")}`,
-			);
-		if (deductiveFacts.length > 0)
-			profileParts.push(
-				`Inferred:\n${deductiveFacts.map((f) => `- ${f}`).join("\n")}`,
-			);
-		if (profileParts.length > 0) {
-			userProfileSection = `USER PROFILE:\n${profileParts.join("\n")}\n`;
-		}
-	}
-
-	const userPrompt = `DATE: ${context.date}
-
-${sessionsContext}
-
-${userProfileSection}
-
-${context.conversationHistory.length > 0 ? `CONVERSATION HISTORY:\n${context.conversationHistory.map((m) => `[${m.role}] ${m.content}`).join("\n---\n")}\n` : ""}
-
-USER'S NEW MESSAGE:
-${userMessage}
-
-Respond with JSON only.`;
-
-	try {
-		const completion = await groq.chat.completions.create({
-			model: "openai/gpt-oss-120b",
-			messages: [
-				{ role: "system", content: systemPrompt },
-				{ role: "user", content: userPrompt },
-			],
-			temperature: 0.7,
-			max_tokens: 500,
-			response_format: { type: "json_object" },
-		});
-
-		const content = completion.choices[0]?.message?.content;
-		if (!content) {
-			console.error("[Chat] No content from Groq");
-			return null;
-		}
-
-		console.log("[Chat] Raw Groq response:", content);
-
-		const parsed = ChatInterpretationSchema.parse(JSON.parse(content));
-		return parsed;
-	} catch (error) {
-		console.error(
-			`[Chat] Groq interpretation failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
-		return null;
-	}
 }
 
 async function fetchMemoryContext(
@@ -281,6 +150,15 @@ export const sendMessage = action({
 		)) as ChatMessage[];
 		console.log(`[Chat] Loaded ${existingMessages.length} existing messages`);
 
+		const dailySummary = (await ctx.runQuery(
+			internal.chatQueries.getDailySummaryForDate,
+			{ userId: user._id, date },
+		)) as { _id: Id<"dailySummaries"> } | null;
+		const dailySummaryId = dailySummary?._id;
+		console.log(
+			`[Chat] Daily summary for ${date}: ${dailySummaryId ?? "none"}`,
+		);
+
 		let memoryContext: MemoryContext | null = null;
 		const honchoKey = process.env.HONCHO_API_KEY;
 		if (honchoKey) {
@@ -292,23 +170,29 @@ export const sendMessage = action({
 			}
 		}
 
-		const context: ChatContext = {
-			date,
-			sessionSummaries,
-			memoryContext,
-			conversationHistory: existingMessages.map((m) => ({
-				role: m.role,
-				content: m.content,
-				createdAt: m.createdAt,
-			})),
-		};
-
-		const interpretation = await interpretChatMessage(content, context);
-
-		if (!interpretation) {
-			console.error("[Chat] Failed to interpret message");
-			return { success: false, error: "interpretation_failed" };
-		}
+		const interpretation = (await ctx.runAction(
+			internal.bamlActions.interpretChatMessage,
+			{
+				userMessage: content,
+				context: {
+					date,
+					sessionSummaries: sessionSummaries.map((s) => ({
+						summary: s.summary,
+						topics: s.topics,
+						startedAt: s.startedAt,
+						endedAt: s.endedAt,
+					})),
+					userName: memoryContext?.userName,
+					userFacts: memoryContext?.userFacts ?? [],
+					deductiveFacts: memoryContext?.deductiveFacts ?? [],
+					conversationHistory: existingMessages.map((m) => ({
+						role: m.role,
+						content: m.content,
+						createdAt: m.createdAt,
+					})),
+				},
+			},
+		)) as ChatInterpretation;
 
 		console.log("[Chat] Interpretation:", {
 			responseLength: interpretation.response.length,
@@ -323,6 +207,7 @@ export const sendMessage = action({
 			internal.chatQueries.insertMessage,
 			{
 				userId: user._id,
+				dailySummaryId,
 				date,
 				role: "user" as const,
 				content,
@@ -335,6 +220,7 @@ export const sendMessage = action({
 			internal.chatQueries.insertMessage,
 			{
 				userId: user._id,
+				dailySummaryId,
 				date,
 				role: "assistant" as const,
 				content: interpretation.response,

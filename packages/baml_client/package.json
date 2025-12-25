@@ -1,0 +1,15 @@
+{
+	"name": "@clairvoyant/baml-client",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"main": "baml_client/index.ts",
+	"types": "baml_client/index.ts",
+	"exports": {
+		".": "./baml_client/index.ts",
+		"./types": "./baml_client/types.ts"
+	},
+	"dependencies": {
+		"@boundaryml/baml": "0.215.0"
+	}
+}

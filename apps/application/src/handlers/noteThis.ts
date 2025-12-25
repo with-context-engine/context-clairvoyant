@@ -1,8 +1,8 @@
 import { api } from "@convex/_generated/api";
 import { type AppSession, ViewType } from "@mentra/sdk";
-import { b } from "../baml_client";
+import { b } from "@clairvoyant/baml-client";
 import { convexClient, recordToolInvocation } from "../core/convex";
-import { Router } from "../baml_client";
+import { Router } from "@clairvoyant/baml-client";
 
 const noteThisRunIds = new WeakMap<AppSession, number>();
 

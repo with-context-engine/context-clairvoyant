@@ -87,9 +87,12 @@ export default defineSchema({
 	}).index("by_email_note", ["emailNoteId"]),
 	chatMessages: defineTable({
 		userId: v.id("users"),
+		dailySummaryId: v.optional(v.id("dailySummaries")),
 		date: v.string(),
 		role: v.union(v.literal("user"), v.literal("assistant")),
 		content: v.string(),
 		createdAt: v.string(),
-	}).index("by_user_date", ["userId", "date"]),
+	})
+		.index("by_user_date", ["userId", "date"])
+		.index("by_daily_summary", ["dailySummaryId"]),
 });

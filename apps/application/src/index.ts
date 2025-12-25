@@ -1,7 +1,7 @@
 import { api } from "@convex/_generated/api";
 import type { Session } from "@honcho-ai/sdk";
 import { AppServer, type AppSession } from "@mentra/sdk";
-import { b } from "./baml_client";
+import { b } from "@clairvoyant/baml-client";
 import { checkUserIsPro, convexClient } from "./core/convex";
 import { env } from "./core/env";
 import { RateLimiter } from "./core/rateLimiting";

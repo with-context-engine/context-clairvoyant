@@ -1,6 +1,6 @@
+import { b, Router } from "@clairvoyant/baml-client";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
-import { b, Router } from "./baml_client";
 import { recordToolInvocation } from "./core/convex";
 import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
@@ -105,9 +105,7 @@ export async function handleTranscription(
 			return;
 
 		case Router.NOTE_THIS:
-			session.logger.info(
-				`[Clairvoyant] Note This route: starting async flow`,
-			);
+			session.logger.info(`[Clairvoyant] Note This route: starting async flow`);
 			void startNoteThisFlow(transcriptBuffer, session, mentraUserId);
 			return;
 

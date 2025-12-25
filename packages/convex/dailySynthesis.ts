@@ -2,7 +2,6 @@
 
 import { Honcho } from "@honcho-ai/sdk";
 import { v } from "convex/values";
-import OpenAI from "openai";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction } from "./_generated/server";
@@ -46,14 +45,6 @@ export const synthesizeDailySummary = internalAction({
 		}
 
 		// 2. Check API keys
-		const openaiKey = process.env.OPENAI_API_KEY;
-		if (!openaiKey) {
-			console.error(
-				"[DailySummary] OPENAI_API_KEY environment variable is not set",
-			);
-			return { success: false, reason: "missing_api_key" };
-		}
-
 		const honchoKey = process.env.HONCHO_API_KEY;
 		if (!honchoKey) {
 			console.error(
@@ -88,36 +79,26 @@ export const synthesizeDailySummary = internalAction({
 			);
 		}
 
-		const openai = new OpenAI({ apiKey: openaiKey });
+		// Build session inputs for BAML
+		const sessionInputs = sessions.map((s: SessionSummary, i: number) => ({
+			index: i + 1,
+			summary: s.summary,
+		}));
 
-		const sessionTexts: string = sessions
-			.map((s: SessionSummary, i: number) => `Session ${i + 1}: ${s.summary}`)
-			.join("\n");
-
-		const userProfileSection =
-			peerCard.length > 0
-				? `USER PROFILE:\n${peerCard.join("\n")}\n\n`
-				: "";
+		const userProfile =
+			peerCard.length > 0 ? peerCard.join("\n") : undefined;
 
 		try {
-			const response = await openai.chat.completions.create({
-				model: "gpt-4o-mini",
-				messages: [
-					{
-						role: "system",
-						content:
-							"Summarize the user's day based on their glasses session notes. Write 1-2 casual sentences. Be concise and friendly. Focus on what's memorable. If you know the user's name, use it naturally. Personalize based on their profile if available.",
-					},
-					{
-						role: "user",
-						content: `${userProfileSection}SESSIONS:\n${sessionTexts}`,
-					},
-				],
-				max_tokens: 150,
-			});
+			// Call BAML action for summarization
+			const result = await ctx.runAction(
+				internal.bamlActions.summarizeDailySessions,
+				{
+					sessions: sessionInputs,
+					userProfile,
+				},
+			);
 
-			const summary: string =
-				response.choices[0]?.message?.content ?? "No summary available.";
+			const summary: string = result.summary ?? "No summary available.";
 
 			// 3. Merge topics from all sessions (deduplicated)
 			const allTopics: string[] = [
@@ -144,7 +125,7 @@ export const synthesizeDailySummary = internalAction({
 			);
 			return {
 				success: false,
-				reason: "openai_error",
+				reason: "baml_error",
 				error: error instanceof Error ? error.message : String(error),
 			};
 		}

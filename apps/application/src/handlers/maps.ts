@@ -2,7 +2,7 @@ import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { ViewType } from "@mentra/sdk";
-import { b } from "../baml_client";
+import { b } from "@clairvoyant/baml-client";
 import {
 	checkUserIsPro,
 	convexClient,

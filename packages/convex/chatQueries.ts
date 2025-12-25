@@ -80,6 +80,7 @@ export const getMessagesInternal = internalQuery({
 export const insertMessage = internalMutation({
 	args: {
 		userId: v.id("users"),
+		dailySummaryId: v.optional(v.id("dailySummaries")),
 		date: v.string(),
 		role: v.union(v.literal("user"), v.literal("assistant")),
 		content: v.string(),
@@ -87,5 +88,18 @@ export const insertMessage = internalMutation({
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db.insert("chatMessages", args);
+	},
+});
+
+export const getDailySummaryForDate = internalQuery({
+	args: {
+		userId: v.id("users"),
+		date: v.string(),
+	},
+	handler: async (ctx, { userId, date }) => {
+		return await ctx.db
+			.query("dailySummaries")
+			.withIndex("by_user_date", (q) => q.eq("userId", userId).eq("date", date))
+			.first();
 	},
 });

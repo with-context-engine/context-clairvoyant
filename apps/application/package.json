@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@boundaryml/baml": "0.215.0",
+		"@clairvoyant/baml-client": "workspace:*",
 		"@honcho-ai/sdk": "^1.6.0",
 		"@mentra/sdk": "^2.1.28",
 		"@t3-oss/env-core": "^0.13.10",
