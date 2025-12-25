@@ -1,7 +1,12 @@
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+	internalMutation,
+	internalQuery,
+	mutation,
+	query,
+} from "./_generated/server";
 
 // =============================================================================
 // Utilities
@@ -60,6 +65,16 @@ export const getByMentraId = query({
 	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {
 		return await getByMentraIdInternal(ctx, args.mentraUserId);
+	},
+});
+
+export const getByMentraIdInternalQuery = internalQuery({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
 	},
 });
 

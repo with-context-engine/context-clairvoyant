@@ -1,8 +1,8 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { resend } from "./resendClient";
 import { polar } from "./payments";
+import { resend } from "./resendClient";
 
 const http = httpRouter();
 
@@ -41,6 +41,42 @@ http.route({
 	method: "POST",
 	handler: httpAction(async (ctx, req) => {
 		return await resend.handleResendEventWebhook(ctx, req);
+	}),
+});
+
+http.route({
+	path: "/notes/inbound",
+	method: "POST",
+	handler: httpAction(async (ctx, req) => {
+		const svixId = req.headers.get("svix-id");
+		const svixTimestamp = req.headers.get("svix-timestamp");
+		const svixSignature = req.headers.get("svix-signature");
+
+		if (!svixId || !svixTimestamp || !svixSignature) {
+			return new Response("Missing signature headers", { status: 400 });
+		}
+
+		const payload = await req.text();
+
+		const result = await ctx.runAction(
+			internal.inboundEmail.processInboundWebhook,
+			{
+				payload,
+				svixId,
+				svixTimestamp,
+				svixSignature,
+			},
+		);
+
+		if (!result.success && result.error === "invalid_signature") {
+			return new Response("Invalid signature", { status: 401 });
+		}
+
+		if (!result.success && result.error === "server_config") {
+			return new Response("Server configuration error", { status: 500 });
+		}
+
+		return new Response("OK", { status: 200 });
 	}),
 });
 

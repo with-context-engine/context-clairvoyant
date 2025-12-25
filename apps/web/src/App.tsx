@@ -4,6 +4,7 @@ import { ConvexProvider } from "convex/react";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { BottomTabBar } from "./components/BottomTabBar";
+import { ChatPage } from "./components/ChatPage";
 import ClairvoyantMobile from "./components/Clairvoyant";
 import { HomePage } from "./components/HomePage";
 import { MemoryPage } from "./components/MemoryPage";
@@ -117,9 +118,11 @@ export function App() {
 							<Route path="/" element={<HomePage />} />
 							<Route
 								path="/memory"
-								element={
-									<MemoryPage mentraUserId={authState.mentraUserId} />
-								}
+								element={<MemoryPage mentraUserId={authState.mentraUserId} />}
+							/>
+							<Route
+								path="/memory/chat/:date"
+								element={<ChatPage mentraUserId={authState.mentraUserId} />}
 							/>
 							<Route
 								path="/usage"

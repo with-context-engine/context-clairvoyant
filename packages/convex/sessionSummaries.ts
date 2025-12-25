@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalQuery, mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { polar } from "./payments";
 
 export const upsert = mutation({
@@ -177,5 +177,43 @@ export const getAllForUserInternal = internalQuery({
 			startedAt: s.startedAt,
 			endedAt: s.endedAt,
 		}));
+	},
+});
+
+export const getByIdInternal = internalQuery({
+	args: {
+		sessionSummaryId: v.id("sessionSummaries"),
+	},
+	handler: async (ctx, { sessionSummaryId }) => {
+		return await ctx.db.get(sessionSummaryId);
+	},
+});
+
+export const updateInternal = internalMutation({
+	args: {
+		sessionSummaryId: v.id("sessionSummaries"),
+		summary: v.string(),
+		topics: v.array(v.string()),
+	},
+	handler: async (ctx, { sessionSummaryId, summary, topics }) => {
+		await ctx.db.patch(sessionSummaryId, {
+			summary,
+			topics,
+		});
+		return sessionSummaryId;
+	},
+});
+
+export const getByHonchoSessionIdInternal = internalQuery({
+	args: {
+		honchoSessionId: v.string(),
+	},
+	handler: async (ctx, { honchoSessionId }) => {
+		return await ctx.db
+			.query("sessionSummaries")
+			.withIndex("by_honcho_session", (q) =>
+				q.eq("honchoSessionId", honchoSessionId),
+			)
+			.first();
 	},
 });
