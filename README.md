@@ -10,13 +10,15 @@ Clairvoyant is an advanced MentraOS application that provides real-time voice tr
 
 The application integrates multiple layers across a monorepo structure:
 - **MentraOS Framework**: Provides audio streaming, voice activity detection, and UI components
-- **Intelligent Routing**: BAML-powered routing system that directs queries to appropriate handlers
-- **Specialized Tools**: External API integrations (weather, search, maps, memory)
+- **Intelligent Routing**: BAML-powered routing system that directs queries to appropriate handlers (with two-phase ambient speech detection)
+- **Specialized Tools**: External API integrations (weather, search, maps, memory, chat)
 - **Handler Orchestration**: UX flow management with loading states and response formatting
-- **AI Formatting**: BAML prompts that convert tool outputs to concise, readable responses
-- **Persistent Memory**: Honcho-powered context and personalization system with memory injection
+- **AI Formatting & Interpretation**: BAML prompts that convert tool outputs to concise, readable responses and interpret user interactions
+- **Dual-Memory Architecture**: Multi-layer persistent memory with session context, daily summaries, and peer facts (Honcho)
+- **Interactive Chat**: Full-page ChatPage with memory-enhanced responses powered by Groq
+- **Session Management**: Automatic session summarization and daily synthesis (cron-based)
 - **Subscription Management**: Polar-powered payment system for Pro features
-- **Data Persistence**: Convex backend for user preferences, tool usage analytics, and subscription state
+- **Data Persistence**: Convex backend for user preferences, tool usage analytics, session summaries, and subscription state
 
 ## Project Structure
 
@@ -41,7 +43,9 @@ clairvoyant/
 │   │       │   ├── search.ts              # Web search handler (dual-layer memory)
 │   │       │   ├── maps.ts                # Maps handler (with memory)
 │   │       │   ├── knowledge.ts            # Knowledge handler (with memory)
-│   │       │   └── memory.ts              # Memory capture/recall
+│   │       │   ├── memory.ts              # Memory capture/recall
+│   │       │   ├── chat.ts                # Chat handler (with session context)
+│   │       │   └── hints.ts               # Proactive hint generation (PASSTHROUGH)
 │   │       ├── tools/                      # External API integrations
 │   │       │   ├── weatherCall.ts         # OpenWeatherMap integration
 │   │       │   ├── webSearch.ts           # Tavily web search
@@ -75,22 +79,32 @@ clairvoyant/
 │               └── utils.ts              # Utilities
 │
 ├── packages/
-│   └── convex/               # Convex backend functions
-│       ├── schema.ts                     # Database schema
-│       ├── users.ts                      # User management
-│       ├── preferences.ts                # User preferences
-│       ├── toolInvocations.ts            # Tool usage analytics
-│       ├── polar.ts                      # Polar subscription integration
-│       └── auth.config.ts                # Authentication config
+│   ├── convex/               # Convex backend functions
+│   │   ├── schema.ts                     # Database schema
+│   │   ├── users.ts                      # User management
+│   │   ├── preferences.ts                # User preferences
+│   │   ├── toolInvocations.ts            # Tool usage analytics
+│   │   ├── sessionSummaries.ts           # Session summary storage & queries
+│   │   ├── dailySummaries.ts             # Daily synthesis & management
+│   │   ├── chatMessages.ts               # Chat message persistence
+│   │   ├── polar.ts                      # Polar subscription integration
+│   │   ├── auth.config.ts                # Authentication config
+│   │   └── cronManagement.ts             # Cron operation control
+│   │
+│   └── @clairvoyant/baml-client/         # Auto-generated BAML client
+│       └── Exposes all BAML functions (b.*) to application handlers
 │
 ├── baml_src/                 # BAML prompt definitions
-│   ├── route.baml           # Routing logic
+│   ├── route.baml           # Routing logic with PASSTHROUGH for ambient speech
 │   ├── weather.baml         # Weather formatting
 │   ├── search.baml          # Search formatting
 │   ├── maps.baml            # Maps formatting
 │   ├── recall.baml          # Memory recall formatting
 │   ├── answer.baml          # Knowledge formatting
-│   ├── synthesis.baml       # Memory synthesis
+│   ├── chat.baml            # Chat interpretation and responses
+│   ├── session_summary.baml # Session transcript summarization
+│   ├── synthesis.baml       # Daily synthesis from session summaries
+│   ├── hints.baml           # Proactive hint generation (two-phase)
 │   ├── core.baml            # Core utilities (EnhanceQuery)
 │   ├── clients.baml         # AI client configurations
 │   └── generators.baml      # Code generation settings
@@ -117,15 +131,34 @@ sequenceDiagram
 
     User->>MentraOS: Starts speaking
     MentraOS->>Application: onVoiceActivity + onAudioChunk
+    MentraOS->>Application: onSession(sessionId)
+    Application->>Memory: Initialize Honcho session with sessionId
     
     User->>MentraOS: Stops speaking  
     MentraOS->>Application: onVoiceActivity(false)
     
     Application->>Application: Process audio & transcribe via Groq Whisper
     Application->>Router: Route transcription via BAML
-    Router-->>Application: Routing decision (WEATHER/SEARCH/MAPS/MEMORY_RECALL/etc)
+    Router-->>Application: Routing decision (WEATHER/SEARCH/MAPS/CHAT/MEMORY_RECALL/PASSTHROUGH/etc)
     
-    alt Specialized Route (e.g., WEATHER)
+    alt Chat Route (Pro Only)
+        Application->>Handler: startChatFlow()
+        Handler->>Convex: Check if user is Pro
+        alt Pro User
+            Handler->>MentraOS: Show loading state
+            Handler->>Memory: Get session context
+            Memory-->>Handler: Working memory from current session
+            Handler->>BAML: InterpretChatMessage(message)
+            BAML-->>Handler: Extracted facts, topics, summary updates
+            Handler->>Handler: Groq chat API with memory context
+            Handler-->>Handler: Chat response
+            Handler->>Convex: Store chat message
+            Handler->>BAML: Update session summary
+            Handler->>MentraOS: Display chat response
+        else Free User
+            Handler->>MentraOS: "Chat is a Pro feature"
+        end
+    else Specialized Route (e.g., WEATHER)
         Application->>Handler: startWeatherFlow()
         Handler->>Convex: Check user preferences
         Convex-->>Handler: Weather unit preference
@@ -135,11 +168,9 @@ sequenceDiagram
         Handler->>Tool: getWeatherData(lat, lon, unit)
         Tool->>ExtAPI: OpenWeatherMap API
         ExtAPI-->>Tool: Weather data
-        Tool-->>Handler: Formatted weather response
         Handler->>Convex: Check if user is Pro
         Convex->>Polar: Verify subscription
         Polar-->>Convex: Subscription status
-        Convex-->>Handler: isPro status
         alt Pro User (Memory Enabled)
             Handler->>Memory: getContext() for personalization
             Memory-->>Handler: User context (name, facts, preferences)
@@ -150,22 +181,15 @@ sequenceDiagram
         BAML-->>Handler: Short readable lines
         Handler->>MentraOS: Display formatted response
         Handler->>Convex: Record tool invocation
-    else Web Search Route (Pro Only)
-        Application->>Handler: startWebSearchFlow()
-        Handler->>Convex: Check if user is Pro
-        alt Pro User
-            Handler->>Memory: getContext() for query enhancement
-            Memory-->>Handler: User context
-            Handler->>BAML: EnhanceQuery(query, memory)
-            BAML-->>Handler: Enhanced query
-            Handler->>Tool: performWebSearch(enhancedQuery)
-            Tool->>ExtAPI: Tavily API
-            ExtAPI-->>Tool: Search results
-            Handler->>BAML: AnswerSearch(query, results, memory)
-            BAML-->>Handler: Personalized response
-            Handler->>MentraOS: Display response
-        else Free User
-            Handler->>MentraOS: "Web search is a Pro feature"
+    else PASSTHROUGH Route
+        Application->>BAML: Phase 1: ClassifyForHint(text)
+        BAML-->>Application: Hintable or Ambient classification
+        alt Hintable
+            Application->>Memory: Phase 2: Query for relevant context
+            Memory-->>Application: User facts/context if available
+            Application->>BAML: GenerateHint(topic, memory)
+            BAML-->>Application: Hint (if warranted)
+            Application->>MentraOS: Optionally display hint
         end
     else Memory Recall Route
         Application->>Memory: MemoryRecall(query)
@@ -173,17 +197,30 @@ sequenceDiagram
         Memory->>BAML: Format retrieved context
         Memory->>MentraOS: Display personalized response
     else Default Route
-        Application->>Memory: MemoryCapture(transcription)
-        Memory->>Memory: Store in Honcho session
+        Application->>Memory: Capture transcription in session
+        Memory->>Memory: Store in Honcho session buffer
+    end
+
+    User->>MentraOS: Session ends
+    MentraOS->>Application: onSessionEnd(sessionId)
+    Application->>BAML: SummarizeSession(transcript)
+    BAML-->>Application: Session summary
+    Application->>Convex: Store sessionSummary
+    alt Pro User
+        Convex->>Convex: Trigger daily synthesis if needed
+        Convex->>BAML: SynthesizeDay(sessionSummaries, memory)
+        BAML-->>Convex: Daily summary
+        Convex->>Convex: Update dailySummaries
     end
 ```
 
 ## Key Features
 
 ### 🧠 Intelligent Routing System
-- **BAML-powered routing**: Automatically classifies queries into categories (weather, search, maps, memory, knowledge)
+- **BAML-powered routing**: Automatically classifies queries into categories (weather, search, maps, memory, knowledge, chat, passthrough)
+- **Two-phase classification**: Distinguishes user-directed speech from ambient content (TV, podcasts, background speech)
 - **Context-aware routing**: Routes questions about user's personal information to memory system
-- **Extensible routing**: Easy to add new categories and handlers
+- **Extensible routing**: Easy to add new categories and handlers with priority-based disambiguation
 - **Route categories**:
   - `WEATHER`: Current/upcoming weather for specific locations
   - `WEB_SEARCH`: News, current events, time-sensitive information (Pro only)
@@ -191,6 +228,8 @@ sequenceDiagram
   - `KNOWLEDGE`: General factual information
   - `MEMORY_RECALL`: Personal information, preferences, history
   - `MEMORY_CAPTURE`: Commands to store new personal facts or reminders
+  - `CHAT`: Interactive conversation with memory context (Pro feature)
+  - `PASSTHROUGH`: Ambient speech gating (no action, optional hint generation)
 
 ### 🔧 Modular Tool Architecture
 - **Weather Tool**: OpenWeatherMap integration with location services and user preference support
@@ -213,12 +252,33 @@ sequenceDiagram
 - **Contextual formatting**: Responses tailored to user's query and personality
 - **Memory-enhanced responses**: Personalized insights based on user context (Pro feature)
 
-### 💾 Persistent Memory & Context System
+### 💾 Dual-Memory Architecture & Context System
 
-#### Memory Architecture
-- **Honcho integration**: Persistent memory across sessions
+#### Three-Layer Memory Model
+1. **Within-Session Working Memory (Honcho)**
+   - Uses stable Mentra sessionId for consistent session tracking
+   - Buffers transcripts during active sessions
+   - Automatically summarized on session stop
+   - Fast context retrieval for real-time interactions
+
+2. **Cross-Session Peer Facts (Honcho)**
+   - Persistent peer representation and biographical cards
+   - Deductive conclusions about user preferences
+   - Multi-peer support for family/group conversations
+   - Enables "who is this person" understanding
+
+3. **Session Index & Daily Summaries (Convex)**
+   - Structured session summaries stored in Convex
+   - Daily synthesis via cron (3am UTC)
+   - Enables "what did we discuss last week" queries
+   - Pro-only feature for LLM operations
+   - Web dashboard for memory browsing
+
+#### Memory Architecture Highlights
+- **Honcho integration**: Persistent memory across sessions with session-aware context
+- **Dual-memory system**: Combines real-time session context with persistent daily summaries
 - **Peer-based conversations**: Dedicated "diatribe" peer for raw transcription storage
-- **Personal context**: Remembers user preferences, history, and personal information
+- **Session boundaries**: Automatic session detection and summarization
 - **Memory-aware responses**: Leverages stored context for personalized interactions (Pro feature)
 
 #### Memory Injection Pattern
@@ -238,14 +298,47 @@ Clairvoyant implements a sophisticated memory injection system that enhances too
 - With memory: "Today's vibe: 9/10, Ajay - perfect for your morning run!" (uses biographical fact)
 - With deductive memory: "Today's vibe: 9/10, Ajay - chilly but you like cold weather!" (uses deductive conclusion)
 
+### 💬 Interactive Chat with Memory
+
+#### Chat Interface
+- **Full-page ChatPage**: Mobile-optimized chat component
+- **Memory-enhanced responses**: Powered by Groq (gpt-oss-120b) with memory context injection
+- **Session-aware chat**: Access to current session context for contextual conversations
+- **Persistent messages**: Chat history stored in Convex with user/date indexing
+- **Auto-resynthesis**: Daily summaries automatically updated when chat sessions end
+- **Note This feature**: Email session notes directly from chat interface (Pro feature)
+
+#### Chat Interpretation
+- **Automatic analysis**: BAML-powered `InterpretChatMessage` for structured understanding
+- **Fact extraction**: Automatically identifies and stores new user facts from chat
+- **Topic tracking**: Detects conversation topics for summary updates
+- **Summary updates**: Intelligently decides when to update daily summaries
+
+### 🎯 Session Management & Proactive Hints
+
+#### Session Features
+- **Automatic boundaries**: Detects session start/stop via MentraOS events
+- **Session summaries**: Groq-powered summarization of session transcripts
+- **Quality filtering**: Ignores incomplete sentences, filler words, and transcription errors
+- **Temporal context**: Timestamps and context window tracking
+
+#### Proactive Hints (PASSTHROUGH Route)
+- **Two-phase classification**: Phase 1 gates ambient speech, Phase 2 queries memory for relevant knowledge
+- **Smart triggering**: Only surfaces hints when relevant knowledge exists
+- **Non-intrusive**: Minimal LLM costs via early filtering and selective generation
+- **Context-aware**: Hints are personalized based on user facts and recent history
+
 ### 💳 Subscription & Payment System
 
 #### Polar Integration
 - **Subscription management**: Powered by [Polar](https://polar.sh) for payment processing
 - **Pro tier**: Unlocks advanced features including:
   - Web search functionality
+  - Interactive chat with memory context
   - Memory-enhanced personalized responses
+  - Daily summary synthesis and browsing
   - Advanced context awareness
+  - Session note export
 - **Free tier**: Basic features including weather, maps, knowledge, and memory capture/recall
 - **Subscription state**: Stored in Convex and checked before Pro feature access
 
@@ -788,6 +881,41 @@ if (!isPro) {
 }
 ```
 
+## BAML Client Package
+
+The application uses an auto-generated BAML client package (`@clairvoyant/baml-client`) that centralizes all BAML function exports. This package is generated from `baml_src/` definitions.
+
+### Regenerating the BAML Client
+
+After modifying any `.baml` files, regenerate the client:
+
+```bash
+npx baml-cli generate
+```
+
+This creates/updates the `packages/@clairvoyant/baml-client` directory with TypeScript bindings for all BAML functions, exposed as `b.*` in application code.
+
+### Using BAML Functions in Handlers
+
+```typescript
+import { b } from "../baml_client";
+
+// Chat interpretation
+const interpretation = await b.InterpretChatMessage(userMessage);
+
+// Session summarization
+const summary = await b.SummarizeSession(transcript);
+
+// Daily synthesis
+const dailySummary = await b.SynthesizeDay(sessionSummaries, memoryContext);
+
+// Two-phase hint generation
+const eligibility = await b.ClassifyForHint(text);
+if (eligibility.category === HintCategory.HINTABLE) {
+  const hint = await b.GenerateHint(eligibility.topic, text, memory);
+}
+```
+
 ## Tool Integration Pattern
 
 ### Adding New Tools
@@ -905,6 +1033,7 @@ cd apps/application && bun test
 - `@boundaryml/baml`: AI prompt engineering and routing framework
 - `openai`: OpenAI API client
 - `@tavily/core`: Tavily web search API
+- `groq-sdk`: Groq API client for Whisper and inference
 
 ### External APIs
 - `wavefile`: Audio format conversion utilities
@@ -926,15 +1055,18 @@ cd apps/application && bun test
 
 When adding new tools or features:
 
-1. Follow the established tool/handler pattern
+1. Follow the established tool/handler pattern (see AGENTS.md)
 2. Add appropriate BAML prompts and routing
 3. Include proper error handling and UX states
 4. Test routing logic with BAML test cases
-5. Regenerate BAML client after changes
+5. Regenerate BAML client after changes (`npx baml-cli generate`)
 6. Consider memory injection for personalization (Pro feature)
 7. Add Pro gating if feature is premium
 8. Update this README if adding new capabilities
 9. Follow the memory injection pattern for context-aware responses
+10. For chat features: leverage `InterpretChatMessage` for auto-parsing
+11. For session features: use session summarization and daily synthesis patterns
+12. For hints/passive features: implement two-phase classification to minimize costs
 
 ## Documentation
 
