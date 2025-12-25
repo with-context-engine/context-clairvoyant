@@ -78,6 +78,40 @@ export interface AnswerLines {
   
 }
 
+export interface ChatContext {
+  date: string
+  sessionSummaries: ChatSessionSummary[]
+  userName?: string | null
+  userFacts: string[]
+  deductiveFacts: string[]
+  conversationHistory: ChatConversationMessage[]
+  
+}
+
+export interface ChatConversationMessage {
+  role: string
+  content: string
+  createdAt: string
+  
+}
+
+export interface ChatInterpretation {
+  response: string
+  extractedFacts: string[]
+  newTopics: string[]
+  shouldUpdateSummary: boolean
+  summaryAddition?: string | null
+  
+}
+
+export interface ChatSessionSummary {
+  summary: string
+  topics: string[]
+  startedAt: string
+  endedAt: string
+  
+}
+
 export interface ConversationMessage {
   direction: string
   content: string

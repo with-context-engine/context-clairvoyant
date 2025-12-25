@@ -31,6 +31,14 @@ export default class TypeBuilder {
     
     AnswerLines: ClassViewer<'AnswerLines', "lines">;
     
+    ChatContext: ClassViewer<'ChatContext', "date" | "sessionSummaries" | "userName" | "userFacts" | "deductiveFacts" | "conversationHistory">;
+    
+    ChatConversationMessage: ClassViewer<'ChatConversationMessage', "role" | "content" | "createdAt">;
+    
+    ChatInterpretation: ClassViewer<'ChatInterpretation', "response" | "extractedFacts" | "newTopics" | "shouldUpdateSummary" | "summaryAddition">;
+    
+    ChatSessionSummary: ClassViewer<'ChatSessionSummary', "summary" | "topics" | "startedAt" | "endedAt">;
+    
     ConversationMessage: ClassViewer<'ConversationMessage', "direction" | "content">;
     
     CurrentLite: ClassViewer<'CurrentLite', "temperature" | "feels_like" | "conditions" | "humidity" | "pressure" | "wind_speed" | "wind_direction" | "visibility" | "uv_index" | "clouds">;
@@ -92,7 +100,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","ConversationMessage","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","ChatContext","ChatConversationMessage","ChatInterpretation","ChatSessionSummary","ConversationMessage","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "HintCategory","Router",
@@ -106,6 +114,22 @@ export default class TypeBuilder {
         
         this.AnswerLines = this.tb.classViewer("AnswerLines", [
           "lines",
+        ]);
+        
+        this.ChatContext = this.tb.classViewer("ChatContext", [
+          "date","sessionSummaries","userName","userFacts","deductiveFacts","conversationHistory",
+        ]);
+        
+        this.ChatConversationMessage = this.tb.classViewer("ChatConversationMessage", [
+          "role","content","createdAt",
+        ]);
+        
+        this.ChatInterpretation = this.tb.classViewer("ChatInterpretation", [
+          "response","extractedFacts","newTopics","shouldUpdateSummary","summaryAddition",
+        ]);
+        
+        this.ChatSessionSummary = this.tb.classViewer("ChatSessionSummary", [
+          "summary","topics","startedAt","endedAt",
         ]);
         
         this.ConversationMessage = this.tb.classViewer("ConversationMessage", [

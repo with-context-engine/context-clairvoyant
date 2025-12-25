@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  AlertLite,  AnswerLines,  ConversationMessage,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
+import type {  AlertLite,  AnswerLines,  ChatContext,  ChatConversationMessage,  ChatInterpretation,  ChatSessionSummary,  ConversationMessage,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -46,6 +46,32 @@ export namespace partial_types {
     }
     export interface AnswerLines {
       lines: string[]
+    }
+    export interface ChatContext {
+      date?: string | null
+      sessionSummaries: ChatSessionSummary[]
+      userName?: string | null
+      userFacts: string[]
+      deductiveFacts: string[]
+      conversationHistory: ChatConversationMessage[]
+    }
+    export interface ChatConversationMessage {
+      role?: string | null
+      content?: string | null
+      createdAt?: string | null
+    }
+    export interface ChatInterpretation {
+      response?: string | null
+      extractedFacts: string[]
+      newTopics: string[]
+      shouldUpdateSummary?: boolean | null
+      summaryAddition?: string | null
+    }
+    export interface ChatSessionSummary {
+      summary?: string | null
+      topics: string[]
+      startedAt?: string | null
+      endedAt?: string | null
     }
     export interface ConversationMessage {
       direction?: string | null

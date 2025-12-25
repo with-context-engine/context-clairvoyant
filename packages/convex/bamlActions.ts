@@ -3,6 +3,8 @@
 import { v } from "convex/values";
 import { b } from "../baml_client/baml_client";
 import type {
+	ChatContext,
+	ChatInterpretation,
 	DailySummaryResult,
 	EmailContext,
 	EmailInterpretation,
@@ -10,7 +12,7 @@ import type {
 } from "../baml_client/baml_client/types";
 import { internalAction } from "./_generated/server";
 
-export type { DailySummaryResult, EmailInterpretation };
+export type { ChatInterpretation, DailySummaryResult, EmailInterpretation };
 
 /**
  * BAML wrapper for daily session summarization.
@@ -79,6 +81,59 @@ export const interpretEmailReply = internalAction({
 		};
 
 		const result = await b.InterpretEmailReply(userMessage, emailContext);
+		return result;
+	},
+});
+
+/**
+ * BAML wrapper for chat message interpretation.
+ * Uses the InterpretChatMessage function defined in baml_src/chat.baml
+ */
+export const interpretChatMessage = internalAction({
+	args: {
+		userMessage: v.string(),
+		context: v.object({
+			date: v.string(),
+			sessionSummaries: v.array(
+				v.object({
+					summary: v.string(),
+					topics: v.array(v.string()),
+					startedAt: v.string(),
+					endedAt: v.string(),
+				}),
+			),
+			userName: v.optional(v.string()),
+			userFacts: v.array(v.string()),
+			deductiveFacts: v.array(v.string()),
+			conversationHistory: v.array(
+				v.object({
+					role: v.string(),
+					content: v.string(),
+					createdAt: v.string(),
+				}),
+			),
+		}),
+	},
+	handler: async (_, { userMessage, context }): Promise<ChatInterpretation> => {
+		const chatContext: ChatContext = {
+			date: context.date,
+			sessionSummaries: context.sessionSummaries.map((s) => ({
+				summary: s.summary,
+				topics: s.topics,
+				startedAt: s.startedAt,
+				endedAt: s.endedAt,
+			})),
+			userName: context.userName ?? null,
+			userFacts: context.userFacts,
+			deductiveFacts: context.deductiveFacts,
+			conversationHistory: context.conversationHistory.map((m) => ({
+				role: m.role,
+				content: m.content,
+				createdAt: m.createdAt,
+			})),
+		};
+
+		const result = await b.InterpretChatMessage(userMessage, chatContext);
 		return result;
 	},
 });

@@ -73,6 +73,20 @@ export function ChatPage({ mentraUserId }: ChatPageProps) {
 		return () => window.removeEventListener("popstate", handlePopState);
 	}, [mentraUserId, date, resynthesizeDay]);
 
+	useEffect(() => {
+		if (existingMessages && pendingMessages.length > 0) {
+			const existingContents = new Set(
+				existingMessages.map((m) => `${m.role}:${m.content}`),
+			);
+			const remaining = pendingMessages.filter(
+				(m) => !existingContents.has(`${m.role}:${m.content}`),
+			);
+			if (remaining.length !== pendingMessages.length) {
+				setPendingMessages(remaining);
+			}
+		}
+	}, [existingMessages, pendingMessages]);
+
 	const allMessages = [...(existingMessages ?? []), ...pendingMessages];
 	const messageCount = allMessages.length;
 
