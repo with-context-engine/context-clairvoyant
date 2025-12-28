@@ -1,9 +1,9 @@
+import { b, HintCategory } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
-import { ViewType } from "@mentra/sdk";
-import { b, HintCategory } from "@clairvoyant/baml-client";
 import { checkUserIsPro, convexClient } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 
 const hintRunIds = new WeakMap<AppSession, number>();
 
@@ -13,6 +13,7 @@ export async function tryPassthroughHint(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ): Promise<void> {
 	const runId = Date.now();
 	hintRunIds.set(session, runId);
@@ -110,9 +111,7 @@ export async function tryPassthroughHint(
 				.trim();
 
 			// Get facts relevant to the topic (top 5)
-			const relevantFacts = peerRep.explicit
-				.map((e) => e.content)
-				.slice(0, 5);
+			const relevantFacts = peerRep.explicit.map((e) => e.content).slice(0, 5);
 
 			const relevantDeductions = peerRep.deductive
 				.map((d) => d.conclusion)
@@ -150,23 +149,21 @@ export async function tryPassthroughHint(
 		if (hintRunIds.get(session) !== runId) return;
 
 		if (!hintResult.should_show || !hintResult.hint) {
-			session.logger.info(
-				`[tryPassthroughHint] LLM decided not to show hint`,
-			);
+			session.logger.info(`[tryPassthroughHint] LLM decided not to show hint`);
 			return;
 		}
 
-		// Show the hint
+		// Show the hint via displayQueue
 		session.logger.info(
 			`[tryPassthroughHint] Showing hint: "${hintResult.hint}"`,
 		);
-		session.layouts.showTextWall(`// Clairvoyant\n💡 ${hintResult.hint}`, {
-			view: ViewType.MAIN,
+		displayQueue.enqueue({
+			text: `// Clairvoyant\nH: ${hintResult.hint}`,
+			prefix: "H",
 			durationMs: 4000,
+			priority: 3,
 		});
 	} catch (error) {
-		session.logger.error(
-			`[tryPassthroughHint] Error: ${String(error)}`,
-		);
+		session.logger.error(`[tryPassthroughHint] Error: ${String(error)}`);
 	}
 }

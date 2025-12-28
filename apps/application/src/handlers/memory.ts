@@ -1,8 +1,9 @@
+import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
-import { type AppSession, ViewType } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
+import type { AppSession } from "@mentra/sdk";
 import { checkUserIsPro, convexClient } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
 
@@ -13,6 +14,7 @@ export async function MemoryCapture(
 	peers: Peer[],
 	peerId: string,
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
@@ -26,13 +28,12 @@ export async function MemoryCapture(
 		session.logger.warn(
 			"[MemoryCapture] User isn't Pro, memory capture disabled.",
 		);
-		session.layouts.showTextWall(
-			"// Clairvoyant\nM: Memory is a Pro feature.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nM: Memory is a Pro feature.",
+			prefix: "M",
+			durationMs: 3000,
+			priority: 1,
+		});
 		return;
 	}
 
@@ -76,6 +77,7 @@ export async function MemoryRecall(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
@@ -87,13 +89,12 @@ export async function MemoryRecall(
 		session.logger.warn(
 			"[MemoryRecall] User isn't Pro, memory recall disabled.",
 		);
-		session.layouts.showTextWall(
-			"// Clairvoyant\nR: Memory is a Pro feature.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nR: Memory is a Pro feature.",
+			prefix: "R",
+			durationMs: 3000,
+			priority: 1,
+		});
 		return;
 	}
 
@@ -233,7 +234,7 @@ export async function MemoryRecall(
 			// Process the memory synthesis results
 			const lines = synthesis.lines;
 			if (lines && lines.length > 0) {
-				// Display each line sequentially
+				// Display each line via displayQueue
 				for (let i = 0; i < lines.length; i++) {
 					const line = lines[i];
 
@@ -243,15 +244,12 @@ export async function MemoryRecall(
 					session.logger.info(
 						`[startMemoryRecallFlow] Memory synthesis line: ${line}`,
 					);
-					session.layouts.showTextWall(`// Clairvoyant\nR: ${line}`, {
-						view: ViewType.MAIN,
+					displayQueue.enqueue({
+						text: `// Clairvoyant\nR: ${line}`,
+						prefix: "R",
 						durationMs: 3000,
+						priority: 2,
 					});
-
-					// Add delay between lines (except for the last line)
-					if (i < lines.length - 1) {
-						await new Promise((resolve) => setTimeout(resolve, 3000));
-					}
 				}
 			} else {
 				session.logger.error(

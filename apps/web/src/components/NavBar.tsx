@@ -1,4 +1,4 @@
-import { BarChart3, Brain, Home, Settings } from "lucide-react";
+import { BarChart3, Brain, Home, ListOrdered, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 interface NavTab {
@@ -22,6 +22,7 @@ export function NavBar() {
 	const tabs: NavTab[] = [
 		{ path: "/", label: "Home", icon: Home },
 		{ path: "/memory", label: "Memory", icon: Brain },
+		{ path: "/queue", label: "Queue", icon: ListOrdered },
 		{ path: "/usage", label: "Usage", icon: BarChart3 },
 		{ path: "/settings", label: "Settings", icon: Settings },
 	];

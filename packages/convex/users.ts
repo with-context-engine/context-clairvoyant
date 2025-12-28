@@ -274,6 +274,56 @@ export const setCurrentLocationByMentraId = mutation({
 	},
 });
 
+export const updatePrefixPriorities = mutation({
+	args: {
+		userId: v.id("users"),
+		prefixPriorities: v.array(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				prefixPriorities: args.prefixPriorities,
+			});
+			return existing._id;
+		}
+		return await ctx.db.insert("preferences", {
+			userId: args.userId,
+			weatherUnit: "C",
+			prefixPriorities: args.prefixPriorities,
+		});
+	},
+});
+
+export const updateMessageGapSpeed = mutation({
+	args: {
+		userId: v.id("users"),
+		messageGapSpeed: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const existing = await ctx.db
+			.query("preferences")
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.first();
+
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				messageGapSpeed: args.messageGapSpeed,
+			});
+			return existing._id;
+		}
+		return await ctx.db.insert("preferences", {
+			userId: args.userId,
+			weatherUnit: "C",
+			messageGapSpeed: args.messageGapSpeed,
+		});
+	},
+});
+
 // =============================================================================
 // Internal Mutations
 // =============================================================================

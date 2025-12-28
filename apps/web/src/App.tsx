@@ -9,6 +9,7 @@ import ClairvoyantMobile from "./components/Clairvoyant";
 import { HomePage } from "./components/HomePage";
 import { MemoryPage } from "./components/MemoryPage";
 import { NavBar } from "./components/NavBar";
+import { QueuePage } from "./components/QueuePage";
 import { SettingsPage } from "./components/SettingsPage";
 import { UsagePage } from "./components/UsagePage";
 import { Card, CardContent, CardHeader } from "./components/ui/card";
@@ -142,6 +143,10 @@ export function App() {
 							<Route
 								path="/billing"
 								element={<Navigate to="/settings" replace />}
+							/>
+							<Route
+								path="/queue"
+								element={<QueuePage mentraUserId={authState.mentraUserId} />}
 							/>
 						</Routes>
 					</div>
