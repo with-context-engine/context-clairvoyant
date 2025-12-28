@@ -27,6 +27,9 @@ export async function getPlaces(
 				"X-Goog-Api-Key": env.GOOGLE_MAPS_API_KEY,
 				"X-Goog-FieldMask":
 					"places.displayName,places.shortFormattedAddress,places.id,places.reviewSummary.text.text",
+				Referer: env.RAILWAY_PUBLIC_DOMAIN
+					? `https://${env.RAILWAY_PUBLIC_DOMAIN}/`
+					: "https://clairvoyant.with-context.co/",
 			},
 			body: JSON.stringify({
 				textQuery: query,

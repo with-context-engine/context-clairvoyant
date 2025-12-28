@@ -85,13 +85,33 @@ export class DisplayQueueManager {
 
 		this.queue.push(queuedMessage);
 
-		void this.logToConvex(queuedMessage);
-
-		if (!this.isProcessing) {
-			void this.processQueue();
-		}
+		this.logToConvex(queuedMessage)
+			.then(() => {
+				this.scheduleProcessQueue();
+			})
+			.catch((error) => {
+				this.session.logger.error(
+					`[DisplayQueue] Failed to log to Convex: ${String(error)}`,
+				);
+				this.scheduleProcessQueue();
+			});
 
 		return id;
+	}
+
+	private processQueueTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	private scheduleProcessQueue(): void {
+		if (this.isProcessing || this.isCancelled) {
+			return;
+		}
+		if (this.processQueueTimeout) {
+			return;
+		}
+		this.processQueueTimeout = setTimeout(() => {
+			this.processQueueTimeout = null;
+			void this.processQueue();
+		}, 50);
 	}
 
 	showLoading(text: string, _prefix: string): string {
@@ -147,6 +167,11 @@ export class DisplayQueueManager {
 		this.isCancelled = true;
 		this.currentLoadingId = null;
 		this.queue = [];
+
+		if (this.processQueueTimeout) {
+			clearTimeout(this.processQueueTimeout);
+			this.processQueueTimeout = null;
+		}
 
 		try {
 			// Delete all messages for this session (not just cancel)

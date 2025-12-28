@@ -2,6 +2,8 @@ import { api } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
+const MAX_VISIBLE = 5;
+
 interface QueuePageProps {
 	mentraUserId: string;
 }
@@ -111,8 +113,8 @@ export function QueuePage({ mentraUserId }: QueuePageProps) {
 		);
 	}
 
-	const queuedMessages = messages.filter((m) => m.status === "queued");
-	const recentMessages = messages.filter((m) => m.status !== "queued");
+	const queuedMessages = messages.filter((m) => m.status === "queued").slice(0, MAX_VISIBLE);
+	const recentMessages = messages.filter((m) => m.status !== "queued").slice(0, MAX_VISIBLE);
 
 	return (
 		<div className="space-y-6">
