@@ -1,14 +1,14 @@
+import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
-import { ViewType } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
 import {
 	checkUserIsPro,
 	convexClient,
 	getDefaultLocation,
 	setCurrentLocation,
 } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import type { PlaceSuggestion } from "../tools/mapsCall";
@@ -29,15 +29,15 @@ async function processPlacesData(
 	mentraUserId: string,
 	places: PlaceSuggestion[],
 	runId: number,
+	displayQueue: DisplayQueueManager,
 ) {
 	if (!places?.length) {
-		session.layouts.showTextWall(
-			"// Clairvoyant\nM: No nearby matches right now.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nM: No nearby matches right now.",
+			prefix: "M",
+			durationMs: 3000,
+			priority: 2,
+		});
 		return;
 	}
 
@@ -157,13 +157,12 @@ async function processPlacesData(
 
 	if (!lines?.length) {
 		session.logger.warn("[startMapsFlow] SummarizePlaces returned no lines");
-		session.layouts.showTextWall(
-			"// Clairvoyant\nM: Couldn't summarize those spots.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nM: Couldn't summarize those spots.",
+			prefix: "M",
+			durationMs: 3000,
+			priority: 2,
+		});
 		return;
 	}
 
@@ -174,6 +173,7 @@ async function processPlacesData(
 		peers,
 		"synthesis",
 		mentraUserId,
+		displayQueue,
 	);
 
 	for (let i = 0; i < lines.length; i++) {
@@ -181,14 +181,12 @@ async function processPlacesData(
 
 		const line = lines[i];
 		session.logger.info(`[startMapsFlow] Map result: ${line}`);
-		session.layouts.showTextWall(`// Clairvoyant\nM: ${line}`, {
-			view: ViewType.MAIN,
+		displayQueue.enqueue({
+			text: `// Clairvoyant\nM: ${line}`,
+			prefix: "M",
 			durationMs: 3000,
+			priority: 2,
 		});
-
-		if (i < lines.length - 1) {
-			await new Promise((resolve) => setTimeout(resolve, 3000));
-		}
 	}
 }
 
@@ -198,6 +196,7 @@ export async function startMapsFlow(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	mapsRunIds.set(session, runId);
@@ -206,35 +205,29 @@ export async function startMapsFlow(
 	const isPro = await checkUserIsPro(mentraUserId);
 	if (!isPro) {
 		session.logger.info(`[Clairvoyant] Maps: user is not Pro, skipping`);
-		session.layouts.showTextWall(
-			"// Clairvoyant\nM: Upgrade to Pro for maps.",
-			{
-				view: ViewType.MAIN,
-				durationMs: 3000,
-			},
-		);
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nM: Upgrade to Pro for maps.",
+			prefix: "M",
+			durationMs: 3000,
+			priority: 1,
+		});
 		return;
 	}
 
-	session.layouts.showTextWall("// Clairvoyant\nM: Checking nearby spots...", {
-		view: ViewType.MAIN,
+	displayQueue.enqueue({
+		text: "// Clairvoyant\nM: Checking nearby spots...",
+		prefix: "M",
 		durationMs: 2000,
+		priority: 1,
 	});
 
 	let locationReceived = false;
-	let statusWallActive = false;
 
 	const unsubscribe = session.events.onLocation(async (location) => {
 		if (mapsRunIds.get(session) !== runId) {
 			session.logger.info(
 				`[startMapsFlow] Ignoring stale location callback (runId: ${runId})`,
 			);
-			if (statusWallActive) {
-				session.layouts.showTextWall("", {
-					view: ViewType.MAIN,
-					durationMs: 500,
-				});
-			}
 			return;
 		}
 
@@ -254,10 +247,9 @@ export async function startMapsFlow(
 				lng: location.lng,
 			});
 
-			statusWallActive = true;
-
 			const places = await showTextDuringOperation(
 				session,
+				displayQueue,
 				"// Clairvoyant\nM: Finding nearby matches...",
 				"// Clairvoyant\nM: Found a few ideas!",
 				"// Clairvoyant\nM: Couldn't find anything nearby.",
@@ -266,6 +258,7 @@ export async function startMapsFlow(
 						latitude: location.lat,
 						longitude: location.lng,
 					}),
+				{ prefix: "M", durationMs: 2000 },
 			);
 
 			await MemoryCapture(
@@ -275,9 +268,8 @@ export async function startMapsFlow(
 				peers,
 				"diatribe",
 				mentraUserId,
+				displayQueue,
 			);
-
-			statusWallActive = false;
 
 			if (mapsRunIds.get(session) !== runId) {
 				session.logger.info(
@@ -294,19 +286,18 @@ export async function startMapsFlow(
 				mentraUserId,
 				places,
 				runId,
+				displayQueue,
 			);
 		} catch (error) {
-			statusWallActive = false;
 			session.logger.error(`[startMapsFlow] Maps flow error: ${String(error)}`);
 
 			if (mapsRunIds.get(session) === runId) {
-				session.layouts.showTextWall(
-					"// Clairvoyant\nM: Couldn't explore nearby spots.",
-					{
-						view: ViewType.MAIN,
-						durationMs: 3000,
-					},
-				);
+				displayQueue.enqueue({
+					text: "// Clairvoyant\nM: Couldn't explore nearby spots.",
+					prefix: "M",
+					durationMs: 3000,
+					priority: 2,
+				});
 			}
 		}
 	});
@@ -323,13 +314,6 @@ export async function startMapsFlow(
 
 		unsubscribe?.();
 
-		if (statusWallActive) {
-			session.layouts.showTextWall("", {
-				view: ViewType.MAIN,
-				durationMs: 500,
-			});
-		}
-
 		// Try to use default location from preferences (geocoded billing address)
 		session.logger.info(
 			"[startMapsFlow] Attempting to use default location from preferences",
@@ -344,17 +328,17 @@ export async function startMapsFlow(
 
 			locationReceived = true; // Prevent further timeout messages
 
-			session.layouts.showTextWall(
-				"// Clairvoyant\nM: Using your billing location…",
-				{
-					view: ViewType.MAIN,
-					durationMs: 2000,
-				},
-			);
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nM: Using your billing location…",
+				prefix: "M",
+				durationMs: 2000,
+				priority: 1,
+			});
 
 			try {
 				const places = await showTextDuringOperation(
 					session,
+					displayQueue,
 					"// Clairvoyant\nM: Finding nearby matches...",
 					"// Clairvoyant\nM: Found a few ideas!",
 					"// Clairvoyant\nM: Couldn't find anything nearby.",
@@ -363,6 +347,7 @@ export async function startMapsFlow(
 							latitude: defaultLocation.lat,
 							longitude: defaultLocation.lng,
 						}),
+					{ prefix: "M", durationMs: 2000 },
 				);
 
 				await MemoryCapture(
@@ -372,6 +357,7 @@ export async function startMapsFlow(
 					peers,
 					"diatribe",
 					mentraUserId,
+					displayQueue,
 				);
 
 				if (mapsRunIds.get(session) !== runId) {
@@ -389,6 +375,7 @@ export async function startMapsFlow(
 					mentraUserId,
 					places,
 					runId,
+					displayQueue,
 				);
 			} catch (error) {
 				session.logger.error(
@@ -396,36 +383,33 @@ export async function startMapsFlow(
 				);
 
 				if (mapsRunIds.get(session) === runId) {
-					session.layouts.showTextWall(
-						"// Clairvoyant\nM: Couldn't explore nearby spots.",
-						{
-							view: ViewType.MAIN,
-							durationMs: 3000,
-						},
-					);
+					displayQueue.enqueue({
+						text: "// Clairvoyant\nM: Couldn't explore nearby spots.",
+						prefix: "M",
+						durationMs: 3000,
+						priority: 2,
+					});
 				}
 			}
 		} else {
 			// No default location available
-			session.layouts.showTextWall(
-				"// Clairvoyant\nM: Still waiting on your location…",
-				{
-					view: ViewType.MAIN,
-					durationMs: 2000,
-				},
-			);
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nM: Still waiting on your location…",
+				prefix: "M",
+				durationMs: 2000,
+				priority: 1,
+			});
 
 			setTimeout(() => {
 				if (mapsRunIds.get(session) !== runId) return;
 				if (locationReceived) return;
 
-				session.layouts.showTextWall(
-					"// Clairvoyant\nM: Couldn't get your location.",
-					{
-						view: ViewType.MAIN,
-						durationMs: 2000,
-					},
-				);
+				displayQueue.enqueue({
+					text: "// Clairvoyant\nM: Couldn't get your location.",
+					prefix: "M",
+					durationMs: 2000,
+					priority: 2,
+				});
 			}, 2000);
 		}
 	}, TIMEOUT_MS);

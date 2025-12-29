@@ -1,8 +1,13 @@
+import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Session } from "@honcho-ai/sdk";
 import { AppServer, type AppSession } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
-import { checkUserIsPro, convexClient } from "./core/convex";
+import {
+	checkUserIsPro,
+	convexClient,
+	getUserPreferences,
+} from "./core/convex";
+import { DisplayQueueManager } from "./core/displayQueue";
 import { env } from "./core/env";
 import { RateLimiter } from "./core/rateLimiting";
 import { initializeMemory } from "./tools/memoryCall";
@@ -20,6 +25,7 @@ interface SessionResources {
 	startedAt: string;
 	mentraUserId: string;
 	honchoSessionId: string;
+	displayQueue: DisplayQueueManager;
 }
 
 class Clairvoyant extends AppServer {
@@ -47,6 +53,11 @@ class Clairvoyant extends AppServer {
 		);
 		const transcriptBuffer: string[] = [];
 		const startedAt = new Date().toISOString();
+		const preferences = await getUserPreferences(userId);
+		const displayQueue = new DisplayQueueManager(session, userId, sessionId, {
+			prefixPriorities: preferences.prefixPriorities,
+			gapSpeed: preferences.messageGapSpeed,
+		});
 
 		const unsubscribe = session.events.onTranscription(async (data) => {
 			if (
@@ -58,7 +69,16 @@ class Clairvoyant extends AppServer {
 			}
 
 			transcriptBuffer.push(data.text);
-			void handleTranscription(data, session, memorySession, peers, userId, transcriptBuffer);
+			void handleTranscription(
+				data,
+				session,
+				memorySession,
+				peers,
+				userId,
+				sessionId,
+				transcriptBuffer,
+				displayQueue,
+			);
 		});
 
 		this.sessionResources.set(sessionId, {
@@ -68,6 +88,7 @@ class Clairvoyant extends AppServer {
 			startedAt,
 			mentraUserId: userId,
 			honchoSessionId,
+			displayQueue,
 		});
 
 		session.logger.info(
@@ -83,6 +104,8 @@ class Clairvoyant extends AppServer {
 		const resources = this.sessionResources.get(sessionId);
 		if (resources) {
 			resources.unsubscribeTranscription();
+
+			await resources.displayQueue.cancelAll();
 
 			if (resources.transcriptBuffer.length > 0) {
 				this.summarizeAndStoreSession(

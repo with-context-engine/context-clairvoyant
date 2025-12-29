@@ -1,9 +1,9 @@
+import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
-import { ViewType } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
 import { checkUserIsPro, convexClient } from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
 import { getTimeAgo } from "../core/utils";
 import { MemoryCapture } from "./memory";
@@ -16,6 +16,7 @@ export async function startKnowledgeFlow(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	knowledgeRunIds.set(session, runId);
@@ -153,11 +154,12 @@ export async function startKnowledgeFlow(
 		// LAYER 2: Answer with personalized context
 		const response = await showTextDuringOperation(
 			session,
-			"",
-			"",
-			"",
+			displayQueue,
+			"// Clairvoyant\nK: Thinking...",
+			"// Clairvoyant\nK: Got it!",
+			"// Clairvoyant\nK: Couldn't answer that.",
 			() => b.AnswerQuestion(enhancedQuery, memoryContext),
-			{ view: ViewType.MAIN, clearDurationMs: 2000 },
+			{ prefix: "K", durationMs: 2000 },
 		);
 
 		await MemoryCapture(
@@ -167,6 +169,7 @@ export async function startKnowledgeFlow(
 			peers,
 			"diatribe",
 			mentraUserId,
+			displayQueue,
 		);
 
 		if (knowledgeRunIds.get(session) !== runId) {
@@ -189,9 +192,11 @@ export async function startKnowledgeFlow(
 				session.logger.warn(
 					"[startKnowledgeFlow] AnswerQuestion returned no answer lines",
 				);
-				session.layouts.showTextWall(`// Clairvoyant\nK: ${questionLine}`, {
-					view: ViewType.MAIN,
+				displayQueue.enqueue({
+					text: `// Clairvoyant\nK: ${questionLine}`,
+					prefix: "K",
 					durationMs: 3000,
+					priority: 2,
 				});
 				return;
 			}
@@ -203,6 +208,7 @@ export async function startKnowledgeFlow(
 				peers,
 				"synthesis",
 				mentraUserId,
+				displayQueue,
 			);
 
 			for (let i = 0; i < answerLines.length; i++) {
@@ -215,19 +221,19 @@ export async function startKnowledgeFlow(
 				);
 
 				const wallText = `// Clairvoyant\nQ: ${questionLine}\n${answerLine}`;
-				session.layouts.showTextWall(wallText, {
-					view: ViewType.MAIN,
+				displayQueue.enqueue({
+					text: wallText,
+					prefix: "K",
 					durationMs: 3000,
+					priority: 2,
 				});
-
-				if (i < answerLines.length - 1) {
-					await new Promise((resolve) => setTimeout(resolve, 3000));
-				}
 			}
 		} else {
-			session.layouts.showTextWall("", {
-				view: ViewType.MAIN,
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nK: No question detected.",
+				prefix: "K",
 				durationMs: 2000,
+				priority: 3,
 			});
 		}
 	} catch (error) {

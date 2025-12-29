@@ -60,6 +60,7 @@ export enum Router {
   MEMORY_CAPTURE = "MEMORY_CAPTURE",
   MEMORY_RECALL = "MEMORY_RECALL",
   NOTE_THIS = "NOTE_THIS",
+  FOLLOW_UP = "FOLLOW_UP",
   PASSTHROUGH = "PASSTHROUGH",
 }
 
@@ -168,6 +169,49 @@ export interface EmailInterpretation {
 export interface EnhancedQuery {
   original: string
   enhanced: string
+  
+}
+
+export interface FollowupChatContext {
+  topic: string
+  summary: string
+  sourceMessages: string[]
+  conversationHistory: FollowupConversationMessage[]
+  memory?: FollowupMemoryContext | null
+  searchResults: FollowupSearchResult[]
+  
+}
+
+export interface FollowupChatResponse {
+  response: string
+  extractedFacts: string[]
+  
+}
+
+export interface FollowupConversationMessage {
+  role: string
+  content: string
+  createdAt: string
+  
+}
+
+export interface FollowupMemoryContext {
+  userName?: string | null
+  userFacts: string[]
+  deductiveFacts: string[]
+  
+}
+
+export interface FollowupSearchResult {
+  title: string
+  content: string
+  url: string
+  
+}
+
+export interface FollowupTopic {
+  topic: string
+  summary: string
   
 }
 

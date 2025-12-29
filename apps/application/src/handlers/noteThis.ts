@@ -1,8 +1,12 @@
+import { b, Router } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
-import { type AppSession, ViewType } from "@mentra/sdk";
-import { b } from "@clairvoyant/baml-client";
-import { checkUserIsPro, convexClient, recordToolInvocation } from "../core/convex";
-import { Router } from "@clairvoyant/baml-client";
+import type { AppSession } from "@mentra/sdk";
+import {
+	checkUserIsPro,
+	convexClient,
+	recordToolInvocation,
+} from "../core/convex";
+import type { DisplayQueueManager } from "../core/displayQueue";
 
 const noteThisRunIds = new WeakMap<AppSession, number>();
 
@@ -13,11 +17,13 @@ const noteThisRunIds = new WeakMap<AppSession, number>();
  * @param transcriptBuffer - All utterances from the current session
  * @param session - The AppSession for displaying text walls
  * @param mentraUserId - The user's Mentra ID
+ * @param displayQueue - The DisplayQueueManager for queueing messages
  */
 export async function startNoteThisFlow(
 	transcriptBuffer: string[],
 	session: AppSession,
 	mentraUserId: string,
+	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
 	noteThisRunIds.set(session, runId);
@@ -27,22 +33,23 @@ export async function startNoteThisFlow(
 	);
 
 	// Show initial loading state
-	session.layouts.showTextWall("// Clairvoyant\nN: Creating your note...", {
-		view: ViewType.MAIN,
+	displayQueue.enqueue({
+		text: "// Clairvoyant\nN: Creating your note...",
+		prefix: "N",
 		durationMs: 3000,
+		priority: 1,
 	});
 
 	try {
 		// Check if there's anything to note
 		if (transcriptBuffer.length === 0) {
 			if (noteThisRunIds.get(session) !== runId) return;
-			session.layouts.showTextWall(
-				"// Clairvoyant\nN: Nothing to note yet.",
-				{
-					view: ViewType.MAIN,
-					durationMs: 3000,
-				},
-			);
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nN: Nothing to note yet.",
+				prefix: "N",
+				durationMs: 3000,
+				priority: 2,
+			});
 			return;
 		}
 
@@ -50,16 +57,13 @@ export async function startNoteThisFlow(
 		const isPro = await checkUserIsPro(mentraUserId);
 		if (!isPro) {
 			if (noteThisRunIds.get(session) !== runId) return;
-			session.logger.info(
-				`[Clairvoyant] Note This: user is not Pro, skipping`,
-			);
-			session.layouts.showTextWall(
-				"// Clairvoyant\nN: Upgrade to Pro for notes.",
-				{
-					view: ViewType.MAIN,
-					durationMs: 3000,
-				},
-			);
+			session.logger.info(`[Clairvoyant] Note This: user is not Pro, skipping`);
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nN: Upgrade to Pro for notes.",
+				prefix: "N",
+				durationMs: 3000,
+				priority: 1,
+			});
 			return;
 		}
 
@@ -76,9 +80,11 @@ export async function startNoteThisFlow(
 		);
 
 		// Update text wall to show we're sending
-		session.layouts.showTextWall("// Clairvoyant\nN: Sending to your email...", {
-			view: ViewType.MAIN,
+		displayQueue.enqueue({
+			text: "// Clairvoyant\nN: Sending to your email...",
+			prefix: "N",
 			durationMs: 3000,
+			priority: 1,
 		});
 
 		// Send via Convex action (async, non-blocking)
@@ -95,9 +101,11 @@ export async function startNoteThisFlow(
 			session.logger.info(
 				`[Clairvoyant] Note This: email sent successfully (id: ${result.emailId})`,
 			);
-			session.layouts.showTextWall("// Clairvoyant\nN: Note sent!", {
-				view: ViewType.MAIN,
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nN: Note sent!",
+				prefix: "N",
 				durationMs: 3000,
+				priority: 2,
 			});
 		} else {
 			session.logger.warn(
@@ -112,24 +120,23 @@ export async function startNoteThisFlow(
 				errorMessage = "User not found.";
 			}
 
-			session.layouts.showTextWall(`// Clairvoyant\nN: ${errorMessage}`, {
-				view: ViewType.MAIN,
+			displayQueue.enqueue({
+				text: `// Clairvoyant\nN: ${errorMessage}`,
+				prefix: "N",
 				durationMs: 3000,
+				priority: 2,
 			});
 		}
 	} catch (error) {
-		session.logger.error(
-			`[Clairvoyant] Note This: error - ${String(error)}`,
-		);
+		session.logger.error(`[Clairvoyant] Note This: error - ${String(error)}`);
 
 		if (noteThisRunIds.get(session) === runId) {
-			session.layouts.showTextWall(
-				"// Clairvoyant\nN: Something went wrong.",
-				{
-					view: ViewType.MAIN,
-					durationMs: 3000,
-				},
-			);
+			displayQueue.enqueue({
+				text: "// Clairvoyant\nN: Something went wrong.",
+				prefix: "N",
+				durationMs: 3000,
+				priority: 2,
+			});
 		}
 	}
 }

@@ -13091,7 +13091,12 @@ const Clairvoyant = (props: AsciiMotionComponentProps = {}) => {
 
 				while (remaining >= duration && FRAMES.length > 0) {
 					remaining -= duration;
-					nextIndex = (nextIndex + 1) % FRAMES.length;
+					const potentialNext = nextIndex + 1;
+					if (potentialNext >= FRAMES.length) {
+						nextIndex = FRAMES.length - 1;
+						break;
+					}
+					nextIndex = potentialNext;
 					duration = FRAMES[nextIndex]?.duration ?? duration;
 				}
 
@@ -13107,7 +13112,9 @@ const Clairvoyant = (props: AsciiMotionComponentProps = {}) => {
 				drawFrame(frameIndexRef.current);
 			}
 
-			animationFrameRef.current = window.requestAnimationFrame(step);
+			if (frameIndexRef.current < FRAMES.length - 1) {
+				animationFrameRef.current = window.requestAnimationFrame(step);
+			}
 		};
 
 		animationFrameRef.current = window.requestAnimationFrame(step);

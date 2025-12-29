@@ -6,6 +6,7 @@ enum Router {
     MEMORY_CAPTURE @description("Commands to store new personal facts, preferences, or reminders for future recall.")
     MEMORY_RECALL @description("Questions about the user's memory and personal history, personal preferences, personal opinions, goals, information about the user, or anything that is not a fact.")
     NOTE_THIS @description("User wants to save the current conversation as a note to email. Triggered by phrases like 'add this to a note', 'send this to my email', 'this would be great to remember', 'note this down'.")
+    FOLLOW_UP @description("User wants to bookmark or revisit the current topic later. Triggered by: 'follow up on this', 'come back to this', 'revisit this later', 'bookmark this', 'I want to revisit this'.")
     PASSTHROUGH @description("Ambient speech, filler words, incomplete sentences, or unclear utterances that don't require action.")
 }
 
@@ -58,7 +59,9 @@ function Route(text: string) -> RoutingBehavior {
         6. MEMORY_RECALL → questions about the user's past, preferences, or personal information
         7. NOTE_THIS → requests to save/note/email the current conversation, e.g., "add this to a note",
            "send this to my email", "this would be great to remember", "note this down", "save this"
-        8. PASSTHROUGH → pure filler, incomplete fragments with no clear request, ambient speech,
+        8. FOLLOW_UP → requests to bookmark or revisit the current topic later, e.g., "follow up on this",
+           "come back to this", "revisit this later", "bookmark this", "I want to revisit this"
+        9. PASSTHROUGH → pure filler, incomplete fragments with no clear request, ambient speech,
            or unclear utterances that don't require action
 
         Additional guidelines:
@@ -359,4 +362,39 @@ test test_note_this_save {
         text "save this to my notes"
     }
     @@assert( {{ this.routing == "NOTE_THIS"}})
+}
+
+// ===== FOLLOW_UP TESTS =====
+// Requests to bookmark or revisit the current topic later
+
+test test_follow_up_later {
+    functions [Route]
+    args {
+        text "follow up on this later"
+    }
+    @@assert( {{ this.routing == "FOLLOW_UP"}})
+}
+
+test test_follow_up_come_back {
+    functions [Route]
+    args {
+        text "I want to come back to this"
+    }
+    @@assert( {{ this.routing == "FOLLOW_UP"}})
+}
+
+test test_follow_up_bookmark {
+    functions [Route]
+    args {
+        text "bookmark this"
+    }
+    @@assert( {{ this.routing == "FOLLOW_UP"}})
+}
+
+test test_follow_up_revisit {
+    functions [Route]
+    args {
+        text "revisit this later"
+    }
+    @@assert( {{ this.routing == "FOLLOW_UP"}})
 }
