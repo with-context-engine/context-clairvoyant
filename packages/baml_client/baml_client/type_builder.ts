@@ -53,6 +53,18 @@ export default class TypeBuilder {
     
     EnhancedQuery: ClassViewer<'EnhancedQuery', "original" | "enhanced">;
     
+    FollowupChatContext: ClassViewer<'FollowupChatContext', "topic" | "summary" | "sourceMessages" | "conversationHistory" | "memory" | "searchResults">;
+    
+    FollowupChatResponse: ClassViewer<'FollowupChatResponse', "response" | "extractedFacts">;
+    
+    FollowupConversationMessage: ClassViewer<'FollowupConversationMessage', "role" | "content" | "createdAt">;
+    
+    FollowupMemoryContext: ClassViewer<'FollowupMemoryContext', "userName" | "userFacts" | "deductiveFacts">;
+    
+    FollowupSearchResult: ClassViewer<'FollowupSearchResult', "title" | "content" | "url">;
+    
+    FollowupTopic: ClassViewer<'FollowupTopic', "topic" | "summary">;
+    
     FormattedWeather: ClassViewer<'FormattedWeather', "location" | "current" | "daily_forecast" | "alerts">;
     
     HintEligibility: ClassViewer<'HintEligibility', "category" | "topic">;
@@ -94,13 +106,13 @@ export default class TypeBuilder {
     
     HintCategory: EnumViewer<'HintCategory', "HINTABLE" | "AMBIENT">;
     
-    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "NOTE_THIS" | "PASSTHROUGH">;
+    Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "NOTE_THIS" | "FOLLOW_UP" | "PASSTHROUGH">;
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","ChatContext","ChatConversationMessage","ChatInterpretation","ChatSessionSummary","ConversationMessage","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","ChatContext","ChatConversationMessage","ChatInterpretation","ChatSessionSummary","ConversationMessage","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FollowupChatContext","FollowupChatResponse","FollowupConversationMessage","FollowupMemoryContext","FollowupSearchResult","FollowupTopic","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
             "HintCategory","Router",
@@ -158,6 +170,30 @@ export default class TypeBuilder {
         
         this.EnhancedQuery = this.tb.classViewer("EnhancedQuery", [
           "original","enhanced",
+        ]);
+        
+        this.FollowupChatContext = this.tb.classViewer("FollowupChatContext", [
+          "topic","summary","sourceMessages","conversationHistory","memory","searchResults",
+        ]);
+        
+        this.FollowupChatResponse = this.tb.classViewer("FollowupChatResponse", [
+          "response","extractedFacts",
+        ]);
+        
+        this.FollowupConversationMessage = this.tb.classViewer("FollowupConversationMessage", [
+          "role","content","createdAt",
+        ]);
+        
+        this.FollowupMemoryContext = this.tb.classViewer("FollowupMemoryContext", [
+          "userName","userFacts","deductiveFacts",
+        ]);
+        
+        this.FollowupSearchResult = this.tb.classViewer("FollowupSearchResult", [
+          "title","content","url",
+        ]);
+        
+        this.FollowupTopic = this.tb.classViewer("FollowupTopic", [
+          "topic","summary",
         ]);
         
         this.FormattedWeather = this.tb.classViewer("FormattedWeather", [
@@ -242,7 +278,7 @@ export default class TypeBuilder {
         ]);
         
         this.Router = this.tb.enumViewer("Router", [
-          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","NOTE_THIS","PASSTHROUGH",
+          "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","NOTE_THIS","FOLLOW_UP","PASSTHROUGH",
         ]);
         
     }

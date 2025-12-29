@@ -22,7 +22,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio, Pdf, Vi
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FollowupChatContext, FollowupChatResponse, FollowupConversationMessage, FollowupMemoryContext, FollowupSearchResult, FollowupTopic, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -162,6 +162,31 @@ export class HttpRequest {
     }
   }
   
+  ExtractFollowupTopic(
+      userUtterance: string,recentMessages: string[],
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "ExtractFollowupTopic",
+        {
+          "userUtterance": userUtterance,"recentMessages": recentMessages
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        false,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
   GenerateHint(
       topic: string,userSpeech: string,memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
@@ -223,6 +248,31 @@ export class HttpRequest {
       );
       return this.runtime.buildRequestSync(
         "InterpretEmailReply",
+        {
+          "userMessage": userMessage,"context": context
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        false,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  InterpretFollowupChat(
+      userMessage: string,context: types.FollowupChatContext,
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "InterpretFollowupChat",
         {
           "userMessage": userMessage,"context": context
         },
@@ -518,6 +568,31 @@ export class HttpStreamRequest {
     }
   }
   
+  ExtractFollowupTopic(
+      userUtterance: string,recentMessages: string[],
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "ExtractFollowupTopic",
+        {
+          "userUtterance": userUtterance,"recentMessages": recentMessages
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        true,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
   GenerateHint(
       topic: string,userSpeech: string,memory?: types.MemoryCore | null,
       __baml_options__?: BamlCallOptions<never>
@@ -579,6 +654,31 @@ export class HttpStreamRequest {
       );
       return this.runtime.buildRequestSync(
         "InterpretEmailReply",
+        {
+          "userMessage": userMessage,"context": context
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        true,
+        __env__,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  InterpretFollowupChat(
+      userMessage: string,context: types.FollowupChatContext,
+      __baml_options__?: BamlCallOptions<never>
+  ): HTTPRequest {
+    try {
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      return this.runtime.buildRequestSync(
+        "InterpretFollowupChat",
         {
           "userMessage": userMessage,"context": context
         },

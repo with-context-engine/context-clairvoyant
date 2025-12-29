@@ -246,50 +246,71 @@ export const processEmailReply = internalAction({
 
 		// Step 8: Update memory based on interpretation
 		console.log("[EmailReply] Step 8: Updating memory...");
-		if (interpretation) {
-			// 8a. Add new facts to Honcho via session.addMessages
-			if (interpretation.extractedFacts.length > 0 && honchoKey) {
-				console.log(
-					`[EmailReply] Adding ${interpretation.extractedFacts.length} facts to Honcho...`,
+		if (interpretation && honchoKey) {
+			// 8a. Add user message + facts to diatribe peer AND assistant response to synthesis peer
+			try {
+				const honchoClient = new Honcho({
+					apiKey: honchoKey,
+					workspaceId: "with-context",
+				});
+
+				const session = await honchoClient.session(
+					`email-reply-${emailNoteId}`,
 				);
-				try {
-					const honchoClient = new Honcho({
-						apiKey: honchoKey,
-						workspaceId: "with-context",
-					});
-					const diatribePeer = await honchoClient.peer(`${user._id}-diatribe`);
 
-					const session = await honchoClient.session(
-						`email-reply-${emailNoteId}`,
-					);
+				// Get or create both peers
+				const diatribePeer = await honchoClient.peer(`${user._id}-diatribe`, {
+					metadata: {
+						name: "Diatribe",
+						description: "A peer that listens to the raw translations of the users' speech.",
+					},
+				});
+				const synthesisPeer = await honchoClient.peer(`${user._id}-synthesis`, {
+					metadata: {
+						name: "Synthesis Peer",
+						description: "A peer that captures synthesized knowledge from the user's speech.",
+					},
+				});
 
-					const factsContent = interpretation.extractedFacts
-						.map((fact) => `• ${fact}`)
-						.join("\n");
+				await session.addPeers([diatribePeer, synthesisPeer]);
 
-					await session.addMessages([
-						{
-							peer_id: diatribePeer.id,
-							content: `New facts learned from email conversation:\n${factsContent}`,
-							metadata: {
-								timestamp: new Date().toISOString(),
-								source: "email_reply",
-								type: "user_facts",
-								emailNoteId: emailNoteId,
-							},
+				// Add user email message + extracted facts to diatribe peer
+				const userContent = interpretation.extractedFacts.length > 0
+					? `${textContent}\n\nExtracted facts:\n${interpretation.extractedFacts.map((f) => `• ${f}`).join("\n")}`
+					: textContent;
+
+				await session.addMessages([
+					{
+						peer_id: diatribePeer.id,
+						content: userContent,
+						metadata: {
+							timestamp: new Date().toISOString(),
+							source: "email_reply",
+							type: "user_message",
+							emailNoteId: emailNoteId,
 						},
-					]);
+					},
+				]);
+				console.log(`[EmailReply] ✓ Added user message to diatribe peer${interpretation.extractedFacts.length > 0 ? ` with ${interpretation.extractedFacts.length} facts` : ""}`);
 
-					console.log(
-						`[EmailReply] ✓ Added ${interpretation.extractedFacts.length} facts to Honcho`,
-					);
-				} catch (error) {
-					console.warn(
-						`[EmailReply] ✗ Failed to add facts to Honcho: ${error instanceof Error ? error.message : String(error)}`,
-					);
-				}
-			} else {
-				console.log("[EmailReply] No new facts to add to Honcho");
+				// Add assistant response to synthesis peer
+				await session.addMessages([
+					{
+						peer_id: synthesisPeer.id,
+						content: interpretation.response,
+						metadata: {
+							timestamp: new Date().toISOString(),
+							source: "email_reply",
+							type: "assistant_response",
+							emailNoteId: emailNoteId,
+						},
+					},
+				]);
+				console.log(`[EmailReply] ✓ Added assistant response to synthesis peer`);
+			} catch (error) {
+				console.warn(
+					`[EmailReply] ✗ Failed to update Honcho memory: ${error instanceof Error ? error.message : String(error)}`,
+				);
 			}
 
 			// 8b. Update sessionSummary if needed
