@@ -21,6 +21,9 @@ import type * as emailNotes from "../emailNotes.js";
 import type * as emailReply from "../emailReply.js";
 import type * as emailThreadMessages from "../emailThreadMessages.js";
 import type * as emails_SessionNote from "../emails/SessionNote.js";
+import type * as followups from "../followups.js";
+import type * as followupsChat from "../followupsChat.js";
+import type * as followupsChatQueries from "../followupsChatQueries.js";
 import type * as honcho from "../honcho.js";
 import type * as honchoSessions from "../honchoSessions.js";
 import type * as http from "../http.js";
@@ -30,6 +33,7 @@ import type * as notes from "../notes.js";
 import type * as payments from "../payments.js";
 import type * as resendClient from "../resendClient.js";
 import type * as sessionSummaries from "../sessionSummaries.js";
+import type * as tavilySearch from "../tavilySearch.js";
 import type * as users from "../users.js";
 
 import type {
@@ -52,6 +56,9 @@ declare const fullApi: ApiFromModules<{
   emailReply: typeof emailReply;
   emailThreadMessages: typeof emailThreadMessages;
   "emails/SessionNote": typeof emails_SessionNote;
+  followups: typeof followups;
+  followupsChat: typeof followupsChat;
+  followupsChatQueries: typeof followupsChatQueries;
   honcho: typeof honcho;
   honchoSessions: typeof honchoSessions;
   http: typeof http;
@@ -61,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   payments: typeof payments;
   resendClient: typeof resendClient;
   sessionSummaries: typeof sessionSummaries;
+  tavilySearch: typeof tavilySearch;
   users: typeof users;
 }>;
 

@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 
-const DEFAULT_PREFIX_ORDER = ["W", "K", "S", "M", "H", "R", "N"];
+const DEFAULT_PREFIX_ORDER = ["W", "K", "S", "M", "H", "R", "N", "F"];
 
 const PREFIX_COLORS: Record<
 	string,
@@ -15,6 +15,7 @@ const PREFIX_COLORS: Record<
 	H: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Hints" },
 	K: { bg: "bg-cyan-100", text: "text-cyan-700", label: "Knowledge" },
 	N: { bg: "bg-pink-100", text: "text-pink-700", label: "Note" },
+	F: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Follow-up" },
 };
 
 interface PrefixPriorityEditorProps {

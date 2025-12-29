@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  AlertLite,  AnswerLines,  ChatContext,  ChatConversationMessage,  ChatInterpretation,  ChatSessionSummary,  ConversationMessage,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
+import type {  AlertLite,  AnswerLines,  ChatContext,  ChatConversationMessage,  ChatInterpretation,  ChatSessionSummary,  ConversationMessage,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FollowupChatContext,  FollowupChatResponse,  FollowupConversationMessage,  FollowupMemoryContext,  FollowupSearchResult,  FollowupTopic,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -117,6 +117,37 @@ export namespace partial_types {
     export interface EnhancedQuery {
       original?: string | null
       enhanced?: string | null
+    }
+    export interface FollowupChatContext {
+      topic?: string | null
+      summary?: string | null
+      sourceMessages: string[]
+      conversationHistory: FollowupConversationMessage[]
+      memory?: FollowupMemoryContext | null
+      searchResults: FollowupSearchResult[]
+    }
+    export interface FollowupChatResponse {
+      response?: string | null
+      extractedFacts: string[]
+    }
+    export interface FollowupConversationMessage {
+      role?: string | null
+      content?: string | null
+      createdAt?: string | null
+    }
+    export interface FollowupMemoryContext {
+      userName?: string | null
+      userFacts: string[]
+      deductiveFacts: string[]
+    }
+    export interface FollowupSearchResult {
+      title?: string | null
+      content?: string | null
+      url?: string | null
+    }
+    export interface FollowupTopic {
+      topic?: string | null
+      summary?: string | null
     }
     export interface FormattedWeather {
       location?: LocationLite | null

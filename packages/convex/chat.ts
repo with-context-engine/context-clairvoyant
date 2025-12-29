@@ -229,43 +229,69 @@ export const sendMessage = action({
 		);
 		console.log(`[Chat] Stored assistant message: ${assistantMessageId}`);
 
-		if (interpretation.extractedFacts.length > 0 && honchoKey) {
-			console.log(
-				`[Chat] Adding ${interpretation.extractedFacts.length} facts to Honcho...`,
-			);
+		// Update Honcho memory with user message + facts (diatribe) and assistant response (synthesis)
+		if (honchoKey) {
 			try {
 				const honchoClient = new Honcho({
 					apiKey: honchoKey,
 					environment: "production",
 					workspaceId: "with-context",
 				});
-				const diatribePeer = await honchoClient.peer(`${user._id}-diatribe`);
 
 				const session = await honchoClient.session(`chat-${date}-${user._id}`);
 
-				const factsContent = interpretation.extractedFacts
-					.map((fact) => `• ${fact}`)
-					.join("\n");
+				// Get or create both peers
+				const diatribePeer = await honchoClient.peer(`${user._id}-diatribe`, {
+					metadata: {
+						name: "Diatribe",
+						description: "A peer that listens to the raw translations of the users' speech.",
+					},
+				});
+				const synthesisPeer = await honchoClient.peer(`${user._id}-synthesis`, {
+					metadata: {
+						name: "Synthesis Peer",
+						description: "A peer that captures synthesized knowledge from the user's speech.",
+					},
+				});
+
+				await session.addPeers([diatribePeer, synthesisPeer]);
+
+				// Add user message + extracted facts to diatribe peer
+				const userContent = interpretation.extractedFacts.length > 0
+					? `${content}\n\nExtracted facts:\n${interpretation.extractedFacts.map((f) => `• ${f}`).join("\n")}`
+					: content;
 
 				await session.addMessages([
 					{
 						peer_id: diatribePeer.id,
-						content: `New facts learned from chat conversation:\n${factsContent}`,
+						content: userContent,
 						metadata: {
 							timestamp: new Date().toISOString(),
 							source: "web_chat",
-							type: "user_facts",
+							type: "user_message",
 							date,
 						},
 					},
 				]);
+				console.log(`[Chat] Added user message to diatribe peer${interpretation.extractedFacts.length > 0 ? ` with ${interpretation.extractedFacts.length} facts` : ""}`);
 
-				console.log(
-					`[Chat] Added ${interpretation.extractedFacts.length} facts to Honcho`,
-				);
+				// Add assistant response to synthesis peer
+				await session.addMessages([
+					{
+						peer_id: synthesisPeer.id,
+						content: interpretation.response,
+						metadata: {
+							timestamp: new Date().toISOString(),
+							source: "web_chat",
+							type: "assistant_response",
+							date,
+						},
+					},
+				]);
+				console.log(`[Chat] Added assistant response to synthesis peer`);
 			} catch (error) {
 				console.warn(
-					`[Chat] Failed to add facts to Honcho: ${error instanceof Error ? error.message : String(error)}`,
+					`[Chat] Failed to update Honcho memory: ${error instanceof Error ? error.message : String(error)}`,
 				);
 			}
 		}
