@@ -27,7 +27,7 @@ interface DisplayQueueConfig {
 	gapSpeed?: GapSpeed;
 }
 
-const DEFAULT_PREFIX_ORDER = ["W", "K", "S", "M", "H", "R", "N"];
+const DEFAULT_PREFIX_ORDER = ["W", "K", "S", "M", "H", "R", "N", "F"];
 
 const DEFAULT_CONFIG: DisplayQueueConfig = {
 	gapMs: 3500,

@@ -16,6 +16,7 @@ const PREFIX_COLORS: Record<string, { bg: string; text: string; label: string }>
 	H: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Hints" },
 	K: { bg: "bg-cyan-100", text: "text-cyan-700", label: "Knowledge" },
 	N: { bg: "bg-pink-100", text: "text-pink-700", label: "Note" },
+	F: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Follow-up" },
 };
 
 function formatTime(isoString: string): string {

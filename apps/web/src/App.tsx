@@ -6,6 +6,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { BottomTabBar } from "./components/BottomTabBar";
 import { ChatPage } from "./components/ChatPage";
 import ClairvoyantMobile from "./components/Clairvoyant";
+import { FollowupChatPage } from "./components/FollowupChatPage";
+import { FollowupsPage } from "./components/FollowupsPage";
 import { HomePage } from "./components/HomePage";
 import { MemoryPage } from "./components/MemoryPage";
 import { NavBar } from "./components/NavBar";
@@ -147,6 +149,18 @@ export function App() {
 							<Route
 								path="/queue"
 								element={<QueuePage mentraUserId={authState.mentraUserId} />}
+							/>
+							<Route
+								path="/followups"
+								element={
+									<FollowupsPage mentraUserId={authState.mentraUserId} />
+								}
+							/>
+							<Route
+								path="/followups/chat/:followupId"
+								element={
+									<FollowupChatPage mentraUserId={authState.mentraUserId} />
+								}
 							/>
 						</Routes>
 					</div>

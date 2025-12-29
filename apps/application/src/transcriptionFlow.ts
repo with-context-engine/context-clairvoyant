@@ -7,6 +7,7 @@ import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
 import { startMapsFlow } from "./handlers/maps";
 import { MemoryCapture, MemoryRecall } from "./handlers/memory";
+import { startFollowUpFlow } from "./handlers/followup";
 import { startNoteThisFlow } from "./handlers/noteThis";
 import { startWebSearchFlow } from "./handlers/search";
 import { startWeatherFlow } from "./handlers/weather";
@@ -17,6 +18,7 @@ export async function handleTranscription(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	sessionId: string,
 	transcriptBuffer: string[],
 	displayQueue: DisplayQueueManager,
 ) {
@@ -114,6 +116,11 @@ export async function handleTranscription(
 		case Router.NOTE_THIS:
 			session.logger.info(`[Clairvoyant] Note This route: starting async flow`);
 			void startNoteThisFlow(transcriptBuffer, session, mentraUserId, displayQueue);
+			return;
+
+		case Router.FOLLOW_UP:
+			session.logger.info(`[Clairvoyant] Follow Up route: starting async flow`);
+			void startFollowUpFlow(session, mentraUserId, sessionId, displayQueue);
 			return;
 
 		default: {

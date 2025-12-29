@@ -114,4 +114,26 @@ export default defineSchema({
 		.index("by_mentra_user", ["mentraUserId"])
 		.index("by_session", ["sessionId"])
 		.index("by_status", ["status"]),
+	followups: defineTable({
+		mentraUserId: v.string(),
+		sessionId: v.string(),
+		topic: v.string(),
+		summary: v.string(),
+		sourceMessages: v.array(v.string()),
+		status: v.union(
+			v.literal("pending"),
+			v.literal("completed"),
+			v.literal("dismissed"),
+		),
+		createdAt: v.string(),
+		completedAt: v.optional(v.string()),
+	})
+		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_status", ["status"]),
+	followupChatMessages: defineTable({
+		followupId: v.id("followups"),
+		role: v.union(v.literal("user"), v.literal("assistant")),
+		content: v.string(),
+		createdAt: v.string(),
+	}).index("by_followup", ["followupId"]),
 });

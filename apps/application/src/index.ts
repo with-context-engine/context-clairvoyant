@@ -75,6 +75,7 @@ class Clairvoyant extends AppServer {
 				memorySession,
 				peers,
 				userId,
+				sessionId,
 				transcriptBuffer,
 				displayQueue,
 			);

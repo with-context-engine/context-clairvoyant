@@ -8,6 +8,8 @@ import type {
 	DailySummaryResult,
 	EmailContext,
 	EmailInterpretation,
+	FollowupChatContext,
+	FollowupChatResponse,
 	SessionInput,
 } from "../baml_client/baml_client/types";
 import { internalAction } from "./_generated/server";
@@ -134,6 +136,64 @@ export const interpretChatMessage = internalAction({
 		};
 
 		const result = await b.InterpretChatMessage(userMessage, chatContext);
+		return result;
+	},
+});
+
+export const interpretFollowupChat = internalAction({
+	args: {
+		userMessage: v.string(),
+		context: v.object({
+			topic: v.string(),
+			summary: v.string(),
+			sourceMessages: v.array(v.string()),
+			conversationHistory: v.array(
+				v.object({
+					role: v.string(),
+					content: v.string(),
+					createdAt: v.string(),
+				}),
+			),
+			memory: v.union(
+				v.object({
+					userName: v.union(v.string(), v.null()),
+					userFacts: v.array(v.string()),
+					deductiveFacts: v.array(v.string()),
+				}),
+				v.null(),
+			),
+			searchResults: v.array(
+				v.object({
+					title: v.string(),
+					content: v.string(),
+					url: v.string(),
+				}),
+			),
+		}),
+	},
+	handler: async (_, { userMessage, context }): Promise<FollowupChatResponse> => {
+		const followupContext: FollowupChatContext = {
+			topic: context.topic,
+			summary: context.summary,
+			sourceMessages: context.sourceMessages,
+			conversationHistory: context.conversationHistory.map((m) => ({
+				role: m.role,
+				content: m.content,
+				createdAt: m.createdAt,
+			})),
+			memory: context.memory ? {
+				userName: context.memory.userName ?? null,
+				userFacts: context.memory.userFacts,
+				deductiveFacts: context.memory.deductiveFacts,
+			} : null,
+			searchResults: context.searchResults.map((r) => ({
+				title: r.title,
+				content: r.content,
+				url: r.url,
+			})),
+		};
+
+		const result = await b.InterpretFollowupChat(userMessage, followupContext);
 		return result;
 	},
 });
