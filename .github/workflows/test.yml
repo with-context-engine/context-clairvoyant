@@ -30,9 +30,17 @@ jobs:
       uses: oven-sh/setup-bun@v2
       with:
         bun-version: latest
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
         
     - name: Install dependencies
       run: bun install
+
+    - name: Install Python dependencies
+      run: cd packages/python-tools && uv sync
       
     - name: Run tests
       run: bun run test
