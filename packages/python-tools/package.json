@@ -1,0 +1,13 @@
+{
+  "name": "python-tools",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "setup": "uv sync",
+    "build": "uv build",
+    "test": "uv run pytest",
+    "lint": "uv run ruff check .",
+    "format": "uv run ruff format .",
+    "typecheck": "uv run ty check"
+  }
+}
