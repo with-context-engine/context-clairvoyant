@@ -13,6 +13,11 @@
 		"lint": {
 			"dependsOn": ["^lint"]
 		},
+		"format": {},
+		"typecheck": {},
+		"setup": {
+			"cache": false
+		},
 		"start": {
 			"cache": false,
 			"persistent": true

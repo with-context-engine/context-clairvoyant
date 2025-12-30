@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "tool": "Nano Banana Image Gen",
+    "purpose": "App Instruction Manual",
+    "visual_identity": "IKEA Assembly Guide Aesthetic"
+  },
+  "base_prompt_template": {
+    "style_keywords": [
+      "minimalist black line art",
+      "vector style illustration",
+      "white background",
+      "no shading",
+      "thick consistent line weight",
+      "schematic diagram"
+    ],
+    "character_design": [
+      "simplified humanoid figure",
+      "round head with distinct nose",
+      "gender-neutral",
+      "smooth limb curves",
+      "cartoonish proportions",
+      "wearing simple smart glasses (rounded rectangles on face)"
+    ],
+    "negative_prompt": [
+      "text",
+      "words",
+      "color",
+      "greyscale",
+      "shading",
+      "photorealistic",
+      "gradients",
+      "complex details",
+      "faces with eyes"
+    ]
+  },
+  "dynamic_variables": {
+    "interaction_object": "smart glasses with minimal bezel",
+    "context_prop": "floating interface icons (simple outline)",
+    "action_logic": "User speaking to trigger feature, result displayed near glasses"
+  },
+  "example_generations": [
+    {
+      "use_case": "Weather",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a sun outline icon and question mark. An arrow connects to Panel 2. Panel 2 (right): Weather outline icons (sun, cloud, thermometer) float near the glasses. The figure gives a satisfied nod."
+    },
+    {
+      "use_case": "Web Search",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a magnifying glass outline icon. An arrow connects to Panel 2. Panel 2 (right): Three horizontal lines (representing search results) float near the glasses with a small checkmark outline icon. The figure gives a slight nod."
+    },
+    {
+      "use_case": "Maps / Nearby Places",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a building outline icon. An arrow connects to Panel 2. Panel 2 (right): A location pin outline icon and dotted path line appear near the glasses. The figure points forward confidently."
+    },
+    {
+      "use_case": "Knowledge / Q&A",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a question mark. An arrow connects to Panel 2. Panel 2 (right): A lightbulb outline icon appears near the glasses. The figure nods with understanding."
+    },
+    {
+      "use_case": "Memory Recall",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a person outline icon and question mark. An arrow connects to Panel 2. Panel 2 (right): A drawer outline icon opens with small shapes (heart, star) floating outward toward the figure. The figure points to themselves."
+    },
+    {
+      "use_case": "Note This / Email Session",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing an envelope outline icon. An arrow connects to Panel 2. Panel 2 (right): The figure watches as three horizontal lines (representing conversation text) flow with a curved arrow into an envelope outline icon, which then shows a checkmark. The figure gives a thumbs up."
+    },
+    {
+      "use_case": "Follow Up / Bookmark",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A two-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble containing a bookmark ribbon outline icon. An arrow connects to Panel 2. Panel 2 (right): A bookmark ribbon attaches to a floating card shape, with a clock outline icon nearby. The figure nods approvingly."
+    },
+    {
+      "use_case": "Proactive Hints",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A single-panel illustration. A simplified humanoid figure wearing simple rounded rectangular smart glasses stands relaxed with hands at sides. A small lightbulb outline icon with a sparkle appears near the glasses unprompted. A dotted line connects from a tiny box outline icon to the lightbulb. The figure looks pleasantly surprised with a slight head tilt."
+    },
+    {
+      "use_case": "Interactive Chat",
+      "prompt_construction": "A minimalist black line art, vector style illustration in the style of an IKEA assembly schematic diagram on a solid white background with no shading and thick consistent line weights. A three-panel instruction diagram. Panel 1 (left): A simplified humanoid figure wearing simple rounded rectangular smart glasses speaks with a speech bubble on the right. An arrow connects to Panel 2. Panel 2 (middle): A response speech bubble appears on the left near the glasses. An arrow connects to Panel 3. Panel 3 (right): The figure speaks again with a speech bubble, and a small brain outline icon above shows bidirectional arrows connecting to the conversation."
+    }
+  ]
+}
