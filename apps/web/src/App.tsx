@@ -43,9 +43,8 @@ export function App() {
 
 	if (!isAuthenticated) {
 		return (
-			<div className="p-5 font-sans">
-				<ClairvoyantMobile />
-				<p>Not authenticated. Please open from MentraOS app.</p>
+			<div className="p-5 font-sans max-w-2xl mx-auto">
+				<HomePage />
 			</div>
 		);
 	}
