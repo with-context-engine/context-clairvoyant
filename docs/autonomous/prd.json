@@ -41,8 +41,8 @@
         "Lint passes: bun run check"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Removed polar subscription check and early return. Now stores session summaries for all users. Removed unused polar import."
     },
     {
       "id": "US-004",

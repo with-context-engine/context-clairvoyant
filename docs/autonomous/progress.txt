@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 3
+current_iteration: 4
 max_iterations: 15
 
 ## Codebase Patterns
@@ -32,3 +32,10 @@ max_iterations: 15
 **Changes:** Removed polar subscription check from getForUser query. Always returns isPro: true with summaries. Removed unused polar import.
 **Files:** packages/convex/dailySummaries.ts
 **Learnings:** None - straightforward pattern matching US-001
+
+---
+
+## 2026-01-17 | US-003 | T-019bcf15-c3db-76bd-9131-479e7e8a8787
+**Changes:** Removed polar subscription check from upsert mutation. Session summaries now stored for all users. Removed unused polar import.
+**Files:** packages/convex/sessionSummaries.ts
+**Learnings:** None - same pattern as US-001 and US-002
