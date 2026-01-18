@@ -27,8 +27,8 @@
         "Lint passes: bun run check"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Removed polar subscription check and early return. Always returns isPro: true. Removed unused polar import."
     },
     {
       "id": "US-003",
