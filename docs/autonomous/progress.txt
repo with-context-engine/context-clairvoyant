@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 6
+current_iteration: 7
 max_iterations: 15
 
 ## Codebase Patterns
@@ -53,3 +53,10 @@ max_iterations: 15
 **Changes:** Removed !result.isPro conditional block from MemoryPage.tsx. Users now see summaries or "no memories yet" directly. Removed unused CardDescription import.
 **Files:** apps/web/src/components/MemoryPage.tsx
 **Learnings:** None - straightforward removal of conditional block
+
+---
+
+## 2026-01-17 | US-006 | T-019bcf18-7598-72cb-b2fb-ca7b86c9f04f
+**Changes:** Set all isPro: false in FEATURES array. Collapsed Free/Pro sections into single unified "Features" list. Removed Pro badge from accordion triggers.
+**Files:** apps/web/src/components/HomePage.tsx
+**Learnings:** None - straightforward data change and UI simplification

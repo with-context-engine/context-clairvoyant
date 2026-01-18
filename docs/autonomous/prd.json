@@ -85,8 +85,8 @@
         "Lint passes: bun run check"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Set all isPro: false in FEATURES array. Collapsed Free/Pro sections into single unified list. Removed Pro badge from accordion triggers."
     }
   ]
 }
