@@ -1,0 +1,20 @@
+# Progress Log
+
+## Iteration Counter
+current_iteration: 1
+max_iterations: 15
+
+## Codebase Patterns
+
+- Build check: `bun run build`
+- Lint check: `bun run check`
+- Package manager: bun
+- Monorepo structure: apps/application, apps/web, packages/convex
+- isPro gating pattern: `checkUserIsPro()` in apps/application/src/core/convex.ts
+- Convex subscription check: `polar.getCurrentSubscription(ctx, { userId })`
+
+---
+
+## Execution Log
+
+(Entries appended below as iterations complete)

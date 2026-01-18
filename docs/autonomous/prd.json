@@ -1,0 +1,92 @@
+{
+  "project": "remove-payment-gating",
+  "branchName": "autonomous/remove-payment-gating",
+  "description": "Remove payment gating from the application layer. All features previously behind Pro subscription are now free. Backend Convex schema and Polar webhooks remain intact for potential future use.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Bypass isPro check in application",
+      "description": "As a user, I can access all features without a Pro subscription because the isPro check always returns true.",
+      "acceptanceCriteria": [
+        "checkUserIsPro() in apps/application/src/core/convex.ts always returns true",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Remove isPro gate from daily summaries",
+      "description": "As a user, I can view my daily summaries without a Pro subscription.",
+      "acceptanceCriteria": [
+        "packages/convex/dailySummaries.ts getForUser removes subscription check",
+        "Always returns isPro: true with summaries data",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Remove subscription gate from session summaries",
+      "description": "As a user, my session summaries are stored regardless of subscription status.",
+      "acceptanceCriteria": [
+        "packages/convex/sessionSummaries.ts upsert removes subscription check (lines 24-31)",
+        "Always stores session summaries for all users",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Comment out Billing section in Settings",
+      "description": "As a user, I no longer see the Billing section in Settings since payments are disabled.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/SettingsPage.tsx Billing button (lines 140-154) is commented out",
+        "Billing card section (lines 291-310) is commented out",
+        "SubscriptionCard import can be commented out",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Remove Pro upgrade prompt from Memory page",
+      "description": "As a user, I see my memory log directly without an upgrade prompt.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/MemoryPage.tsx removes the !result.isPro conditional block (lines 63-88)",
+        "Users go straight to viewing summaries or 'no memories yet' state",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Unify features list on Home page",
+      "description": "As a user, I see all features in a single unified list without Free/Pro distinction.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/HomePage.tsx FEATURES array: all items have isPro: false",
+        "UI collapses Free/Pro sections into single 'Features' list",
+        "Remove 'Upgrade' badge from Pro heading",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
