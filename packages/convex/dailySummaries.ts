@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
-import { polar } from "./payments";
 
 export const getForUser = query({
 	args: {
@@ -14,17 +13,7 @@ export const getForUser = query({
 			.first();
 
 		if (!user) {
-			return { isPro: false, summaries: [] };
-		}
-
-		// Check Pro status
-		const subscription = await polar.getCurrentSubscription(ctx, {
-			userId: user._id,
-		});
-		const isPro = !!subscription;
-
-		if (!isPro) {
-			return { isPro: false, summaries: [] };
+			return { isPro: true, summaries: [] };
 		}
 
 		const limit = args.limit ?? 30;
