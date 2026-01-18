@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 5
+current_iteration: 6
 max_iterations: 15
 
 ## Codebase Patterns
@@ -46,3 +46,10 @@ max_iterations: 15
 **Changes:** Commented out Billing section in Settings - SubscriptionCard import, Billing button, and Billing card section
 **Files:** apps/web/src/components/SettingsPage.tsx
 **Learnings:** None - straightforward JSX comment pattern
+
+---
+
+## 2026-01-17 | US-005 | T-019bcf17-9b44-7058-b0d4-079f92ef715c
+**Changes:** Removed !result.isPro conditional block from MemoryPage.tsx. Users now see summaries or "no memories yet" directly. Removed unused CardDescription import.
+**Files:** apps/web/src/components/MemoryPage.tsx
+**Learnings:** None - straightforward removal of conditional block

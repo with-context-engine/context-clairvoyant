@@ -70,8 +70,8 @@
         "Lint passes: bun run check"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Removed !result.isPro conditional block. Users now go straight to summaries or 'no memories yet' state. Removed unused CardDescription import."
     },
     {
       "id": "US-006",
