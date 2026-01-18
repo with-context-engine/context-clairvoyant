@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 4
+current_iteration: 5
 max_iterations: 15
 
 ## Codebase Patterns
@@ -39,3 +39,10 @@ max_iterations: 15
 **Changes:** Removed polar subscription check from upsert mutation. Session summaries now stored for all users. Removed unused polar import.
 **Files:** packages/convex/sessionSummaries.ts
 **Learnings:** None - same pattern as US-001 and US-002
+
+---
+
+## 2026-01-17 | US-004 | T-019bcf16-a824-75dc-9360-9b2c5fa777bf
+**Changes:** Commented out Billing section in Settings - SubscriptionCard import, Billing button, and Billing card section
+**Files:** apps/web/src/components/SettingsPage.tsx
+**Learnings:** None - straightforward JSX comment pattern
