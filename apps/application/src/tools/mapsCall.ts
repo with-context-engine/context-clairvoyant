@@ -29,7 +29,7 @@ export async function getPlaces(
 					"places.displayName,places.shortFormattedAddress,places.id,places.reviewSummary.text.text",
 				Referer: env.RAILWAY_PUBLIC_DOMAIN
 					? `https://${env.RAILWAY_PUBLIC_DOMAIN}/`
-					: "https://clairvoyant.with-context.co/",
+					: "http://localhost:8080/",
 			},
 			body: JSON.stringify({
 				textQuery: query,

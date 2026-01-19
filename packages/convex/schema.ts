@@ -62,7 +62,7 @@ export default defineSchema({
 		.index("by_mentra_session", ["mentraSessionId"])
 		.index("by_honcho_session", ["honchoSessionId"]),
 	emailNotes: defineTable({
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		emailId: v.string(),
 		title: v.string(),
 		subject: v.string(),
@@ -77,7 +77,7 @@ export default defineSchema({
 		createdAt: v.string(),
 		updatedAt: v.string(),
 	})
-		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_user", ["userId"])
 		.index("by_email_id", ["emailId"]),
 	emailThreadMessages: defineTable({
 		emailNoteId: v.id("emailNotes"),
@@ -98,7 +98,7 @@ export default defineSchema({
 		.index("by_user_date", ["userId", "date"])
 		.index("by_daily_summary", ["dailySummaryId"]),
 	displayQueue: defineTable({
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		sessionId: v.string(),
 		message: v.string(),
 		prefix: v.string(),
@@ -111,11 +111,11 @@ export default defineSchema({
 		createdAt: v.string(),
 		displayedAt: v.optional(v.string()),
 	})
-		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_user", ["userId"])
 		.index("by_session", ["sessionId"])
 		.index("by_status", ["status"]),
 	followups: defineTable({
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		sessionId: v.string(),
 		topic: v.string(),
 		summary: v.string(),
@@ -128,7 +128,7 @@ export default defineSchema({
 		createdAt: v.string(),
 		completedAt: v.optional(v.string()),
 	})
-		.index("by_mentra_user", ["mentraUserId"])
+		.index("by_user", ["userId"])
 		.index("by_status", ["status"]),
 	followupChatMessages: defineTable({
 		followupId: v.id("followups"),

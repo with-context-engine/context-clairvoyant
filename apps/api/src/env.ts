@@ -17,7 +17,9 @@ export const env = createEnv({
 	runtimeEnv: process.env,
 });
 
-const DEFAULT_PUBLIC_BASE_URL = "https://with-context-engine.ngrok.dev";
+const DEFAULT_PUBLIC_BASE_URL = process.env.NGROK_WEB_DOMAIN 
+	? `https://${process.env.NGROK_WEB_DOMAIN}` 
+	: "http://localhost:5173";
 
 const normalizeUrl = (value: string) => {
 	const trimmed = value.trim();

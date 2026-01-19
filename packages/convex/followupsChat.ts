@@ -78,7 +78,7 @@ interface User {
 
 interface Followup {
 	_id: Id<"followups">;
-	mentraUserId: string;
+	userId: Id<"users">;
 	topic: string;
 	summary: string;
 	sourceMessages: string[];
@@ -141,8 +141,8 @@ export const sendFollowupMessage = action({
 			return { success: false, error: "followup_not_found" };
 		}
 
-		if (followup.mentraUserId !== mentraUserId) {
-			console.error(`[FollowupChat] Followup ${followupId} does not belong to user ${mentraUserId}`);
+		if (followup.userId !== user._id) {
+			console.error(`[FollowupChat] Followup ${followupId} does not belong to user ${user._id}`);
 			return { success: false, error: "unauthorized" };
 		}
 		console.log(`[FollowupChat] Followup validated: ${followup.topic}`);

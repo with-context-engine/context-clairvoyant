@@ -22,7 +22,8 @@
 		"format": "bunx biome format --write .",
 		"test": "turbo run test",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules .turbo apps/*/.turbo packages/*/.turbo apps/*/dist packages/*/dist apps/*/build packages/*/build packages/convex/_generated bun.lock",
-		"clean:install": "bun run clean && bun install"
+		"clean:install": "bun run clean && bun install",
+		"ngrok": "turbo run dev --filter=@clairvoyant/ngrok"
 	},
 	"dependencies": {
 		"convex": "^1.31.2",
