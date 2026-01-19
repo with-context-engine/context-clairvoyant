@@ -1,7 +1,9 @@
 import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
@@ -17,6 +19,7 @@ export async function startKnowledgeFlow(
 	peers: Peer[],
 	mentraUserId: string,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	const runId = Date.now();
 	knowledgeRunIds.set(session, runId);
@@ -227,6 +230,21 @@ export async function startKnowledgeFlow(
 					durationMs: 3000,
 					priority: 2,
 				});
+			}
+
+			if (logContext && answerLines.length > 0) {
+				const responseText = answerLines
+					.map((line, i) => {
+						const label = answerLines.length > 1 ? `A${i + 1}` : "A";
+						return `Q: ${questionLine}\n${label}: ${line}`;
+					})
+					.join("\n");
+				updateConversationResponse(
+					logContext.convexUserId,
+					logContext.sessionId,
+					logContext.transcript,
+					responseText,
+				);
 			}
 		} else {
 			displayQueue.enqueue({

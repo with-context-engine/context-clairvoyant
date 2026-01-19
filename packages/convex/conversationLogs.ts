@@ -45,3 +45,31 @@ export const getByUser = query({
 			.collect();
 	},
 });
+
+export const updateResponse = mutation({
+	args: {
+		userId: v.id("users"),
+		sessionId: v.string(),
+		transcript: v.string(),
+		response: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const log = await ctx.db
+			.query("conversationLogs")
+			.withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("userId"), args.userId),
+					q.eq(q.field("transcript"), args.transcript),
+				),
+			)
+			.order("desc")
+			.first();
+
+		if (log) {
+			await ctx.db.patch(log._id, { response: args.response });
+			return log._id;
+		}
+		return null;
+	},
+});

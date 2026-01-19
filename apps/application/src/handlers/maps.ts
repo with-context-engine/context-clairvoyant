@@ -1,7 +1,9 @@
 import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import {
 	checkUserIsPro,
 	convexClient,
@@ -30,6 +32,7 @@ async function processPlacesData(
 	places: PlaceSuggestion[],
 	runId: number,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	if (!places?.length) {
 		displayQueue.enqueue({
@@ -188,6 +191,16 @@ async function processPlacesData(
 			priority: 2,
 		});
 	}
+
+	if (logContext && lines.length > 0) {
+		const responseText = lines.map((l) => `M: ${l}`).join("\n");
+		updateConversationResponse(
+			logContext.convexUserId,
+			logContext.sessionId,
+			logContext.transcript,
+			responseText,
+		);
+	}
 }
 
 export async function startMapsFlow(
@@ -197,6 +210,7 @@ export async function startMapsFlow(
 	peers: Peer[],
 	mentraUserId: string,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	const runId = Date.now();
 	mapsRunIds.set(session, runId);
@@ -287,6 +301,7 @@ export async function startMapsFlow(
 				places,
 				runId,
 				displayQueue,
+				logContext,
 			);
 		} catch (error) {
 			session.logger.error(`[startMapsFlow] Maps flow error: ${String(error)}`);
@@ -376,6 +391,7 @@ export async function startMapsFlow(
 					places,
 					runId,
 					displayQueue,
+					logContext,
 				);
 			} catch (error) {
 				session.logger.error(

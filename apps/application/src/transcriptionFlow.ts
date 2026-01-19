@@ -36,11 +36,13 @@ export async function handleTranscription(
 	// Log conversation for ML training (fire-and-forget)
 	logConversation(convexUserId, sessionId, data.text, routing.routing);
 
+	const logContext = { convexUserId, sessionId, transcript: data.text };
+
 	switch (routing.routing) {
 		case Router.WEATHER:
 			session.logger.info(`[Clairvoyant] Weather route: starting async flow`);
 			void recordToolInvocation(mentraUserId, Router.WEATHER);
-			void startWeatherFlow(session, memorySession, peers, displayQueue);
+			void startWeatherFlow(session, memorySession, peers, displayQueue, logContext);
 			return;
 
 		case Router.MAPS:
@@ -53,6 +55,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
@@ -68,6 +71,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
@@ -81,6 +85,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
