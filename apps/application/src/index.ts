@@ -47,17 +47,20 @@ class Clairvoyant extends AppServer {
 		sessionId: string,
 		userId: string,
 	): Promise<void> {
-		const [memorySession, peers, honchoSessionId] = await initializeMemory(
-			userId,
-			sessionId,
-		);
+		const [memorySession, peers, honchoSessionId, convexUserId] =
+			await initializeMemory(userId, sessionId);
 		const transcriptBuffer: string[] = [];
 		const startedAt = new Date().toISOString();
 		const preferences = await getUserPreferences(userId);
-		const displayQueue = new DisplayQueueManager(session, userId, sessionId, {
-			prefixPriorities: preferences.prefixPriorities,
-			gapSpeed: preferences.messageGapSpeed,
-		});
+		const displayQueue = new DisplayQueueManager(
+			session,
+			convexUserId,
+			sessionId,
+			{
+				prefixPriorities: preferences.prefixPriorities,
+				gapSpeed: preferences.messageGapSpeed,
+			},
+		);
 
 		const unsubscribe = session.events.onTranscription(async (data) => {
 			if (
@@ -75,7 +78,9 @@ class Clairvoyant extends AppServer {
 				memorySession,
 				peers,
 				userId,
+				convexUserId,
 				sessionId,
+				honchoSessionId,
 				transcriptBuffer,
 				displayQueue,
 			);

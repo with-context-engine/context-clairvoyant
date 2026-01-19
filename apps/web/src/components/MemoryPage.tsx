@@ -1,7 +1,13 @@
 import { api } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "./ui/card";
 
 interface MemoryPageProps {
 	mentraUserId: string;

@@ -234,4 +234,169 @@ Regeneration/Build
   - `npx baml-cli generate`
 - No build changes are needed for new tools if you follow the structure above.
 
+User Identity: mentraUserId vs Convex userId
+
+The system has two user identifiers:
+- `mentraUserId` (string): External ID from MentraOS (e.g., `gzgyxym5hk@privaterelay.appleid.com`)
+- `userId` / `Id<"users">`: Internal Convex database ID (e.g., `jh7abc123def456`)
+
+**Key Rules:**
+
+1. **Convex queries/mutations that need a user reference should use `userId: v.id("users")`**, not `mentraUserId: v.string()`.
+
+2. **Internal lookup pattern**: If a Convex function receives `mentraUserId`, it should do the lookup internally:
+   ```ts
+   // Good: Convex does the lookup internally
+   export const getForUser = query({
+     args: { mentraUserId: v.string() },
+     handler: async (ctx, args) => {
+       const user = await ctx.db
+         .query("users")
+         .withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+         .first();
+       if (!user) return [];
+       // Use user._id for subsequent queries
+       return await ctx.db.query("myTable")
+         .withIndex("by_user", (q) => q.eq("userId", user._id))
+         .collect();
+     },
+   });
+   ```
+
+3. **Frontend components**: The auth state provides both IDs via `useConvexAuth`:
+   ```ts
+   const authState = useConvexAuth(userId, frontendToken, isAuthenticated);
+   // authState.mentraUserId → string (for APIs that do internal lookup)
+   // authState.convexUserId → Id<"users"> (for APIs that expect Convex ID directly)
+   ```
+
+4. **Application handlers**: When passing user context through handler chains, pass both if needed:
+   - `mentraUserId` for analytics, logging, and Convex functions that do internal lookups
+   - `userId: Id<"users">` for Convex functions that expect the ID directly (e.g., `displayQueue.enqueue`)
+
+5. **Token exchange**: The `/api/session/mentra` endpoint converts `frontendToken` → `mentraUserId` → `convexUserId` via `users.getOrCreate`.
+
+Convex Schema Best Practices
+
+1. **Always link records to `userId: v.id("users")`** — never store `mentraUserId` as a foreign key in other tables.
+   ```ts
+   // Good
+   defineTable({
+     userId: v.id("users"),
+     content: v.string(),
+   }).index("by_user", ["userId"])
+
+   // Bad — don't use mentraUserId as FK
+   defineTable({
+     mentraUserId: v.string(),  // ❌ Use userId instead
+     content: v.string(),
+   })
+   ```
+
+2. **Use `_creationTime` instead of custom `createdAt` fields** — Convex automatically adds `_creationTime` to every document.
+   ```ts
+   // Good: Use built-in _creationTime
+   const docs = await ctx.db.query("myTable")
+     .order("desc")  // Orders by _creationTime by default
+     .take(10);
+
+   // Unnecessary: Don't add redundant createdAt
+   defineTable({
+     userId: v.id("users"),
+     createdAt: v.string(),  // ❌ Redundant, use _creationTime
+   })
+   ```
+
+3. **Exception**: Use explicit timestamp fields only when you need a specific format (ISO string for display) or a different semantic (e.g., `completedAt`, `displayedAt`).
+
+4. **Deferred Linking Pattern** — All records should eventually link back to a Convex `_id`, even if that ID doesn't exist yet at creation time.
+   - Store an external/temporary identifier (e.g., `honchoSessionId`) when the Convex record doesn't exist yet
+   - When the target record is created, retroactively link by patching with the Convex `_id`
+   - This ensures tight relational integrity for future features (analytics, cross-referencing, cascading updates)
+   ```ts
+   // Example: emailNotes stores honchoSessionId initially
+   defineTable({
+     userId: v.id("users"),
+     honchoSessionId: v.optional(v.string()),      // Temporary join key
+     sessionSummaryId: v.optional(v.id("sessionSummaries")),  // Linked later
+   }).index("by_honcho_session", ["honchoSessionId"])
+
+   // When sessionSummary is created, patch all matching emailNotes:
+   const notesToLink = await ctx.db.query("emailNotes")
+     .withIndex("by_honcho_session", q => q.eq("honchoSessionId", honchoSessionId))
+     .collect();
+   for (const note of notesToLink) {
+     if (!note.sessionSummaryId) {
+       await ctx.db.patch(note._id, { sessionSummaryId });
+     }
+   }
+   ```
+
+Environment Variables & Port Configuration
+
+**File Locations:**
+- Root `.env.local` — Shared variables loaded by all apps (CONVEX_URL, ngrok domains, etc.)
+- `apps/api/.env.local` — API-specific overrides
+- `apps/application/.env.local` — Application server overrides  
+- `apps/web/.env` — Frontend variables (must be prefixed with `VITE_`)
+
+**Port Defaults:**
+| Service | Env Var | Default | Notes |
+|---------|---------|---------|-------|
+| API | `API_PORT` | 3000 | Elysia server for auth/session |
+| Web | `WEB_PORT` | 5173 | Vite dev server |
+| Application | `APP_PORT` / `PORT` | 3002 | MentraOS glasses app server |
+
+**Ngrok Configuration (`packages/ngrok`):**
+- Set domains in root `.env.local`:
+  ```
+  NGROK_AUTHTOKEN=your_token
+  NGROK_API_DOMAIN=your-api.ngrok.dev
+  NGROK_WEB_DOMAIN=your-web.ngrok.dev  
+  NGROK_APP_DOMAIN=your-app.ngrok-free.app
+  ```
+- Ports are read from `API_PORT`, `WEB_PORT`, `APP_PORT` env vars
+- Run with `bun run --cwd packages/ngrok start`
+
+**Adding New Environment Variables:**
+
+1. **For backend apps** (`apps/api`, `apps/application`):
+   - Add to the app's `src/env.ts` or `src/core/env.ts` using `@t3-oss/env-core`:
+     ```ts
+     export const env = createEnv({
+       server: {
+         MY_NEW_KEY: z.string(),
+         MY_OPTIONAL_KEY: z.string().optional(),
+       },
+       runtimeEnv: process.env,
+     });
+     ```
+   - Add to root `.env.example` for documentation
+
+2. **For frontend** (`apps/web`):
+   - Must prefix with `VITE_` to expose to client
+   - Add to `apps/web/src/env.ts`:
+     ```ts
+     const schema = z.object({
+       VITE_MY_NEW_KEY: z.string(),
+     });
+     ```
+   - Set in `apps/web/.env` or root `.env.local`
+
+3. **For Convex** (`packages/convex`):
+   - Set via Convex dashboard or `npx convex env set KEY=value`
+   - Access via `process.env.KEY` in actions (not queries/mutations)
+
+**Vite Proxy Configuration:**
+- `apps/web/vite.config.ts` proxies `/api/*` and `/.well-known/*` to the API server
+- Uses `API_PORT` env var to determine target (defaults to 3000)
+- `allowedHosts: true` allows ngrok/external domains in dev
+
+**CORS Configuration:**
+- API server (`apps/api/src/index.ts`) allows:
+  - `localhost:3000`, `localhost:5173` (static)
+  - Vercel URLs (auto-detected)
+  - `ALLOWED_ORIGINS` env var (comma-separated list)
+- Add ngrok domains to `ALLOWED_ORIGINS` for external dev access
+
 Done. This guide covers the minimal, repeatable steps for adding new tools and flows with token‑efficient prompts and predictable UX.

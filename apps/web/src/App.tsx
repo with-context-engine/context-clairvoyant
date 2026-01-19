@@ -147,12 +147,16 @@ export function App() {
 							/>
 							<Route
 								path="/queue"
-								element={<QueuePage mentraUserId={authState.mentraUserId} />}
+								element={
+									<QueuePage userId={authState.convexUserId as Id<"users">} />
+								}
 							/>
 							<Route
 								path="/followups"
 								element={
-									<FollowupsPage mentraUserId={authState.mentraUserId} />
+									<FollowupsPage
+										userId={authState.convexUserId as Id<"users">}
+									/>
 								}
 							/>
 							<Route

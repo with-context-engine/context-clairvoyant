@@ -20,6 +20,7 @@ type SendNoteResult =
 export const sendNoteEmail = action({
 	args: {
 		mentraUserId: v.string(),
+		honchoSessionId: v.optional(v.string()),
 		title: v.string(),
 		summary: v.string(),
 		keyPoints: v.array(v.string()),
@@ -50,14 +51,17 @@ export const sendNoteEmail = action({
 			day: "numeric",
 		});
 
-		const html = await render(
-			SessionNoteEmail({
-				title: args.title,
-				summary: args.summary,
-				keyPoints: args.keyPoints,
-				sessionDate,
-			}),
-		);
+		const emailProps = {
+			title: args.title,
+			summary: args.summary,
+			keyPoints: args.keyPoints,
+			sessionDate,
+		};
+
+		const html = await render(SessionNoteEmail(emailProps));
+		const textContent = await render(SessionNoteEmail(emailProps), {
+			plainText: true,
+		});
 
 		const messageId = generateMessageId();
 
@@ -67,6 +71,7 @@ export const sendNoteEmail = action({
 				emailId: messageId,
 				title: args.title,
 				subject: args.title,
+				honchoSessionId: args.honchoSessionId,
 			});
 
 			const replyToAddress = `chat+${emailNoteId}@${EMAIL_DOMAIN}`;
@@ -85,6 +90,7 @@ export const sendNoteEmail = action({
 				messageId,
 				direction: "outbound",
 				resendEmailId,
+				textContent,
 			});
 
 			console.log(

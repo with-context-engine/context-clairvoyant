@@ -7,6 +7,7 @@ export const create = internalMutation({
 		emailId: v.string(),
 		title: v.string(),
 		subject: v.string(),
+		honchoSessionId: v.optional(v.string()),
 		sessionSummaryId: v.optional(v.id("sessionSummaries")),
 	},
 	handler: async (ctx, args) => {
@@ -16,6 +17,7 @@ export const create = internalMutation({
 			emailId: args.emailId,
 			title: args.title,
 			subject: args.subject,
+			honchoSessionId: args.honchoSessionId,
 			sessionSummaryId: args.sessionSummaryId,
 			status: "queued",
 			createdAt: now,

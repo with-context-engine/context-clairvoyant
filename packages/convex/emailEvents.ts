@@ -12,13 +12,20 @@ export const handleEmailEvent = internalMutation({
 			createdAt: event.created_at,
 		});
 
-		const existingNote = await ctx.db
-			.query("emailNotes")
-			.withIndex("by_email_id", (q) => q.eq("emailId", id))
+		const threadMessage = await ctx.db
+			.query("emailThreadMessages")
+			.withIndex("by_resend_email_id", (q) => q.eq("resendEmailId", id))
 			.first();
 
+		if (!threadMessage) {
+			console.warn(`[Email Event] No threadMessage found for resendEmailId: ${id}`);
+			return;
+		}
+
+		const existingNote = await ctx.db.get(threadMessage.emailNoteId);
+
 		if (!existingNote) {
-			console.warn(`[Email Event] No emailNote found for emailId: ${id}`);
+			console.warn(`[Email Event] No emailNote found for emailNoteId: ${threadMessage.emailNoteId}`);
 			return;
 		}
 

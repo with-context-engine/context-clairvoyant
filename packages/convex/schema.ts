@@ -66,6 +66,7 @@ export default defineSchema({
 		emailId: v.string(),
 		title: v.string(),
 		subject: v.string(),
+		honchoSessionId: v.optional(v.string()),
 		sessionSummaryId: v.optional(v.id("sessionSummaries")),
 		status: v.union(
 			v.literal("queued"),
@@ -78,7 +79,8 @@ export default defineSchema({
 		updatedAt: v.string(),
 	})
 		.index("by_user", ["userId"])
-		.index("by_email_id", ["emailId"]),
+		.index("by_email_id", ["emailId"])
+		.index("by_honcho_session", ["honchoSessionId"]),
 	emailThreadMessages: defineTable({
 		emailNoteId: v.id("emailNotes"),
 		messageId: v.string(),
@@ -86,7 +88,9 @@ export default defineSchema({
 		resendEmailId: v.optional(v.string()),
 		textContent: v.optional(v.string()),
 		createdAt: v.string(),
-	}).index("by_email_note", ["emailNoteId"]),
+	})
+		.index("by_email_note", ["emailNoteId"])
+		.index("by_resend_email_id", ["resendEmailId"]),
 	chatMessages: defineTable({
 		userId: v.id("users"),
 		dailySummaryId: v.optional(v.id("dailySummaries")),

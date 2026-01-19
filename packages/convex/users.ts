@@ -113,6 +113,8 @@ export const getPreferences = query({
 				userId: args.userId,
 				weatherUnit: "C" as const,
 				defaultLocation: undefined,
+				prefixPriorities: undefined,
+				messageGapSpeed: undefined,
 			};
 		}
 
@@ -142,6 +144,8 @@ export const getPreferencesByMentraId = query({
 				userId: user._id,
 				weatherUnit: "C" as const,
 				defaultLocation: undefined,
+				prefixPriorities: undefined,
+				messageGapSpeed: undefined,
 			};
 		}
 

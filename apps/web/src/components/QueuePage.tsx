@@ -1,11 +1,12 @@
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 const MAX_VISIBLE = 5;
 
 interface QueuePageProps {
-	mentraUserId: string;
+	userId: Id<"users">;
 }
 
 const PREFIX_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -90,9 +91,9 @@ function MessageCard({ message, prefix, status, createdAt, displayedAt }: Messag
 	);
 }
 
-export function QueuePage({ mentraUserId }: QueuePageProps) {
+export function QueuePage({ userId }: QueuePageProps) {
 	const messages = useQuery(api.displayQueue.getRecentByUser, {
-		mentraUserId,
+		userId,
 		limit: 20,
 	});
 
