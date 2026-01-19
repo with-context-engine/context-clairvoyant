@@ -37,7 +37,7 @@ export default class TypeBuilder {
     
     ChatInterpretation: ClassViewer<'ChatInterpretation', "response" | "extractedFacts" | "newTopics" | "shouldUpdateSummary" | "summaryAddition">;
     
-    ChatSessionSummary: ClassViewer<'ChatSessionSummary', "summary" | "topics" | "startedAt" | "endedAt">;
+    ChatSessionSummary: ClassViewer<'ChatSessionSummary', "summary" | "topics">;
     
     ConversationMessage: ClassViewer<'ConversationMessage', "direction" | "content">;
     
@@ -141,7 +141,7 @@ export default class TypeBuilder {
         ]);
         
         this.ChatSessionSummary = this.tb.classViewer("ChatSessionSummary", [
-          "summary","topics","startedAt","endedAt",
+          "summary","topics",
         ]);
         
         this.ConversationMessage = this.tb.classViewer("ConversationMessage", [

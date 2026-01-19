@@ -53,10 +53,19 @@ export const increment = mutation({
 
 export const getUserToolInvocations = query({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		days: v.number(),
 	},
 	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			return [];
+		}
+
 		const allowedDays = new Set([1, 7, 30]);
 		if (!allowedDays.has(args.days)) {
 			throw new Error(`Unsupported range: ${args.days}`);
@@ -71,7 +80,7 @@ export const getUserToolInvocations = query({
 
 		const docs = await ctx.db
 			.query("toolInvocations")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.collect();
 
 		return docs

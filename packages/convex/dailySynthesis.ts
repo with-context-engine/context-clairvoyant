@@ -8,11 +8,10 @@ import { internalAction } from "./_generated/server";
 
 // Type for session summary from the query
 interface SessionSummary {
+	_creationTime: number;
 	honchoSessionId: string;
 	summary: string;
 	topics: string[];
-	startedAt: string;
-	endedAt: string;
 }
 
 /**
@@ -235,7 +234,7 @@ export const backfillForUser = internalAction({
 		const uniqueDates: string[] = [
 			...new Set(
 				allSessions.map(
-					(s: SessionSummary) => s.startedAt.split("T")[0] as string,
+					(s: SessionSummary) => new Date(s._creationTime).toISOString().split("T")[0] as string,
 				),
 			),
 		];

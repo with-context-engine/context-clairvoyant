@@ -86,10 +86,10 @@ interface Followup {
 
 interface FollowupChatMessage {
 	_id: Id<"followupChatMessages">;
+	_creationTime: number;
 	followupId: Id<"followups">;
 	role: "user" | "assistant";
 	content: string;
-	createdAt: string;
 }
 
 interface FollowupChatResponse {
@@ -179,7 +179,7 @@ export const sendFollowupMessage = action({
 					conversationHistory: existingMessages.map((m) => ({
 						role: m.role,
 						content: m.content,
-						createdAt: m.createdAt,
+						createdAt: new Date(m._creationTime).toISOString(),
 					})),
 					memory: memoryContext ? {
 						userName: memoryContext.userName ?? null,
@@ -196,15 +196,12 @@ export const sendFollowupMessage = action({
 			extractedFacts: interpretation.extractedFacts,
 		});
 
-		const now = new Date().toISOString();
-
 		await ctx.runMutation(
 			internal.followupsChatQueries.insertMessage,
 			{
 				followupId,
 				role: "user" as const,
 				content,
-				createdAt: now,
 			},
 		);
 		console.log(`[FollowupChat] Stored user message`);
@@ -215,7 +212,6 @@ export const sendFollowupMessage = action({
 				followupId,
 				role: "assistant" as const,
 				content: interpretation.response,
-				createdAt: new Date().toISOString(),
 			},
 		);
 		console.log(`[FollowupChat] Stored assistant message`);

@@ -25,22 +25,21 @@ interface EmailNote {
 
 interface EmailThreadMessage {
 	_id: Id<"emailThreadMessages">;
+	_creationTime: number;
 	emailNoteId: Id<"emailNotes">;
 	messageId: string;
 	direction: "outbound" | "inbound";
 	resendEmailId?: string;
 	textContent?: string;
-	createdAt: string;
 }
 
 interface SessionSummary {
 	_id: Id<"sessionSummaries">;
+	_creationTime: number;
 	userId: Id<"users">;
 	honchoSessionId: string;
 	summary: string;
 	topics: string[];
-	startedAt: string;
-	endedAt: string;
 }
 
 interface User {
@@ -186,7 +185,7 @@ export const processEmailReply = internalAction({
 			conversationHistory: threadMessages.map((m) => ({
 				direction: m.direction,
 				content: m.textContent ?? "",
-				createdAt: m.createdAt,
+				createdAt: new Date(m._creationTime).toISOString(),
 			})),
 		};
 
@@ -334,7 +333,7 @@ export const processEmailReply = internalAction({
 				);
 
 				// 8c. Re-run daily synthesis for this date to update daily summary
-				const sessionDate = sessionSummary.startedAt.split("T")[0];
+				const sessionDate = new Date(sessionSummary._creationTime).toISOString().split("T")[0];
 				if (sessionDate) {
 					console.log(
 						`[EmailReply] Re-running daily synthesis for ${sessionDate}...`,

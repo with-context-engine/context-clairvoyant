@@ -16,14 +16,11 @@ export const getMessages = query({
 			.collect();
 
 		return messages
-			.sort(
-				(a, b) =>
-					new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-			)
+			.sort((a, b) => a._creationTime - b._creationTime)
 			.map((m) => ({
 				role: m.role,
 				content: m.content,
-				createdAt: m.createdAt,
+				createdAt: new Date(m._creationTime).toISOString(),
 			}));
 	},
 });
@@ -38,10 +35,7 @@ export const getMessagesInternal = internalQuery({
 			.withIndex("by_followup", (q) => q.eq("followupId", followupId))
 			.collect();
 
-		return messages.sort(
-			(a, b) =>
-				new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-		);
+		return messages.sort((a, b) => a._creationTime - b._creationTime);
 	},
 });
 
@@ -50,7 +44,6 @@ export const insertMessage = internalMutation({
 		followupId: v.id("followups"),
 		role: v.union(v.literal("user"), v.literal("assistant")),
 		content: v.string(),
-		createdAt: v.string(),
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db.insert("followupChatMessages", args);

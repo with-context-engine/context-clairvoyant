@@ -108,8 +108,6 @@ export interface ChatInterpretation {
 export interface ChatSessionSummary {
   summary: string
   topics: string[]
-  startedAt: string
-  endedAt: string
   
 }
 

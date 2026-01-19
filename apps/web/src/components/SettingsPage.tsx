@@ -1,5 +1,4 @@
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useState } from "react";
 import { LocationSelector } from "./LocationSelector";
@@ -23,13 +22,12 @@ import { WeatherUnitToggle } from "./WeatherUnitToggle";
 type SettingsSection = "root" | "preferences" | "billing";
 
 interface SettingsPageProps {
-	userId: Id<"users">;
-	mentraUserId?: string | null;
+	mentraUserId: string;
 }
 
-export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
+export function SettingsPage({ mentraUserId }: SettingsPageProps) {
 	const [section, setSection] = useState<SettingsSection>("root");
-	const preferences = useQuery(api.users.getPreferences, { userId });
+	const preferences = useQuery(api.users.getPreferences, { mentraUserId });
 	const updatePreferences = useMutation(api.users.updatePreferences);
 	const updatePrefixPriorities = useMutation(api.users.updatePrefixPriorities);
 	const updateMessageGapSpeed = useMutation(api.users.updateMessageGapSpeed);
@@ -75,7 +73,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 
 	const handleSaveUnit = async (unit: "C" | "F") => {
 		await updatePreferences({
-			userId,
+			mentraUserId,
 			weatherUnit: unit,
 		});
 		console.log(`Preference saved: weatherUnit=${unit}`);
@@ -83,7 +81,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 
 	const handleSavePriorities = async (priorities: string[]) => {
 		await updatePrefixPriorities({
-			userId,
+			mentraUserId,
 			prefixPriorities: priorities,
 		});
 		console.log(`Preference saved: prefixPriorities=${priorities.join(",")}`);
@@ -91,7 +89,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 
 	const handleSaveGapSpeed = async (speed: "short" | "medium" | "long") => {
 		await updateMessageGapSpeed({
-			userId,
+			mentraUserId,
 			messageGapSpeed: speed,
 		});
 		console.log(`Preference saved: messageGapSpeed=${speed}`);
@@ -236,7 +234,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 									Loading preferences...
 								</p>
 							) : (
-								<LocationSelector userId={userId} />
+								<LocationSelector mentraUserId={mentraUserId} />
 							)}
 						</CardContent>
 					</Card>

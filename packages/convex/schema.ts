@@ -38,8 +38,6 @@ export default defineSchema({
 		honchoSessionId: v.string(),
 		summary: v.string(),
 		topics: v.array(v.string()),
-		startedAt: v.string(),
-		endedAt: v.string(),
 	})
 		.index("by_user", ["userId"])
 		.index("by_honcho_session", ["honchoSessionId"]),
@@ -56,7 +54,6 @@ export default defineSchema({
 		userId: v.id("users"),
 		mentraSessionId: v.string(),
 		honchoSessionId: v.string(),
-		createdAt: v.string(),
 	})
 		.index("by_user", ["userId"])
 		.index("by_mentra_session", ["mentraSessionId"])
@@ -74,8 +71,6 @@ export default defineSchema({
 			v.literal("bounced"),
 			v.literal("complained"),
 		),
-		createdAt: v.string(),
-		updatedAt: v.string(),
 	})
 		.index("by_user", ["userId"])
 		.index("by_email_id", ["emailId"]),
@@ -85,7 +80,6 @@ export default defineSchema({
 		direction: v.union(v.literal("outbound"), v.literal("inbound")),
 		resendEmailId: v.optional(v.string()),
 		textContent: v.optional(v.string()),
-		createdAt: v.string(),
 	}).index("by_email_note", ["emailNoteId"]),
 	chatMessages: defineTable({
 		userId: v.id("users"),
@@ -120,20 +114,14 @@ export default defineSchema({
 		topic: v.string(),
 		summary: v.string(),
 		sourceMessages: v.array(v.string()),
-		status: v.union(
-			v.literal("pending"),
-			v.literal("completed"),
-			v.literal("dismissed"),
-		),
-		createdAt: v.string(),
-		completedAt: v.optional(v.string()),
+		completed: v.boolean(),
+		dismissed: v.boolean(),
 	})
 		.index("by_user", ["userId"])
-		.index("by_status", ["status"]),
+		.index("by_completed", ["completed"]),
 	followupChatMessages: defineTable({
 		followupId: v.id("followups"),
 		role: v.union(v.literal("user"), v.literal("assistant")),
 		content: v.string(),
-		createdAt: v.string(),
 	}).index("by_followup", ["followupId"]),
 });

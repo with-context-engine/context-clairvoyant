@@ -1,5 +1,4 @@
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis } from "recharts";
@@ -10,7 +9,7 @@ import { ChartContainer } from "../ui/chart";
 type Timeframe = 1 | 7 | 30;
 
 type ToolUsageChartProps = {
-	userId: Id<"users">;
+	mentraUserId: string;
 	className?: string;
 	defaultTimeframe?: Timeframe;
 	timeframes?: Timeframe[];
@@ -55,7 +54,7 @@ const FALLBACK_COLORS = [
 ];
 
 export function ToolUsageChart({
-	userId,
+	mentraUserId,
 	className,
 	defaultTimeframe,
 	timeframes = DEFAULT_TIMEFRAMES,
@@ -75,7 +74,7 @@ export function ToolUsageChart({
 	const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe ?? 7);
 
 	const toolInvocations = useQuery(api.analytics.getUserToolInvocations, {
-		userId,
+		mentraUserId,
 		days: timeframe,
 	});
 

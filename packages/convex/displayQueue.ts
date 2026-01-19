@@ -3,16 +3,25 @@ import { mutation, query } from "./_generated/server";
 
 export const enqueue = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		sessionId: v.string(),
 		message: v.string(),
 		prefix: v.string(),
 		priority: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			throw new Error(`User not found for mentraUserId: ${args.mentraUserId}`);
+		}
+
 		const now = new Date().toISOString();
 		const id = await ctx.db.insert("displayQueue", {
-			userId: args.userId,
+			userId: user._id,
 			sessionId: args.sessionId,
 			message: args.message,
 			prefix: args.prefix,
@@ -63,14 +72,23 @@ export const getQueuedBySession = query({
 
 export const getRecentByUser = query({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			return [];
+		}
+
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("displayQueue")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.order("desc")
 			.take(limit);
 	},

@@ -28,10 +28,10 @@ async function getByMentraIdInternal(
 
 export const getById = query({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const user = await ctx.db.get(args.userId);
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
 		if (!user) {
 			throw new Error("User not found");
 		}
@@ -101,18 +101,25 @@ export const getEmail = query({
 // =============================================================================
 
 export const getPreferences = query({
-	args: { userId: v.id("users") },
+	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+
 		const prefs = await ctx.db
 			.query("preferences")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.first();
 
 		if (!prefs) {
 			return {
-				userId: args.userId,
+				userId: user._id,
 				weatherUnit: "C" as const,
 				defaultLocation: undefined,
+				prefixPriorities: undefined,
+				messageGapSpeed: undefined,
 			};
 		}
 
@@ -192,14 +199,19 @@ export const updateEmail = mutation({
 
 export const updatePreferences = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		weatherUnit: v.string(),
 		defaultLocation: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+
 		const existing = await ctx.db
 			.query("preferences")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.first();
 
 		if (existing) {
@@ -211,7 +223,7 @@ export const updatePreferences = mutation({
 		}
 
 		return await ctx.db.insert("preferences", {
-			userId: args.userId,
+			userId: user._id,
 			weatherUnit: args.weatherUnit,
 			defaultLocation: args.defaultLocation,
 		});
@@ -220,15 +232,20 @@ export const updatePreferences = mutation({
 
 export const setCurrentLocation = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		defaultLocation: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const { userId, defaultLocation } = args;
+		const { mentraUserId, defaultLocation } = args;
+
+		const user = await getByMentraIdInternal(ctx, mentraUserId);
+		if (!user) {
+			throw new Error(`User not found for mentraUserId: ${mentraUserId}`);
+		}
 
 		const existing = await ctx.db
 			.query("preferences")
-			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.first();
 
 		if (existing) {
@@ -238,9 +255,8 @@ export const setCurrentLocation = mutation({
 			return existing._id;
 		}
 
-		// Create new preferences record if it doesn't exist
 		return await ctx.db.insert("preferences", {
-			userId,
+			userId: user._id,
 			weatherUnit: "C",
 			defaultLocation,
 		});
@@ -283,13 +299,18 @@ export const setCurrentLocationByMentraId = mutation({
 
 export const updatePrefixPriorities = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		prefixPriorities: v.array(v.string()),
 	},
 	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+
 		const existing = await ctx.db
 			.query("preferences")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.first();
 
 		if (existing) {
@@ -299,7 +320,7 @@ export const updatePrefixPriorities = mutation({
 			return existing._id;
 		}
 		return await ctx.db.insert("preferences", {
-			userId: args.userId,
+			userId: user._id,
 			weatherUnit: "C",
 			prefixPriorities: args.prefixPriorities,
 		});
@@ -308,13 +329,18 @@ export const updatePrefixPriorities = mutation({
 
 export const updateMessageGapSpeed = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		messageGapSpeed: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error("User not found");
+		}
+
 		const existing = await ctx.db
 			.query("preferences")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.first();
 
 		if (existing) {
@@ -324,7 +350,7 @@ export const updateMessageGapSpeed = mutation({
 			return existing._id;
 		}
 		return await ctx.db.insert("preferences", {
-			userId: args.userId,
+			userId: user._id,
 			weatherUnit: "C",
 			messageGapSpeed: args.messageGapSpeed,
 		});

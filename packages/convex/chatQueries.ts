@@ -48,13 +48,11 @@ export const getSessionSummariesForDate = internalQuery({
 			.collect();
 
 		return summaries
-			.filter((s) => s.startedAt.startsWith(date))
+			.filter((s) => new Date(s._creationTime).toISOString().startsWith(date))
 			.map((s) => ({
 				honchoSessionId: s.honchoSessionId,
 				summary: s.summary,
 				topics: s.topics,
-				startedAt: s.startedAt,
-				endedAt: s.endedAt,
 			}));
 	},
 });

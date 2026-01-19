@@ -5,6 +5,7 @@ import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
+	const rootEnv = loadEnv(mode, path.resolve(__dirname, "../.."), "");
 	const apiPort = process.env.PORT || "3001";
 	const apiTarget = `http://localhost:${apiPort}`;
 	return {
@@ -19,7 +20,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			port: 5173,
-			allowedHosts: [env.NGROK_WEB_DOMAIN || "localhost"],
+			allowedHosts: [env.NGROK_WEB_DOMAIN || rootEnv.NGROK_WEB_DOMAIN || "localhost"],
 			proxy: {
 				"/api": {
 					target: apiTarget,

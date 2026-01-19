@@ -100,8 +100,6 @@ export const interpretChatMessage = internalAction({
 				v.object({
 					summary: v.string(),
 					topics: v.array(v.string()),
-					startedAt: v.string(),
-					endedAt: v.string(),
 				}),
 			),
 			userName: v.optional(v.string()),
@@ -122,8 +120,6 @@ export const interpretChatMessage = internalAction({
 			sessionSummaries: context.sessionSummaries.map((s) => ({
 				summary: s.summary,
 				topics: s.topics,
-				startedAt: s.startedAt,
-				endedAt: s.endedAt,
 			})),
 			userName: context.userName ?? null,
 			userFacts: context.userFacts,

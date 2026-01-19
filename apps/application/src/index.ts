@@ -22,7 +22,6 @@ interface SessionResources {
 	unsubscribeTranscription: () => void;
 	memorySession: Session;
 	transcriptBuffer: string[];
-	startedAt: string;
 	mentraUserId: string;
 	honchoSessionId: string;
 	displayQueue: DisplayQueueManager;
@@ -52,7 +51,6 @@ class Clairvoyant extends AppServer {
 			sessionId,
 		);
 		const transcriptBuffer: string[] = [];
-		const startedAt = new Date().toISOString();
 		const preferences = await getUserPreferences(userId);
 		const displayQueue = new DisplayQueueManager(session, userId, sessionId, {
 			prefixPriorities: preferences.prefixPriorities,
@@ -85,7 +83,6 @@ class Clairvoyant extends AppServer {
 			unsubscribeTranscription: unsubscribe,
 			memorySession,
 			transcriptBuffer,
-			startedAt,
 			mentraUserId: userId,
 			honchoSessionId,
 			displayQueue,
@@ -112,7 +109,6 @@ class Clairvoyant extends AppServer {
 					resources.honchoSessionId,
 					resources.mentraUserId,
 					resources.transcriptBuffer,
-					resources.startedAt,
 				).catch((error) => {
 					console.error(
 						`[Clairvoyant] Failed to summarize session ${sessionId}:`,
@@ -133,7 +129,6 @@ class Clairvoyant extends AppServer {
 		honchoSessionId: string,
 		mentraUserId: string,
 		transcripts: string[],
-		startedAt: string,
 	): Promise<void> {
 		// Pro gate: skip summarization for free users to save LLM tokens
 		const isPro = await checkUserIsPro(mentraUserId);
@@ -146,15 +141,12 @@ class Clairvoyant extends AppServer {
 
 		try {
 			const result = await b.SummarizeSession(transcripts);
-			const endedAt = new Date().toISOString();
 
 			await convexClient.mutation(api.sessionSummaries.upsert, {
 				mentraUserId,
 				honchoSessionId,
 				summary: result.summary,
 				topics: result.topics,
-				startedAt,
-				endedAt,
 			});
 
 			console.log(

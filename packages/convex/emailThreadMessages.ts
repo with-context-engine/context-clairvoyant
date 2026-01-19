@@ -23,7 +23,6 @@ export const create = internalMutation({
 			direction: args.direction,
 			resendEmailId: args.resendEmailId,
 			textContent: args.textContent,
-			createdAt: new Date().toISOString(),
 		});
 		console.log(`[EmailThread] ✓ Created message ${id}`);
 		return id;
@@ -65,7 +64,6 @@ export const createInbound = internalMutation({
 			messageId: args.messageId,
 			direction: "inbound",
 			textContent: args.textContent,
-			createdAt: new Date().toISOString(),
 		});
 
 		console.log(

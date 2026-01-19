@@ -10,7 +10,7 @@ import { resend } from "./resendClient";
 const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || "notes.example.com";
 
 function generateMessageId(): string {
-	return `<${crypto.randomUUID()}@${EMAIL_DOMAIN}>`;
+	return crypto.randomUUID();
 }
 
 type SendNoteResult =
@@ -23,6 +23,7 @@ export const sendNoteEmail = action({
 		title: v.string(),
 		summary: v.string(),
 		keyPoints: v.array(v.string()),
+		sessionSummaryId: v.optional(v.id("sessionSummaries")),
 	},
 	handler: async (ctx, args): Promise<SendNoteResult> => {
 		const user = await ctx.runQuery(api.users.getByMentraId, {
@@ -67,6 +68,7 @@ export const sendNoteEmail = action({
 				emailId: messageId,
 				title: args.title,
 				subject: args.title,
+				sessionSummaryId: args.sessionSummaryId,
 			});
 
 			const replyToAddress = `chat+${emailNoteId}@${EMAIL_DOMAIN}`;
@@ -80,11 +82,14 @@ export const sendNoteEmail = action({
 				headers: [{ name: "Message-ID", value: messageId }],
 			});
 
+			const textContent = `${args.summary}\n\nKey Points:\n${args.keyPoints.map((p) => `• ${p}`).join("\n")}`;
+
 			await ctx.runMutation(internal.emailThreadMessages.create, {
 				emailNoteId,
 				messageId,
 				direction: "outbound",
 				resendEmailId,
+				textContent,
 			});
 
 			console.log(

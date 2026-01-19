@@ -70,8 +70,6 @@ export namespace partial_types {
     export interface ChatSessionSummary {
       summary?: string | null
       topics: string[]
-      startedAt?: string | null
-      endedAt?: string | null
     }
     export interface ConversationMessage {
       direction?: string | null

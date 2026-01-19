@@ -1,6 +1,8 @@
+import type { Id } from "@convex/_generated/dataModel";
 import { ConvexReactClient } from "convex/react";
 import { useEffect, useRef, useState } from "react";
-import { apiBaseUrl, convexUrl } from "../env";
+import { convexUrl } from "../env";
+import { api } from "../lib/api";
 
 type AuthState =
 	| { status: "idle" }
@@ -9,7 +11,7 @@ type AuthState =
 			status: "authenticated";
 			convexClient: ConvexReactClient;
 			mentraUserId: string;
-			convexUserId: string;
+			convexUserId: Id<"users">;
 			convexToken: string;
 	  }
 	| { status: "error"; error: string };
@@ -40,45 +42,31 @@ export function useConvexAuth(
 
 		setAuthState({ status: "loading" });
 
-		const sessionEndpoint = apiBaseUrl
-			? `${apiBaseUrl}/api/session/mentra`
-			: "/api/session/mentra";
-
-		fetch(sessionEndpoint, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ frontendToken }),
-			signal: abortController.signal,
-		})
-			.then(async (res) => {
+		api.api.session.mentra
+			.post({ frontendToken }, { fetch: { signal: abortController.signal } })
+			.then(({ data, error }) => {
 				// Check if request was aborted
 				if (abortController.signal.aborted) return;
 
-				if (!res.ok) {
-					const errorData = await res.json().catch(() => ({}));
+				if (error || !data || !("convexUserId" in data)) {
 					throw new Error(
-						errorData.error || `Token exchange failed: ${res.statusText}`,
+						(error as { error?: string })?.error ||
+							"Token exchange failed",
 					);
 				}
 
-				const data = (await res.json()) as {
-					convexUserId: string;
-					mentraUserId: string;
-					mentraToken: string;
-					convexToken: string;
-					expiresAt?: string;
-				};
-
-				// Check if request was aborted after async operation
-				if (abortController.signal.aborted) return;
+				const { convexUserId, mentraUserId, convexToken, expiresAt } = data;
+				if (!convexUserId || !mentraUserId || !convexToken) {
+					throw new Error("Invalid session response");
+				}
 
 				// Create Convex client with auth token
 				const client = new ConvexReactClient(convexUrl);
 
 				// Store token for refresh capability
-				let currentToken = data.convexToken;
+				let currentToken = convexToken;
 				const tokenExpiresAt = new Date(
-					data.expiresAt || Date.now() + 15 * 60 * 1000,
+					expiresAt || Date.now() + 15 * 60 * 1000,
 				);
 
 				// Set auth with a function that can refresh tokens
@@ -86,14 +74,11 @@ export function useConvexAuth(
 					// If token is about to expire (within 1 minute), refresh it
 					if (Date.now() > tokenExpiresAt.getTime() - 60 * 1000) {
 						try {
-							const refreshRes = await fetch(sessionEndpoint, {
-								method: "POST",
-								headers: { "Content-Type": "application/json" },
-								body: JSON.stringify({ frontendToken }),
+							const refreshResult = await api.api.session.mentra.post({
+								frontendToken,
 							});
-							if (refreshRes.ok) {
-								const refreshData = await refreshRes.json();
-								currentToken = refreshData.convexToken;
+							if (refreshResult.data && "convexToken" in refreshResult.data) {
+								currentToken = refreshResult.data.convexToken ?? currentToken;
 							}
 						} catch (err) {
 							console.error("[ConvexAuth] Token refresh failed:", err);
@@ -105,9 +90,9 @@ export function useConvexAuth(
 				setAuthState({
 					status: "authenticated",
 					convexClient: client,
-					mentraUserId: data.mentraUserId,
-					convexUserId: data.convexUserId,
-					convexToken: data.convexToken,
+					mentraUserId,
+					convexUserId: convexUserId as Id<"users">,
+					convexToken,
 				});
 			})
 			.catch((err) => {

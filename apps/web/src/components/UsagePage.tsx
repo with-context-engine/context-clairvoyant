@@ -1,4 +1,3 @@
-import type { Id } from "@convex/_generated/dataModel";
 import { ToolUsageChart } from "./charts/ToolUsageChart";
 import {
 	Card,
@@ -9,10 +8,10 @@ import {
 } from "./ui/card";
 
 interface UsagePageProps {
-	userId: Id<"users">;
+	mentraUserId: string;
 }
 
-export function UsagePage({ userId }: UsagePageProps) {
+export function UsagePage({ mentraUserId }: UsagePageProps) {
 	return (
 		<div className="space-y-6">
 			<h2 className="text-xl font-semibold">Usage</h2>
@@ -26,7 +25,7 @@ export function UsagePage({ userId }: UsagePageProps) {
 				</CardHeader>
 				<CardContent>
 					<ToolUsageChart
-						userId={userId}
+						mentraUserId={mentraUserId}
 						defaultTimeframe={7}
 						showControls={true}
 						showSummary={true}

@@ -1,5 +1,4 @@
 import { api } from "@convex/_generated/api";
-import type { Id } from "@convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { MapPin, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -17,11 +16,11 @@ import type { PlacePrediction } from "../types/places";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 interface LocationSelectorProps {
-	userId: Id<"users">;
+	mentraUserId: string;
 }
 
-export function LocationSelector({ userId }: LocationSelectorProps) {
-	const preferences = useQuery(api.users.getPreferences, { userId });
+export function LocationSelector({ mentraUserId }: LocationSelectorProps) {
+	const preferences = useQuery(api.users.getPreferences, { mentraUserId });
 	const setCurrentLocation = useMutation(api.users.setCurrentLocation);
 
 	// Parse the stored location
@@ -144,7 +143,7 @@ export function LocationSelector({ userId }: LocationSelectorProps) {
 
 				// Update only the location (not weather unit)
 				await setCurrentLocation({
-					userId,
+					mentraUserId,
 					defaultLocation: JSON.stringify(convexLocation),
 				});
 

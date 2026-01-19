@@ -10,7 +10,6 @@ export const create = internalMutation({
 		sessionSummaryId: v.optional(v.id("sessionSummaries")),
 	},
 	handler: async (ctx, args) => {
-		const now = new Date().toISOString();
 		const id = await ctx.db.insert("emailNotes", {
 			userId: args.userId,
 			emailId: args.emailId,
@@ -18,8 +17,6 @@ export const create = internalMutation({
 			subject: args.subject,
 			sessionSummaryId: args.sessionSummaryId,
 			status: "queued",
-			createdAt: now,
-			updatedAt: now,
 		});
 		return id;
 	},
@@ -36,11 +33,20 @@ export const getByEmailId = query({
 });
 
 export const getLatestForUser = query({
-	args: { userId: v.id("users") },
+	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			return null;
+		}
+
 		return await ctx.db
 			.query("emailNotes")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.order("desc")
 			.first();
 	},

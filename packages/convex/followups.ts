@@ -2,24 +2,35 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internalQuery, mutation, query } from "./_generated/server";
 
+async function getUserByMentraId(ctx: { db: any }, mentraUserId: string) {
+	return await ctx.db
+		.query("users")
+		.withIndex("by_mentra_id", (q: any) => q.eq("mentraUserId", mentraUserId))
+		.first();
+}
+
 export const create = mutation({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		sessionId: v.string(),
 		topic: v.string(),
 		summary: v.string(),
 		sourceMessages: v.array(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const now = new Date().toISOString();
+		const user = await getUserByMentraId(ctx, args.mentraUserId);
+		if (!user) {
+			throw new Error(`User not found for mentraUserId: ${args.mentraUserId}`);
+		}
+
 		const id = await ctx.db.insert("followups", {
-			userId: args.userId,
+			userId: user._id,
 			sessionId: args.sessionId,
 			topic: args.topic,
 			summary: args.summary,
 			sourceMessages: args.sourceMessages,
-			status: "pending",
-			createdAt: now,
+			completed: false,
+			dismissed: false,
 		});
 		return id;
 	},
@@ -27,14 +38,19 @@ export const create = mutation({
 
 export const getByUser = query({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
+		const user = await getUserByMentraId(ctx, args.mentraUserId);
+		if (!user) {
+			return [];
+		}
+
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("followups")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
 			.order("desc")
 			.take(limit);
 	},
@@ -42,15 +58,25 @@ export const getByUser = query({
 
 export const getPendingByUser = query({
 	args: {
-		userId: v.id("users"),
+		mentraUserId: v.string(),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
+		const user = await getUserByMentraId(ctx, args.mentraUserId);
+		if (!user) {
+			return [];
+		}
+
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("followups")
-			.withIndex("by_user", (q) => q.eq("userId", args.userId))
-			.filter((q) => q.eq(q.field("status"), "pending"))
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("completed"), false),
+					q.eq(q.field("dismissed"), false),
+				),
+			)
 			.order("desc")
 			.take(limit);
 	},
@@ -74,21 +100,21 @@ export const getByIdInternal = internalQuery({
 	},
 });
 
-export const updateStatus = mutation({
+export const markCompleted = mutation({
 	args: {
 		id: v.id("followups"),
-		status: v.union(
-			v.literal("pending"),
-			v.literal("completed"),
-			v.literal("dismissed"),
-		),
-		completedAt: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		await ctx.db.patch(args.id, {
-			status: args.status,
-			completedAt: args.completedAt,
-		});
+		await ctx.db.patch(args.id, { completed: true });
+	},
+});
+
+export const markDismissed = mutation({
+	args: {
+		id: v.id("followups"),
+	},
+	handler: async (ctx, args) => {
+		await ctx.db.patch(args.id, { dismissed: true });
 	},
 });
 

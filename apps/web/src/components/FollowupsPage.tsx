@@ -34,11 +34,15 @@ function formatRelativeTime(isoString: string): string {
 	});
 }
 
-function StatusBadge({
-	status,
-}: {
-	status: "pending" | "completed" | "dismissed";
-}) {
+type FollowupStatus = "pending" | "completed" | "dismissed";
+
+function getStatus(followup: { completed: boolean; dismissed: boolean }): FollowupStatus {
+	if (followup.completed) return "completed";
+	if (followup.dismissed) return "dismissed";
+	return "pending";
+}
+
+function StatusBadge({ status }: { status: FollowupStatus }) {
 	const styles = {
 		pending: "bg-yellow-100 text-yellow-800",
 		completed: "bg-green-100 text-green-800",
@@ -63,23 +67,17 @@ function StatusBadge({
 export function FollowupsPage({ mentraUserId }: FollowupsPageProps) {
 	const navigate = useNavigate();
 	const followups = useQuery(api.followups.getByUser, { mentraUserId });
-	const updateStatus = useMutation(api.followups.updateStatus);
+	const markCompleted = useMutation(api.followups.markCompleted);
+	const markDismissed = useMutation(api.followups.markDismissed);
 
 	const handleComplete = async (id: Id<"followups">, e: React.MouseEvent) => {
 		e.stopPropagation();
-		await updateStatus({
-			id,
-			status: "completed",
-			completedAt: new Date().toISOString(),
-		});
+		await markCompleted({ id });
 	};
 
 	const handleDismiss = async (id: Id<"followups">, e: React.MouseEvent) => {
 		e.stopPropagation();
-		await updateStatus({
-			id,
-			status: "dismissed",
-		});
+		await markDismissed({ id });
 	};
 
 	if (followups === undefined) {
@@ -125,52 +123,56 @@ export function FollowupsPage({ mentraUserId }: FollowupsPageProps) {
 			<h2 className="text-xl font-semibold">Follow-ups</h2>
 
 			<div className="space-y-4">
-				{followups.map((followup) => (
-					<Card
-						key={followup._id}
-						className={followup.status === "pending" ? "cursor-pointer" : ""}
-						onClick={() => {
-							if (followup.status === "pending") {
-								navigate(`/followups/chat/${followup._id}`);
-							}
-						}}
-					>
-						<CardHeader className="pb-2">
-							<div className="flex items-center justify-between gap-2">
-								<CardTitle className="text-lg">{followup.topic}</CardTitle>
-								<StatusBadge status={followup.status} />
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<p className="text-foreground text-sm">{followup.summary}</p>
+				{followups.map((followup) => {
+					const status = getStatus(followup);
+					const isPending = status === "pending";
+					return (
+						<Card
+							key={followup._id}
+							className={isPending ? "cursor-pointer" : ""}
+							onClick={() => {
+								if (isPending) {
+									navigate(`/followups/chat/${followup._id}`);
+								}
+							}}
+						>
+							<CardHeader className="pb-2">
+								<div className="flex items-center justify-between gap-2">
+									<CardTitle className="text-lg">{followup.topic}</CardTitle>
+									<StatusBadge status={status} />
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-3">
+								<p className="text-foreground text-sm">{followup.summary}</p>
 
-							<div className="flex items-center justify-between">
-								<p className="text-xs text-foreground/50">
-									{formatRelativeTime(followup.createdAt)}
-								</p>
+								<div className="flex items-center justify-between">
+									<p className="text-xs text-foreground/50">
+										{formatRelativeTime(new Date(followup._creationTime).toISOString())}
+									</p>
 
-								{followup.status === "pending" && (
-									<div className="flex gap-2">
-										<Button
-											variant="neutral"
-											size="sm"
-											onClick={(e) => handleComplete(followup._id, e)}
-										>
-											Complete
-										</Button>
-										<Button
-											variant="neutral"
-											size="sm"
-											onClick={(e) => handleDismiss(followup._id, e)}
-										>
-											Dismiss
-										</Button>
-									</div>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				))}
+									{isPending && (
+										<div className="flex gap-2">
+											<Button
+												variant="neutral"
+												size="sm"
+												onClick={(e) => handleComplete(followup._id, e)}
+											>
+												Complete
+											</Button>
+											<Button
+												variant="neutral"
+												size="sm"
+												onClick={(e) => handleDismiss(followup._id, e)}
+											>
+												Dismiss
+											</Button>
+										</div>
+									)}
+								</div>
+							</CardContent>
+						</Card>
+					);
+				})}
 			</div>
 		</div>
 	);

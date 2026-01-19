@@ -136,7 +136,7 @@ export async function MemoryRecall(
 					{ mentraUserId, limit: 5 },
 				);
 				sessionSummaries = summaries.map((s) => {
-					const date = new Date(s.startedAt).toLocaleDateString("en-US", {
+					const date = new Date(s._creationTime).toLocaleDateString("en-US", {
 						month: "short",
 						day: "numeric",
 					});

@@ -45,7 +45,6 @@ export const handleEmailEvent = internalMutation({
 
 		await ctx.db.patch(existingNote._id, {
 			status: newStatus,
-			updatedAt: new Date().toISOString(),
 		});
 
 		console.log(

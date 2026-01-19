@@ -17,8 +17,6 @@ interface SessionSummary {
 	honchoSessionId: string;
 	summary: string;
 	topics: string[];
-	startedAt: string;
-	endedAt: string;
 }
 
 interface ChatMessage {
@@ -179,8 +177,6 @@ export const sendMessage = action({
 					sessionSummaries: sessionSummaries.map((s) => ({
 						summary: s.summary,
 						topics: s.topics,
-						startedAt: s.startedAt,
-						endedAt: s.endedAt,
 					})),
 					userName: memoryContext?.userName,
 					userFacts: memoryContext?.userFacts ?? [],

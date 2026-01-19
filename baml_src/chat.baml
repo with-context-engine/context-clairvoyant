@@ -12,8 +12,6 @@ class ChatInterpretation {
 class ChatSessionSummary {
   summary string
   topics string[]
-  startedAt string
-  endedAt string
 }
 
 class ChatConversationMessage {
@@ -58,7 +56,6 @@ SESSIONS FROM {{ context.date }}:
 {% for session in context.sessionSummaries %}
 - {{ session.summary }}
   Topics: {{ session.topics | join(", ") }}
-  Time: {{ session.startedAt }} to {{ session.endedAt }}
 {% endfor %}
 
 {% else %}
@@ -101,8 +98,6 @@ test test_chat_simple_greeting {
         {
           summary "Worked on a presentation for a client meeting about AI integration"
           topics ["work", "AI", "presentation"]
-          startedAt "2024-12-24T09:00:00Z"
-          endedAt "2024-12-24T10:30:00Z"
         }
       ]
       userName "Ajay"
@@ -128,8 +123,6 @@ test test_chat_with_history {
         {
           summary "Client meeting about AI integration"
           topics ["work", "AI", "client"]
-          startedAt "2024-12-24T14:00:00Z"
-          endedAt "2024-12-24T15:00:00Z"
         }
       ]
       userName "Sarah"

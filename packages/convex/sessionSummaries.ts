@@ -7,8 +7,6 @@ export const upsert = mutation({
 		honchoSessionId: v.string(),
 		summary: v.string(),
 		topics: v.array(v.string()),
-		startedAt: v.string(),
-		endedAt: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const user = await ctx.db
@@ -31,7 +29,6 @@ export const upsert = mutation({
 			await ctx.db.patch(existing._id, {
 				summary: args.summary,
 				topics: args.topics,
-				endedAt: args.endedAt,
 			});
 			return existing._id;
 		}
@@ -41,8 +38,6 @@ export const upsert = mutation({
 			honchoSessionId: args.honchoSessionId,
 			summary: args.summary,
 			topics: args.topics,
-			startedAt: args.startedAt,
-			endedAt: args.endedAt,
 		});
 	},
 });
@@ -68,13 +63,11 @@ export const getByDate = query({
 			.collect();
 
 		return summaries
-			.filter((s) => s.startedAt.startsWith(args.date))
+			.filter((s) => new Date(s._creationTime).toISOString().startsWith(args.date))
 			.map((s) => ({
 				honchoSessionId: s.honchoSessionId,
 				summary: s.summary,
 				topics: s.topics,
-				startedAt: s.startedAt,
-				endedAt: s.endedAt,
 			}));
 	},
 });
@@ -103,11 +96,10 @@ export const getRecentForUser = query({
 			.take(limit);
 
 		return summaries.map((s) => ({
+			_creationTime: s._creationTime,
 			honchoSessionId: s.honchoSessionId,
 			summary: s.summary,
 			topics: s.topics,
-			startedAt: s.startedAt,
-			endedAt: s.endedAt,
 		}));
 	},
 });
@@ -124,13 +116,12 @@ export const getByDateInternal = internalQuery({
 			.collect();
 
 		return summaries
-			.filter((s) => s.startedAt.startsWith(date))
+			.filter((s) => new Date(s._creationTime).toISOString().startsWith(date))
 			.map((s) => ({
+				_creationTime: s._creationTime,
 				honchoSessionId: s.honchoSessionId,
 				summary: s.summary,
 				topics: s.topics,
-				startedAt: s.startedAt,
-				endedAt: s.endedAt,
 			}));
 	},
 });
@@ -143,7 +134,7 @@ export const getUsersWithSessionsOnDate = internalQuery({
 		const allSummaries = await ctx.db.query("sessionSummaries").collect();
 
 		const usersOnDate = allSummaries
-			.filter((s) => s.startedAt.startsWith(date))
+			.filter((s) => new Date(s._creationTime).toISOString().startsWith(date))
 			.map((s) => s.userId);
 
 		return [...new Set(usersOnDate)];
@@ -161,11 +152,10 @@ export const getAllForUserInternal = internalQuery({
 			.collect();
 
 		return summaries.map((s) => ({
+			_creationTime: s._creationTime,
 			honchoSessionId: s.honchoSessionId,
 			summary: s.summary,
 			topics: s.topics,
-			startedAt: s.startedAt,
-			endedAt: s.endedAt,
 		}));
 	},
 });
@@ -205,5 +195,29 @@ export const getByHonchoSessionIdInternal = internalQuery({
 				q.eq("honchoSessionId", honchoSessionId),
 			)
 			.first();
+	},
+});
+
+export const getLatestForUser = query({
+	args: {
+		mentraUserId: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const user = await ctx.db
+			.query("users")
+			.withIndex("by_mentra_id", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.first();
+
+		if (!user) {
+			return null;
+		}
+
+		const latestSummary = await ctx.db
+			.query("sessionSummaries")
+			.withIndex("by_user", (q) => q.eq("userId", user._id))
+			.order("desc")
+			.first();
+
+		return latestSummary;
 	},
 });

@@ -22,7 +22,6 @@ export const createHonchoSession = mutation({
 			userId: user._id,
 			mentraSessionId: args.mentraSessionId,
 			honchoSessionId,
-			createdAt: new Date().toISOString(),
 		});
 
 		return honchoSessionId;
@@ -68,7 +67,7 @@ export const getRecentForUser = query({
 
 		return sessions.map((s) => ({
 			honchoSessionId: s.honchoSessionId,
-			createdAt: s.createdAt,
+			createdAt: new Date(s._creationTime).toISOString(),
 		}));
 	},
 });

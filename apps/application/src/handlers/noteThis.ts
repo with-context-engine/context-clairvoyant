@@ -70,6 +70,12 @@ export async function startNoteThisFlow(
 		// Record tool invocation
 		void recordToolInvocation(mentraUserId, Router.NOTE_THIS);
 
+		// Fetch the latest session summary to link to the email note
+		const latestSessionSummary = await convexClient.query(
+			api.sessionSummaries.getLatestForUser,
+			{ mentraUserId },
+		);
+
 		// Abridge the transcript using BAML
 		const noteContent = await b.AbridgeToNote(transcriptBuffer);
 
@@ -93,6 +99,7 @@ export async function startNoteThisFlow(
 			title: noteContent.title,
 			summary: noteContent.summary,
 			keyPoints: noteContent.keyPoints,
+			sessionSummaryId: latestSessionSummary?._id,
 		});
 
 		if (noteThisRunIds.get(session) !== runId) return;
