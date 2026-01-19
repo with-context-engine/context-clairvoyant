@@ -3,6 +3,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
 import { recordToolInvocation } from "./core/convex";
+import { logConversation } from "./core/conversationLogger";
 import type { DisplayQueueManager } from "./core/displayQueue";
 import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
@@ -31,6 +32,10 @@ export async function handleTranscription(
 		session.logger.warn(`[Clairvoyant] No routing decision made. Resetting...`);
 		return;
 	}
+
+	// Log conversation for ML training (fire-and-forget)
+	logConversation(convexUserId, sessionId, data.text, routing.routing);
+
 	switch (routing.routing) {
 		case Router.WEATHER:
 			session.logger.info(`[Clairvoyant] Weather route: starting async flow`);
