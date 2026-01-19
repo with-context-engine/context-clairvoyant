@@ -12,6 +12,7 @@ import type * as analytics from "../analytics.js";
 import type * as bamlActions from "../bamlActions.js";
 import type * as chat from "../chat.js";
 import type * as chatQueries from "../chatQueries.js";
+import type * as conversationLogs from "../conversationLogs.js";
 import type * as cronManagement from "../cronManagement.js";
 import type * as dailySummaries from "../dailySummaries.js";
 import type * as dailySynthesis from "../dailySynthesis.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   bamlActions: typeof bamlActions;
   chat: typeof chat;
   chatQueries: typeof chatQueries;
+  conversationLogs: typeof conversationLogs;
   cronManagement: typeof cronManagement;
   dailySummaries: typeof dailySummaries;
   dailySynthesis: typeof dailySynthesis;
