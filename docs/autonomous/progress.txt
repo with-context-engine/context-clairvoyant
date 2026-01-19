@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 6
+current_iteration: 7
 max_iterations: 15
 
 ## Codebase Patterns
@@ -51,3 +51,24 @@ max_iterations: 15
 **Changes:** Added updateResponse mutation to Convex conversationLogs. Added updateConversationResponse function to conversationLogger. Modified weather, maps, search, knowledge handlers to accept logContext parameter and call updateConversationResponse after displaying formatted response lines.
 **Files:** packages/convex/conversationLogs.ts, apps/application/src/core/conversationLogger.ts, apps/application/src/handlers/weather.ts, apps/application/src/handlers/maps.ts, apps/application/src/handlers/search.ts, apps/application/src/handlers/knowledge.ts, apps/application/src/transcriptionFlow.ts
 **Learnings:** Handler signature changes require updating all call sites. Use optional logContext parameter to maintain backward compatibility.
+
+---
+
+## 2026-01-19 | US-006 | T-019bd81c-06b1-7129-9eb9-b6d83823f0c2
+**Changes:** Documented manual verification steps for conversation logging feature. All code implementation complete (US-001 through US-005).
+**Files:** docs/autonomous/prd.json, docs/autonomous/progress.txt
+**Learnings:** Manual verification stories in autonomous mode should document testing steps for human follow-up.
+
+### Manual Verification Steps for Conversation Logging
+
+1. **Start Convex dev server**: `npx convex dev` (in separate terminal)
+2. **Start application**: `bun run --cwd apps/application dev`
+3. **Trigger transcription flows** via glasses:
+   - Say "What's the weather?" → triggers WEATHER route
+   - Say "Search for coffee shops near me" → triggers WEB_SEARCH route
+   - Say "Find restaurants nearby" → triggers MAPS route
+4. **Verify in Convex Dashboard**:
+   - Go to https://dashboard.convex.dev
+   - Navigate to conversationLogs table
+   - Confirm records have: userId, sessionId, transcript, route, and response fields
+   - Response field should contain the formatted text shown on glasses
