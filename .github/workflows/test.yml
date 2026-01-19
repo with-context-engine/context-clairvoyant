@@ -21,6 +21,7 @@ jobs:
       MENTRAOS_API_KEY: ${{ secrets.MENTRAOS_API_KEY }}
       HONCHO_API_KEY: ${{ secrets.HONCHO_API_KEY }}
       CONVEX_URL: ${{ secrets.CONVEX_URL }}
+      UV_INSTALL_DIR: /usr/local/bin
     
     steps:
     - name: Checkout code
@@ -43,6 +44,4 @@ jobs:
       run: cd packages/python-tools && uv sync
       
     - name: Run tests
-      run: |
-        export PATH="$HOME/.local/bin:$PATH"
-        bun run test
+      run: bun run test
