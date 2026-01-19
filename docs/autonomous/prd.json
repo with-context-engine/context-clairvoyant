@@ -13,8 +13,8 @@
         "Typecheck passes: bun run --cwd packages/convex build"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added conversationLogs table with userId, sessionId, transcript, route, response fields. Used _creationTime instead of createdAt per AGENTS.md patterns."
     },
     {
       "id": "US-002",

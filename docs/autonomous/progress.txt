@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 1
+current_iteration: 2
 max_iterations: 15
 
 ## Codebase Patterns
@@ -17,4 +17,9 @@ max_iterations: 15
 
 ## Execution Log
 
-(Entries appended below as iterations complete)
+---
+
+## 2026-01-19 | US-001 | T-019bd812-4df6-7737-9d54-20e3980f4792
+**Changes:** Added conversationLogs table to Convex schema with userId, sessionId, transcript, route, response fields and indexes by_user, by_session, by_route
+**Files:** packages/convex/schema.ts
+**Learnings:** Correct typecheck command is `npx convex typecheck`, not `bun run --cwd packages/convex build`
