@@ -62,19 +62,10 @@ export async function getDefaultLocation(
 	}
 }
 
-export async function checkUserIsPro(mentraUserId: string): Promise<boolean> {
-	try {
-		const user = await client.query(
-			api.payments.getCurrentUserWithSubscription,
-			{
-				mentraUserId,
-			},
-		);
-		return user?.isPro ?? false;
-	} catch (error) {
-		console.error("[Convex] Failed to check Pro status:", error);
-		return false;
-	}
+export async function checkUserIsPro(_mentraUserId: string): Promise<boolean> {
+	// Payment gating disabled - all users treated as Pro
+	// Backend subscription schema kept intact for potential future use
+	return true;
 }
 
 export async function recordToolInvocation(

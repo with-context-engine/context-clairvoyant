@@ -1,13 +1,7 @@
 import { api } from "@convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useNavigate } from "react-router-dom";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 interface MemoryPageProps {
 	mentraUserId: string;
@@ -56,33 +50,6 @@ export function MemoryPage({ mentraUserId }: MemoryPageProps) {
 						</Card>
 					))}
 				</div>
-			</div>
-		);
-	}
-
-	// Show upgrade prompt for non-Pro users
-	if (!result.isPro) {
-		return (
-			<div className="space-y-6">
-				<h2 className="text-xl font-semibold">Memory</h2>
-				<Card>
-					<CardHeader>
-						<CardTitle>Memory is a Pro Feature</CardTitle>
-						<CardDescription>
-							Upgrade to Pro to unlock your personal memory log. Your daily
-							activities, conversations, and insights will be captured and
-							organized here.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<a
-							href="/settings"
-							className="inline-flex items-center justify-center rounded-base border-2 border-main bg-main px-4 py-2 text-sm font-medium text-white shadow-light transition-all hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none"
-						>
-							Upgrade to Pro
-						</a>
-					</CardContent>
-				</Card>
 			</div>
 		);
 	}
