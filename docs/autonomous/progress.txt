@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 7
+current_iteration: 8
 max_iterations: 15
 
 ## Codebase Patterns
@@ -72,3 +72,10 @@ max_iterations: 15
    - Navigate to conversationLogs table
    - Confirm records have: userId, sessionId, transcript, route, and response fields
    - Response field should contain the formatted text shown on glasses
+
+---
+
+## 2026-01-19 | US-007 | T-019bd81c-06b1-7129-9eb9-b6d83823f0c2
+**Changes:** Added response capture to MEMORY_RECALL and PASSTHROUGH handlers. Updated AGENTS.md with comprehensive Conversation Logging documentation including coverage table by route.
+**Files:** apps/application/src/handlers/memory.ts, apps/application/src/handlers/hints.ts, apps/application/src/transcriptionFlow.ts, AGENTS.md
+**Learnings:** PASSTHROUGH serves as the null case for ML training - captures ambient speech that was filtered out. Response=null is valuable data for training the router.
