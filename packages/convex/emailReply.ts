@@ -9,9 +9,11 @@ import { internalAction } from "./_generated/server";
 import type { EmailInterpretation } from "./bamlActions";
 import { resend } from "./resendClient";
 
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || "notes.example.com";
+
 interface EmailNote {
 	_id: Id<"emailNotes">;
-	mentraUserId: string;
+	userId: Id<"users">;
 	emailId: string;
 	title: string;
 	subject: string;
@@ -48,7 +50,7 @@ interface User {
 }
 
 function generateMessageId(): string {
-	return `<${randomUUID()}@notes.clairvoyant.with-context.co>`;
+	return `<${randomUUID()}@${EMAIL_DOMAIN}>`;
 }
 
 /**
@@ -90,7 +92,7 @@ export const processEmailReply = internalAction({
 			return { success: false, error: "email_note_not_found" };
 		}
 		console.log("[EmailReply] ✓ EmailNote loaded:", {
-			mentraUserId: emailNote.mentraUserId,
+			userId: emailNote.userId,
 			subject: emailNote.subject,
 			sessionSummaryId: emailNote.sessionSummaryId ?? "none",
 		});
@@ -105,18 +107,15 @@ export const processEmailReply = internalAction({
 			`[EmailReply] ✓ Loaded ${threadMessages.length} thread messages`,
 		);
 
-		// 3. Look up user by mentraUserId
+		// 3. Look up user by userId
 		console.log("[EmailReply] Step 3: Looking up user...");
-		const user = (await ctx.runQuery(
-			internal.users.getByMentraIdInternalQuery,
-			{
-				mentraUserId: emailNote.mentraUserId,
-			},
-		)) as User | null;
+		const user = (await ctx.runQuery(internal.users.getByIdInternal, {
+			userId: emailNote.userId,
+		})) as User | null;
 
 		if (!user) {
 			console.error(
-				`[EmailReply] ✗ User not found for mentraUserId: ${emailNote.mentraUserId}`,
+				`[EmailReply] ✗ User not found for userId: ${emailNote.userId}`,
 			);
 			return { success: false, error: "user_not_found" };
 		}
@@ -381,7 +380,7 @@ Sent by Clairvoyant`
 ---
 Sent by Clairvoyant`;
 
-		const replyToAddress = `chat+${emailNoteId}@notes.clairvoyant.with-context.co`;
+		const replyToAddress = `chat+${emailNoteId}@${EMAIL_DOMAIN}`;
 
 		console.log("[EmailReply] Email headers:", {
 			newMessageId,
@@ -394,7 +393,7 @@ Sent by Clairvoyant`;
 		try {
 			const sendStartTime = Date.now();
 			const resendEmailId = await resend.sendEmail(ctx, {
-				from: "Clairvoyant <noreply@notes.clairvoyant.with-context.co>",
+				from: `Clairvoyant <noreply@${EMAIL_DOMAIN}>`,
 				to: user.email,
 				subject: replySubject,
 				text: replyContent,

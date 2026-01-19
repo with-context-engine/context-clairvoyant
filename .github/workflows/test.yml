@@ -43,4 +43,6 @@ jobs:
       run: cd packages/python-tools && uv sync
       
     - name: Run tests
-      run: bun run test
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        bun run test

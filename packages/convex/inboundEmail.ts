@@ -110,7 +110,7 @@ export const processInboundWebhook = internalAction({
 				`[Inbound Email] ✗ Could not parse emailNoteId from to addresses: ${to.join(", ")}`,
 			);
 			console.log(
-				"[Inbound Email] Expected format: chat+{emailNoteId}@notes.clairvoyant.with-context.co",
+				`[Inbound Email] Expected format: chat+{emailNoteId}@${process.env.EMAIL_DOMAIN || "notes.example.com"}`,
 			);
 			return { success: true };
 		}

@@ -40,10 +40,12 @@ export function PrefixPriorityEditor({
 	const moveUp = (index: number) => {
 		if (index === 0) return;
 		const newOrder = [...order];
-		[newOrder[index - 1], newOrder[index]] = [
-			newOrder[index],
-			newOrder[index - 1],
-		];
+		const prev = newOrder[index - 1];
+		const curr = newOrder[index];
+		if (prev !== undefined && curr !== undefined) {
+			newOrder[index - 1] = curr;
+			newOrder[index] = prev;
+		}
 		setOrder(newOrder);
 		setHasChanges(true);
 	};
@@ -51,10 +53,12 @@ export function PrefixPriorityEditor({
 	const moveDown = (index: number) => {
 		if (index === order.length - 1) return;
 		const newOrder = [...order];
-		[newOrder[index], newOrder[index + 1]] = [
-			newOrder[index + 1],
-			newOrder[index],
-		];
+		const curr = newOrder[index];
+		const next = newOrder[index + 1];
+		if (curr !== undefined && next !== undefined) {
+			newOrder[index] = next;
+			newOrder[index + 1] = curr;
+		}
 		setOrder(newOrder);
 		setHasChanges(true);
 	};

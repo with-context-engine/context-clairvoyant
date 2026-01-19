@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 
 export const enqueue = mutation({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		sessionId: v.string(),
 		message: v.string(),
 		prefix: v.string(),
@@ -12,7 +12,7 @@ export const enqueue = mutation({
 	handler: async (ctx, args) => {
 		const now = new Date().toISOString();
 		const id = await ctx.db.insert("displayQueue", {
-			mentraUserId: args.mentraUserId,
+			userId: args.userId,
 			sessionId: args.sessionId,
 			message: args.message,
 			prefix: args.prefix,
@@ -63,16 +63,14 @@ export const getQueuedBySession = query({
 
 export const getRecentByUser = query({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("displayQueue")
-			.withIndex("by_mentra_user", (q) =>
-				q.eq("mentraUserId", args.mentraUserId),
-			)
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
 			.order("desc")
 			.take(limit);
 	},

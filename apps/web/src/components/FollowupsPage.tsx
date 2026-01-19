@@ -12,7 +12,7 @@ import {
 } from "./ui/card";
 
 interface FollowupsPageProps {
-	mentraUserId: string;
+	userId: Id<"users">;
 }
 
 function formatRelativeTime(isoString: string): string {
@@ -60,9 +60,9 @@ function StatusBadge({
 	);
 }
 
-export function FollowupsPage({ mentraUserId }: FollowupsPageProps) {
+export function FollowupsPage({ userId }: FollowupsPageProps) {
 	const navigate = useNavigate();
-	const followups = useQuery(api.followups.getByUser, { mentraUserId });
+	const followups = useQuery(api.followups.getByUser, { userId });
 	const updateStatus = useMutation(api.followups.updateStatus);
 
 	const handleComplete = async (id: Id<"followups">, e: React.MouseEvent) => {

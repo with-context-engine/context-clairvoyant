@@ -1,0 +1,92 @@
+{
+  "project": "remove-payment-gating",
+  "branchName": "autonomous/remove-payment-gating",
+  "description": "Remove payment gating from the application layer. All features previously behind Pro subscription are now free. Backend Convex schema and Polar webhooks remain intact for potential future use.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Bypass isPro check in application",
+      "description": "As a user, I can access all features without a Pro subscription because the isPro check always returns true.",
+      "acceptanceCriteria": [
+        "checkUserIsPro() in apps/application/src/core/convex.ts always returns true",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Function now returns true immediately, parameter renamed to _mentraUserId to indicate unused"
+    },
+    {
+      "id": "US-002",
+      "title": "Remove isPro gate from daily summaries",
+      "description": "As a user, I can view my daily summaries without a Pro subscription.",
+      "acceptanceCriteria": [
+        "packages/convex/dailySummaries.ts getForUser removes subscription check",
+        "Always returns isPro: true with summaries data",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Removed polar subscription check and early return. Always returns isPro: true. Removed unused polar import."
+    },
+    {
+      "id": "US-003",
+      "title": "Remove subscription gate from session summaries",
+      "description": "As a user, my session summaries are stored regardless of subscription status.",
+      "acceptanceCriteria": [
+        "packages/convex/sessionSummaries.ts upsert removes subscription check (lines 24-31)",
+        "Always stores session summaries for all users",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Removed polar subscription check and early return. Now stores session summaries for all users. Removed unused polar import."
+    },
+    {
+      "id": "US-004",
+      "title": "Comment out Billing section in Settings",
+      "description": "As a user, I no longer see the Billing section in Settings since payments are disabled.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/SettingsPage.tsx Billing button (lines 140-154) is commented out",
+        "Billing card section (lines 291-310) is commented out",
+        "SubscriptionCard import can be commented out",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Commented out SubscriptionCard import, Billing button, and Billing card section with JSX comments"
+    },
+    {
+      "id": "US-005",
+      "title": "Remove Pro upgrade prompt from Memory page",
+      "description": "As a user, I see my memory log directly without an upgrade prompt.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/MemoryPage.tsx removes the !result.isPro conditional block (lines 63-88)",
+        "Users go straight to viewing summaries or 'no memories yet' state",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Removed !result.isPro conditional block. Users now go straight to summaries or 'no memories yet' state. Removed unused CardDescription import."
+    },
+    {
+      "id": "US-006",
+      "title": "Unify features list on Home page",
+      "description": "As a user, I see all features in a single unified list without Free/Pro distinction.",
+      "acceptanceCriteria": [
+        "apps/web/src/components/HomePage.tsx FEATURES array: all items have isPro: false",
+        "UI collapses Free/Pro sections into single 'Features' list",
+        "Remove 'Upgrade' badge from Pro heading",
+        "Typecheck passes: bun run build",
+        "Lint passes: bun run check"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Set all isPro: false in FEATURES array. Collapsed Free/Pro sections into single unified list. Removed Pro badge from accordion triggers."
+    }
+  ]
+}

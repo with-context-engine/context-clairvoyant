@@ -78,6 +78,13 @@ export const getByMentraIdInternalQuery = internalQuery({
 	},
 });
 
+export const getByIdInternal = internalQuery({
+	args: { userId: v.id("users") },
+	handler: async (ctx, args) => {
+		return await ctx.db.get(args.userId);
+	},
+});
+
 export const getEmail = query({
 	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {
@@ -106,6 +113,8 @@ export const getPreferences = query({
 				userId: args.userId,
 				weatherUnit: "C" as const,
 				defaultLocation: undefined,
+				prefixPriorities: undefined,
+				messageGapSpeed: undefined,
 			};
 		}
 
@@ -135,6 +144,8 @@ export const getPreferencesByMentraId = query({
 				userId: user._id,
 				weatherUnit: "C" as const,
 				defaultLocation: undefined,
+				prefixPriorities: undefined,
+				messageGapSpeed: undefined,
 			};
 		}
 

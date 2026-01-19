@@ -1,6 +1,6 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { polar } from "./payments";
 
 export const upsert = mutation({
 	args: {
@@ -21,15 +21,6 @@ export const upsert = mutation({
 			throw new Error(`User not found for mentraUserId: ${args.mentraUserId}`);
 		}
 
-		// Pro gate: only store session summaries for Pro users
-		const subscription = await polar.getCurrentSubscription(ctx, {
-			userId: user._id,
-		});
-		if (!subscription) {
-			// Silently skip for free users - no error, just don't store
-			return null;
-		}
-
 		const existing = await ctx.db
 			.query("sessionSummaries")
 			.withIndex("by_honcho_session", (q) =>
@@ -37,23 +28,43 @@ export const upsert = mutation({
 			)
 			.first();
 
+		let sessionSummaryId: Id<"sessionSummaries">;
+
 		if (existing) {
 			await ctx.db.patch(existing._id, {
 				summary: args.summary,
 				topics: args.topics,
 				endedAt: args.endedAt,
 			});
-			return existing._id;
+			sessionSummaryId = existing._id;
+		} else {
+			sessionSummaryId = await ctx.db.insert("sessionSummaries", {
+				userId: user._id,
+				honchoSessionId: args.honchoSessionId,
+				summary: args.summary,
+				topics: args.topics,
+				startedAt: args.startedAt,
+				endedAt: args.endedAt,
+			});
 		}
 
-		return await ctx.db.insert("sessionSummaries", {
-			userId: user._id,
-			honchoSessionId: args.honchoSessionId,
-			summary: args.summary,
-			topics: args.topics,
-			startedAt: args.startedAt,
-			endedAt: args.endedAt,
-		});
+		const emailNotesToLink = await ctx.db
+			.query("emailNotes")
+			.withIndex("by_honcho_session", (q) =>
+				q.eq("honchoSessionId", args.honchoSessionId),
+			)
+			.collect();
+
+		for (const note of emailNotesToLink) {
+			if (!note.sessionSummaryId) {
+				await ctx.db.patch(note._id, {
+					sessionSummaryId,
+					updatedAt: new Date().toISOString(),
+				});
+			}
+		}
+
+		return sessionSummaryId;
 	},
 });
 

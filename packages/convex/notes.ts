@@ -7,8 +7,10 @@ import { action } from "./_generated/server";
 import { SessionNoteEmail } from "./emails/SessionNote";
 import { resend } from "./resendClient";
 
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || "notes.example.com";
+
 function generateMessageId(): string {
-	return `<${crypto.randomUUID()}@notes.clairvoyant.with-context.co>`;
+	return `<${crypto.randomUUID()}@${EMAIL_DOMAIN}>`;
 }
 
 type SendNoteResult =
@@ -18,6 +20,7 @@ type SendNoteResult =
 export const sendNoteEmail = action({
 	args: {
 		mentraUserId: v.string(),
+		honchoSessionId: v.optional(v.string()),
 		title: v.string(),
 		summary: v.string(),
 		keyPoints: v.array(v.string()),
@@ -48,29 +51,33 @@ export const sendNoteEmail = action({
 			day: "numeric",
 		});
 
-		const html = await render(
-			SessionNoteEmail({
-				title: args.title,
-				summary: args.summary,
-				keyPoints: args.keyPoints,
-				sessionDate,
-			}),
-		);
+		const emailProps = {
+			title: args.title,
+			summary: args.summary,
+			keyPoints: args.keyPoints,
+			sessionDate,
+		};
+
+		const html = await render(SessionNoteEmail(emailProps));
+		const textContent = await render(SessionNoteEmail(emailProps), {
+			plainText: true,
+		});
 
 		const messageId = generateMessageId();
 
 		try {
 			const emailNoteId = await ctx.runMutation(internal.emailNotes.create, {
-				mentraUserId: args.mentraUserId,
+				userId: user._id,
 				emailId: messageId,
 				title: args.title,
 				subject: args.title,
+				honchoSessionId: args.honchoSessionId,
 			});
 
-			const replyToAddress = `chat+${emailNoteId}@notes.clairvoyant.with-context.co`;
+			const replyToAddress = `chat+${emailNoteId}@${EMAIL_DOMAIN}`;
 
 			const resendEmailId = await resend.sendEmail(ctx, {
-				from: "Clairvoyant <noreply@notes.clairvoyant.with-context.co>",
+				from: `Clairvoyant <noreply@${EMAIL_DOMAIN}>`,
 				to: user.email,
 				subject: args.title,
 				html,
@@ -83,6 +90,7 @@ export const sendNoteEmail = action({
 				messageId,
 				direction: "outbound",
 				resendEmailId,
+				textContent,
 			});
 
 			console.log(

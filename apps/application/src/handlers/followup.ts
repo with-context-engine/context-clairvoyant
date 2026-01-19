@@ -1,5 +1,6 @@
 import { b, Router } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { AppSession } from "@mentra/sdk";
 import {
 	checkUserIsPro,
@@ -14,13 +15,15 @@ const followUpRunIds = new WeakMap<AppSession, number>();
  * Starts the "follow up" flow - saves the current context for later follow-up.
  *
  * @param session - The AppSession for displaying text walls
- * @param mentraUserId - The user's Mentra ID
+ * @param mentraUserId - The user's Mentra ID (for analytics)
+ * @param userId - The user's Convex ID
  * @param sessionId - The current session ID
  * @param displayQueue - The DisplayQueueManager for queueing messages
  */
 export async function startFollowUpFlow(
 	session: AppSession,
 	mentraUserId: string,
+	userId: Id<"users">,
 	sessionId: string,
 	displayQueue: DisplayQueueManager,
 ) {
@@ -56,7 +59,7 @@ export async function startFollowUpFlow(
 
 		const recentMessages = await convexClient.query(
 			api.displayQueue.getRecentByUser,
-			{ mentraUserId, limit: 5 },
+			{ userId, limit: 5 },
 		);
 
 		if (followUpRunIds.get(session) !== runId) return;
@@ -83,7 +86,7 @@ export async function startFollowUpFlow(
 		if (followUpRunIds.get(session) !== runId) return;
 
 		await convexClient.mutation(api.followups.create, {
-			mentraUserId,
+			userId,
 			sessionId,
 			topic: followupTopic.topic,
 			summary: followupTopic.summary,

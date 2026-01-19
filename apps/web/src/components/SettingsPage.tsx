@@ -8,7 +8,7 @@ import {
 	DEFAULT_PREFIX_ORDER,
 	PrefixPriorityEditor,
 } from "./PrefixPriorityEditor";
-import { SubscriptionCard } from "./SubscriptionCard";
+// import { SubscriptionCard } from "./SubscriptionCard";
 import { Button } from "./ui/button";
 import {
 	Card,
@@ -137,6 +137,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 						</Card>
 					</button>
 
+					{/* Billing section commented out - payments disabled
 					<button
 						type="button"
 						onClick={() => setSection("billing")}
@@ -151,6 +152,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 							</CardHeader>
 						</Card>
 					</button>
+					*/}
 				</div>
 			)}
 
@@ -288,6 +290,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 				</div>
 			)}
 
+			{/* Billing section commented out - payments disabled
 			{section === "billing" && (
 				<Card>
 					<CardHeader>
@@ -308,6 +311,7 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 					</CardContent>
 				</Card>
 			)}
+			*/}
 		</div>
 	);
 }

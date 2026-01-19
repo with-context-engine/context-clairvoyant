@@ -5,7 +5,7 @@ export const env = createEnv({
 	server: {
 		API_PORT: z.coerce
 			.number()
-			.default(process.env.PORT ? Number(process.env.PORT) : 3001),
+			.default(process.env.PORT ? Number(process.env.PORT) : 3000),
 		MENTRAOS_API_KEY: z.string(),
 		CONVEX_URL: z.string(),
 		AUTH_PUBLIC_KEY_PEM: z.string(),
@@ -17,7 +17,9 @@ export const env = createEnv({
 	runtimeEnv: process.env,
 });
 
-const DEFAULT_PUBLIC_BASE_URL = "https://with-context-engine.ngrok.dev";
+const DEFAULT_PUBLIC_BASE_URL = process.env.NGROK_WEB_DOMAIN 
+	? `https://${process.env.NGROK_WEB_DOMAIN}` 
+	: "http://localhost:5173";
 
 const normalizeUrl = (value: string) => {
 	const trimmed = value.trim();

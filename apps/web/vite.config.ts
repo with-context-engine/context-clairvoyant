@@ -5,7 +5,7 @@ import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
-	const apiPort = process.env.PORT || "3001";
+	const apiPort = process.env.API_PORT || "3000";
 	const apiTarget = `http://localhost:${apiPort}`;
 	return {
 		plugins: [react(), tailwindcss()],
@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			port: 5173,
-			allowedHosts: ["with-context-engine.ngrok.dev"],
+			allowedHosts: true,
 			proxy: {
 				"/api": {
 					target: apiTarget,

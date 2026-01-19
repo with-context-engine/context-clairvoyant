@@ -17,12 +17,14 @@ const noteThisRunIds = new WeakMap<AppSession, number>();
  * @param transcriptBuffer - All utterances from the current session
  * @param session - The AppSession for displaying text walls
  * @param mentraUserId - The user's Mentra ID
+ * @param honchoSessionId - The Honcho session ID for linking to session summary
  * @param displayQueue - The DisplayQueueManager for queueing messages
  */
 export async function startNoteThisFlow(
 	transcriptBuffer: string[],
 	session: AppSession,
 	mentraUserId: string,
+	honchoSessionId: string,
 	displayQueue: DisplayQueueManager,
 ) {
 	const runId = Date.now();
@@ -90,6 +92,7 @@ export async function startNoteThisFlow(
 		// Send via Convex action (async, non-blocking)
 		const result = await convexClient.action(api.notes.sendNoteEmail, {
 			mentraUserId,
+			honchoSessionId,
 			title: noteContent.title,
 			summary: noteContent.summary,
 			keyPoints: noteContent.keyPoints,

@@ -1,0 +1,10 @@
+{
+	"name": "@clairvoyant/ngrok",
+	"version": "0.1.0",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --env-file=../../.env.local start.ts",
+		"dev:ngrok": "bun run --env-file=../../.env.local start.ts"
+	}
+}
