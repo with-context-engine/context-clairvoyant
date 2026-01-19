@@ -53,8 +53,8 @@
         "Typecheck passes: bun run typecheck"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added logConversation call after routing decision. Uses convexUserId and sessionId. Response capture deferred to US-005 per acceptance criteria."
     },
     {
       "id": "US-005",

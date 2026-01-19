@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 4
+current_iteration: 5
 max_iterations: 15
 
 ## Codebase Patterns
@@ -37,3 +37,10 @@ max_iterations: 15
 **Changes:** Created conversationLogger.ts utility with fire-and-forget logConversation function that calls Convex mutation
 **Files:** apps/application/src/core/conversationLogger.ts
 **Learnings:** App typecheck command is `bun run --cwd apps/application typecheck`. Must run `npx convex codegen` after adding new Convex modules to regenerate types.
+
+---
+
+## 2026-01-19 | US-004 | T-019bd816-320f-72c5-bc93-b0b75e20035c
+**Changes:** Integrated logConversation into handleTranscription immediately after routing decision. Logs transcript, route, convexUserId, and sessionId.
+**Files:** apps/application/src/transcriptionFlow.ts
+**Learnings:** Response capture is separate concern (US-005). Initial log captures transcript/route; handlers will update with response later.
