@@ -109,7 +109,7 @@ export async function handleTranscription(
 				`[Clairvoyant] Memory Recall route: starting async flow`,
 			);
 			void recordToolInvocation(mentraUserId, Router.MEMORY_RECALL);
-			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId, displayQueue);
+			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId, displayQueue, logContext);
 			return;
 
 		case Router.PASSTHROUGH:
@@ -123,6 +123,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 

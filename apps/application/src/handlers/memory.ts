@@ -1,7 +1,9 @@
 import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import type { DisplayQueueManager } from "../core/displayQueue";
 
@@ -78,6 +80,7 @@ export async function MemoryRecall(
 	peers: Peer[],
 	mentraUserId: string,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	const runId = Date.now();
 	memoryRunCallIds.set(session, runId);
@@ -250,6 +253,17 @@ export async function MemoryRecall(
 						durationMs: 3000,
 						priority: 2,
 					});
+				}
+
+				// Log the response for ML training
+				if (logContext) {
+					const responseText = lines.map((l) => `R: ${l}`).join("\n");
+					updateConversationResponse(
+						logContext.convexUserId,
+						logContext.sessionId,
+						logContext.transcript,
+						responseText,
+					);
 				}
 			} else {
 				session.logger.error(

@@ -82,6 +82,20 @@
       "priority": 6,
       "passes": true,
       "notes": "Implementation complete. Verification steps documented in progress.txt. Manual testing requires: 1) bun run dev in apps/application, 2) Trigger weather/search via glasses, 3) Check Convex dashboard conversationLogs table."
+    },
+    {
+      "id": "US-007",
+      "title": "Add response capture to memory recall and passthrough handlers",
+      "description": "As a developer, I need MEMORY_RECALL and PASSTHROUGH handlers to log their responses. PASSTHROUGH serves as the null case (transcript captured but no response shown), while MEMORY_RECALL captures synthesized memory answers.",
+      "acceptanceCriteria": [
+        "Modify memory.ts MemoryRecall handler to accept logContext and call updateConversationResponse with synthesized memory lines",
+        "Modify hints.ts tryPassthroughHint to accept logContext and call updateConversationResponse when a hint is shown (null/empty response when no hint)",
+        "Update transcriptionFlow.ts to pass logContext to MEMORY_RECALL and PASSTHROUGH routes",
+        "Typecheck passes: bun run typecheck"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
     }
   ]
 }

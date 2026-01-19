@@ -400,3 +400,56 @@ Environment Variables & Port Configuration
 - Add ngrok domains to `ALLOWED_ORIGINS` for external dev access
 
 Done. This guide covers the minimal, repeatable steps for adding new tools and flows with token‑efficient prompts and predictable UX.
+
+Conversation Logging (ML Training Data)
+
+The system captures all user transcripts and LLM responses to Convex for ML training and improvement.
+
+**Architecture:**
+- **Schema**: `packages/convex/schema.ts` → `conversationLogs` table
+- **Convex mutations**: `packages/convex/conversationLogs.ts` → `logConversation`, `updateResponse`
+- **Application utility**: `apps/application/src/core/conversationLogger.ts` → fire-and-forget logging functions
+
+**Data Flow:**
+1. `handleTranscription` receives utterance → routes via BAML `b.Route()`
+2. Immediately after routing: `logConversation(userId, sessionId, transcript, route)` creates initial record
+3. Handler processes request → displays response on glasses
+4. Handler calls `updateConversationResponse(userId, sessionId, transcript, response)` to capture formatted output
+
+**LogContext Pattern:**
+Handlers that capture responses receive an optional `logContext` parameter:
+```ts
+logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string }
+```
+
+After displaying lines, call:
+```ts
+if (logContext) {
+  const responseText = lines.map((l) => `W: ${l}`).join("\n");
+  updateConversationResponse(
+    logContext.convexUserId,
+    logContext.sessionId,
+    logContext.transcript,
+    responseText,
+  );
+}
+```
+
+**Coverage by Route:**
+| Route | Initial Log | Response Captured | Notes |
+|-------|-------------|-------------------|-------|
+| WEATHER | ✓ | ✓ | Weather summary lines |
+| MAPS | ✓ | ✓ | Place recommendations |
+| WEB_SEARCH | ✓ | ✓ | Search answer lines |
+| KNOWLEDGE | ✓ | ✓ | General knowledge answer |
+| MEMORY_RECALL | ✓ | ✓ | Synthesized memory lines |
+| MEMORY_CAPTURE | ✓ | ✗ | Silent operation (stores to Honcho) |
+| PASSTHROUGH | ✓ | ✓ (when hint shown) | Null case for ambient speech |
+| NOTE_THIS | ✓ | ✗ | Meta-action, not content response |
+| FOLLOW_UP | ✓ | ✗ | Meta-action, not content response |
+
+**Key Points:**
+- Use fire-and-forget pattern: `void convexClient.mutation(...)` with `.catch()` for error logging
+- Response field captures the formatted text shown on glasses (e.g., `"W: 72°F and sunny"`)
+- PASSTHROUGH with no hint = null response (valuable for training router to identify ambient speech)
+- Initial log happens in `transcriptionFlow.ts`; response update happens in individual handlers
