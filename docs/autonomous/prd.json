@@ -1,92 +1,87 @@
 {
-  "project": "remove-payment-gating",
-  "branchName": "autonomous/remove-payment-gating",
-  "description": "Remove payment gating from the application layer. All features previously behind Pro subscription are now free. Backend Convex schema and Polar webhooks remain intact for potential future use.",
+  "project": "conversation-logging",
+  "branchName": "autonomous/conversation-logging",
+  "description": "Log all user transcripts and LLM responses to Convex for ML training and improvement. Each utterance creates a record with (transcript, route, formattedResponse) linked to userId.",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Bypass isPro check in application",
-      "description": "As a user, I can access all features without a Pro subscription because the isPro check always returns true.",
+      "title": "Add conversationLogs table to Convex schema",
+      "description": "As a developer, I need a new Convex table to store conversation logs so that we have data provenance for ML training.",
       "acceptanceCriteria": [
-        "checkUserIsPro() in apps/application/src/core/convex.ts always returns true",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "New 'conversationLogs' table in schema.ts with fields: userId (Id<users>), sessionId (string), transcript (string), route (string), response (string optional), createdAt (string)",
+        "Indexes: by_user, by_session, by_route",
+        "Typecheck passes: bun run --cwd packages/convex build"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "Function now returns true immediately, parameter renamed to _mentraUserId to indicate unused"
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-002",
-      "title": "Remove isPro gate from daily summaries",
-      "description": "As a user, I can view my daily summaries without a Pro subscription.",
+      "title": "Create conversationLogs Convex mutations",
+      "description": "As a developer, I need Convex mutations to insert and query conversation logs.",
       "acceptanceCriteria": [
-        "packages/convex/dailySummaries.ts getForUser removes subscription check",
-        "Always returns isPro: true with summaries data",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "New file packages/convex/conversationLogs.ts with mutations: logConversation (insert), getBySession (query), getByUser (query)",
+        "logConversation accepts: userId, sessionId, transcript, route, response (optional)",
+        "Typecheck passes: bun run --cwd packages/convex build"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Removed polar subscription check and early return. Always returns isPro: true. Removed unused polar import."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-003",
-      "title": "Remove subscription gate from session summaries",
-      "description": "As a user, my session summaries are stored regardless of subscription status.",
+      "title": "Create conversation logger utility in application",
+      "description": "As a developer, I need a utility function to log conversations from the application server to Convex.",
       "acceptanceCriteria": [
-        "packages/convex/sessionSummaries.ts upsert removes subscription check (lines 24-31)",
-        "Always stores session summaries for all users",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "New file apps/application/src/core/conversationLogger.ts",
+        "Exports logConversation(userId, sessionId, transcript, route, response?) that calls Convex mutation",
+        "Fire-and-forget pattern (void the promise, log errors)",
+        "Typecheck passes: bun run typecheck"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": "Removed polar subscription check and early return. Now stores session summaries for all users. Removed unused polar import."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-004",
-      "title": "Comment out Billing section in Settings",
-      "description": "As a user, I no longer see the Billing section in Settings since payments are disabled.",
+      "title": "Integrate logging into transcriptionFlow",
+      "description": "As a developer, I need to call the conversation logger at the entry point of handleTranscription to capture all user utterances.",
       "acceptanceCriteria": [
-        "apps/web/src/components/SettingsPage.tsx Billing button (lines 140-154) is commented out",
-        "Billing card section (lines 291-310) is commented out",
-        "SubscriptionCard import can be commented out",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "handleTranscription logs the transcript and route immediately after routing decision",
+        "Each route case updates the log with the final response when available",
+        "Typecheck passes: bun run typecheck"
       ],
       "priority": 4,
-      "passes": true,
-      "notes": "Commented out SubscriptionCard import, Billing button, and Billing card section with JSX comments"
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-005",
-      "title": "Remove Pro upgrade prompt from Memory page",
-      "description": "As a user, I see my memory log directly without an upgrade prompt.",
+      "title": "Add response capture to handler flows",
+      "description": "As a developer, I need each handler to report its final formatted response back to the conversation logger.",
       "acceptanceCriteria": [
-        "apps/web/src/components/MemoryPage.tsx removes the !result.isPro conditional block (lines 63-88)",
-        "Users go straight to viewing summaries or 'no memories yet' state",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "Modify key handlers (weather, maps, search, knowledge) to call updateConversationResponse after displaying",
+        "Response is the final text shown on glasses (not raw API data)",
+        "Typecheck passes: bun run typecheck"
       ],
       "priority": 5,
-      "passes": true,
-      "notes": "Removed !result.isPro conditional block. Users now go straight to summaries or 'no memories yet' state. Removed unused CardDescription import."
+      "passes": false,
+      "notes": ""
     },
     {
       "id": "US-006",
-      "title": "Unify features list on Home page",
-      "description": "As a user, I see all features in a single unified list without Free/Pro distinction.",
+      "title": "Manual verification in development",
+      "description": "As a developer, I need to verify the logging works by running the app and checking Convex dashboard.",
       "acceptanceCriteria": [
-        "apps/web/src/components/HomePage.tsx FEATURES array: all items have isPro: false",
-        "UI collapses Free/Pro sections into single 'Features' list",
-        "Remove 'Upgrade' badge from Pro heading",
-        "Typecheck passes: bun run build",
-        "Lint passes: bun run check"
+        "Run application in dev mode",
+        "Trigger at least one transcription flow (e.g., weather, search)",
+        "Verify record appears in Convex conversationLogs table with correct userId, transcript, route, and response",
+        "Document verification steps in progress.txt"
       ],
       "priority": 6,
-      "passes": true,
-      "notes": "Set all isPro: false in FEATURES array. Collapsed Free/Pro sections into single unified list. Removed Pro badge from accordion triggers."
+      "passes": false,
+      "notes": ""
     }
   ]
 }
