@@ -40,8 +40,8 @@
         "Typecheck passes: bun run typecheck"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created conversationLogger.ts with fire-and-forget logConversation function. Uses convexClient from ./convex and Id<users> for userId."
     },
     {
       "id": "US-004",

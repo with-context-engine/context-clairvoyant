@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 3
+current_iteration: 4
 max_iterations: 15
 
 ## Codebase Patterns
@@ -30,3 +30,10 @@ max_iterations: 15
 **Changes:** Created conversationLogs.ts with logConversation mutation (insert) and getBySession/getByUser queries
 **Files:** packages/convex/conversationLogs.ts
 **Learnings:** Follow analytics.ts pattern for mutations that do user lookups internally when needed
+
+---
+
+## 2026-01-19 | US-003 | T-019bd814-dc48-731f-b1bc-147bcb62ac58
+**Changes:** Created conversationLogger.ts utility with fire-and-forget logConversation function that calls Convex mutation
+**Files:** apps/application/src/core/conversationLogger.ts
+**Learnings:** App typecheck command is `bun run --cwd apps/application typecheck`. Must run `npx convex codegen` after adding new Convex modules to regenerate types.
