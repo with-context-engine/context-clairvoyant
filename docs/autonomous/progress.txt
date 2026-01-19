@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 5
+current_iteration: 6
 max_iterations: 15
 
 ## Codebase Patterns
@@ -44,3 +44,10 @@ max_iterations: 15
 **Changes:** Integrated logConversation into handleTranscription immediately after routing decision. Logs transcript, route, convexUserId, and sessionId.
 **Files:** apps/application/src/transcriptionFlow.ts
 **Learnings:** Response capture is separate concern (US-005). Initial log captures transcript/route; handlers will update with response later.
+
+---
+
+## 2026-01-19 | US-005 | T-019bd817-5741-73e6-a3a4-71834d1786f6
+**Changes:** Added updateResponse mutation to Convex conversationLogs. Added updateConversationResponse function to conversationLogger. Modified weather, maps, search, knowledge handlers to accept logContext parameter and call updateConversationResponse after displaying formatted response lines.
+**Files:** packages/convex/conversationLogs.ts, apps/application/src/core/conversationLogger.ts, apps/application/src/handlers/weather.ts, apps/application/src/handlers/maps.ts, apps/application/src/handlers/search.ts, apps/application/src/handlers/knowledge.ts, apps/application/src/transcriptionFlow.ts
+**Learnings:** Handler signature changes require updating all call sites. Use optional logContext parameter to maintain backward compatibility.
