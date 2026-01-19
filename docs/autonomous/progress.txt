@@ -1,7 +1,7 @@
 # Progress Log
 
 ## Iteration Counter
-current_iteration: 2
+current_iteration: 3
 max_iterations: 15
 
 ## Codebase Patterns
@@ -23,3 +23,10 @@ max_iterations: 15
 **Changes:** Added conversationLogs table to Convex schema with userId, sessionId, transcript, route, response fields and indexes by_user, by_session, by_route
 **Files:** packages/convex/schema.ts
 **Learnings:** Correct typecheck command is `npx convex typecheck`, not `bun run --cwd packages/convex build`
+
+---
+
+## 2026-01-19 | US-002 | T-019bd813-9bbd-749b-b924-bf0ec132a52d
+**Changes:** Created conversationLogs.ts with logConversation mutation (insert) and getBySession/getByUser queries
+**Files:** packages/convex/conversationLogs.ts
+**Learnings:** Follow analytics.ts pattern for mutations that do user lookups internally when needed

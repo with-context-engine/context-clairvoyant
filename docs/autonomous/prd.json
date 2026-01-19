@@ -26,8 +26,8 @@
         "Typecheck passes: bun run --cwd packages/convex build"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Created conversationLogs.ts with logConversation mutation and getBySession/getByUser queries. Uses userId: v.id('users') per patterns."
     },
     {
       "id": "US-003",
