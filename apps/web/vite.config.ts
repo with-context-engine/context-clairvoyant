@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			port: 5173,
-			allowedHosts: ["with-context-engine.ngrok.dev"],
+			allowedHosts: [env.NGROK_WEB_DOMAIN || "localhost"],
 			proxy: {
 				"/api": {
 					target: apiTarget,

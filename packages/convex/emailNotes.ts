@@ -3,7 +3,7 @@ import { internalMutation, internalQuery, query } from "./_generated/server";
 
 export const create = internalMutation({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		emailId: v.string(),
 		title: v.string(),
 		subject: v.string(),
@@ -12,7 +12,7 @@ export const create = internalMutation({
 	handler: async (ctx, args) => {
 		const now = new Date().toISOString();
 		const id = await ctx.db.insert("emailNotes", {
-			mentraUserId: args.mentraUserId,
+			userId: args.userId,
 			emailId: args.emailId,
 			title: args.title,
 			subject: args.subject,
@@ -36,11 +36,11 @@ export const getByEmailId = query({
 });
 
 export const getLatestForUser = query({
-	args: { mentraUserId: v.string() },
+	args: { userId: v.id("users") },
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query("emailNotes")
-			.withIndex("by_mentra_user", (q) => q.eq("mentraUserId", args.mentraUserId))
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
 			.order("desc")
 			.first();
 	},

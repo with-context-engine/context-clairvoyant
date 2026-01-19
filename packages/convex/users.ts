@@ -78,6 +78,13 @@ export const getByMentraIdInternalQuery = internalQuery({
 	},
 });
 
+export const getByIdInternal = internalQuery({
+	args: { userId: v.id("users") },
+	handler: async (ctx, args) => {
+		return await ctx.db.get(args.userId);
+	},
+});
+
 export const getEmail = query({
 	args: { mentraUserId: v.string() },
 	handler: async (ctx, args) => {

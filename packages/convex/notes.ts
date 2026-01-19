@@ -7,8 +7,10 @@ import { action } from "./_generated/server";
 import { SessionNoteEmail } from "./emails/SessionNote";
 import { resend } from "./resendClient";
 
+const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || "notes.example.com";
+
 function generateMessageId(): string {
-	return `<${crypto.randomUUID()}@notes.clairvoyant.with-context.co>`;
+	return `<${crypto.randomUUID()}@${EMAIL_DOMAIN}>`;
 }
 
 type SendNoteResult =
@@ -61,16 +63,16 @@ export const sendNoteEmail = action({
 
 		try {
 			const emailNoteId = await ctx.runMutation(internal.emailNotes.create, {
-				mentraUserId: args.mentraUserId,
+				userId: user._id,
 				emailId: messageId,
 				title: args.title,
 				subject: args.title,
 			});
 
-			const replyToAddress = `chat+${emailNoteId}@notes.clairvoyant.with-context.co`;
+			const replyToAddress = `chat+${emailNoteId}@${EMAIL_DOMAIN}`;
 
 			const resendEmailId = await resend.sendEmail(ctx, {
-				from: "Clairvoyant <noreply@notes.clairvoyant.with-context.co>",
+				from: `Clairvoyant <noreply@${EMAIL_DOMAIN}>`,
 				to: user.email,
 				subject: args.title,
 				html,

@@ -1,9 +1,10 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { internalQuery, mutation, query } from "./_generated/server";
 
 export const create = mutation({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		sessionId: v.string(),
 		topic: v.string(),
 		summary: v.string(),
@@ -12,7 +13,7 @@ export const create = mutation({
 	handler: async (ctx, args) => {
 		const now = new Date().toISOString();
 		const id = await ctx.db.insert("followups", {
-			mentraUserId: args.mentraUserId,
+			userId: args.userId,
 			sessionId: args.sessionId,
 			topic: args.topic,
 			summary: args.summary,
@@ -26,16 +27,14 @@ export const create = mutation({
 
 export const getByUser = query({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("followups")
-			.withIndex("by_mentra_user", (q) =>
-				q.eq("mentraUserId", args.mentraUserId),
-			)
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
 			.order("desc")
 			.take(limit);
 	},
@@ -43,16 +42,14 @@ export const getByUser = query({
 
 export const getPendingByUser = query({
 	args: {
-		mentraUserId: v.string(),
+		userId: v.id("users"),
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
 		const limit = args.limit ?? 20;
 		return await ctx.db
 			.query("followups")
-			.withIndex("by_mentra_user", (q) =>
-				q.eq("mentraUserId", args.mentraUserId),
-			)
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
 			.filter((q) => q.eq(q.field("status"), "pending"))
 			.order("desc")
 			.take(limit);
