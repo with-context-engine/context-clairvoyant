@@ -39,7 +39,7 @@ export class DisplayQueueManager {
 	private queue: QueuedMessage[] = [];
 	private isProcessing = false;
 	private session: AppSession;
-	private mentraUserId: string;
+	private userId: Id<"users">;
 	private sessionId: string;
 	private config: DisplayQueueConfig;
 	private currentLoadingId: string | null = null;
@@ -47,12 +47,12 @@ export class DisplayQueueManager {
 
 	constructor(
 		session: AppSession,
-		mentraUserId: string,
+		userId: Id<"users">,
 		sessionId: string,
 		config?: Partial<DisplayQueueConfig>,
 	) {
 		this.session = session;
-		this.mentraUserId = mentraUserId;
+		this.userId = userId;
 		this.sessionId = sessionId;
 		this.config = { ...DEFAULT_CONFIG, ...config };
 		if (config?.gapSpeed) {
@@ -268,7 +268,7 @@ export class DisplayQueueManager {
 	): Promise<Id<"displayQueue"> | undefined> {
 		try {
 			const convexId = await convexClient.mutation(api.displayQueue.enqueue, {
-				mentraUserId: this.mentraUserId,
+				userId: this.userId,
 				sessionId: this.sessionId,
 				message: message.text,
 				prefix: message.prefix,

@@ -1,4 +1,5 @@
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { Honcho, type Peer, type Session } from "@honcho-ai/sdk";
 import { convexClient } from "../core/convex";
 import { env } from "../core/env";
@@ -6,18 +7,12 @@ import { env } from "../core/env";
 export async function initializeMemory(
 	mentraUserId: string,
 	mentraSessionId: string,
-): Promise<[Session, Peer[], string]> {
-	// Fetch user to get their _id
-	const user = await convexClient.query(
-		api.payments.getCurrentUserWithSubscription,
-		{ mentraUserId },
-	);
-
-	if (!user) {
-		throw new Error(`User not found for mentraUserId: ${mentraUserId}`);
-	}
-
-	const userId = user._id;
+): Promise<[Session, Peer[], string, Id<"users">]> {
+	// Ensure user exists (creates if not found) - handles new signups
+	const userId = await convexClient.mutation(api.users.getOrCreate, {
+		mentraUserId,
+		mentraToken: mentraSessionId, // Use session ID as initial token
+	});
 
 	// Create a new Honcho session for each app-open (isolated sessions)
 	const honchoSessionId = await convexClient.mutation(
@@ -47,5 +42,5 @@ export async function initializeMemory(
 		},
 	});
 	await session.addPeers([diatribePeer, synthesisedPeer]);
-	return [session, [diatribePeer, synthesisedPeer], honchoSessionId];
+	return [session, [diatribePeer, synthesisedPeer], honchoSessionId, userId];
 }

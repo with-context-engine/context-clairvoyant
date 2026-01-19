@@ -5,7 +5,7 @@ export const env = createEnv({
 	server: {
 		API_PORT: z.coerce
 			.number()
-			.default(process.env.PORT ? Number(process.env.PORT) : 3001),
+			.default(process.env.PORT ? Number(process.env.PORT) : 3000),
 		MENTRAOS_API_KEY: z.string(),
 		CONVEX_URL: z.string(),
 		AUTH_PUBLIC_KEY_PEM: z.string(),

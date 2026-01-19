@@ -21,19 +21,23 @@ if (!apiDomain || !webDomain || !appDomain) {
 	process.exit(1);
 }
 
+const apiPort = process.env.API_PORT || "3000";
+const webPort = process.env.WEB_PORT || "5173";
+const appPort = process.env.APP_PORT || "3002";
+
 const configYaml = `version: "3"
 tunnels:
   api:
     proto: http
-    addr: 3001
+    addr: ${apiPort}
     url: https://${apiDomain}
   web:
     proto: http
-    addr: 5173
+    addr: ${webPort}
     url: https://${webDomain}
   app:
     proto: http
-    addr: 3002
+    addr: ${appPort}
     url: https://${appDomain}
 `;
 
@@ -42,9 +46,9 @@ const configPath = join(tmpDir, "ngrok.yml");
 await writeFile(configPath, configYaml);
 
 console.log("🚇 Starting ngrok tunnels...\n");
-console.log(`  api: https://${apiDomain} → localhost:3001`);
-console.log(`  web: https://${webDomain} → localhost:5173`);
-console.log(`  app: https://${appDomain} → localhost:3002`);
+console.log(`  api: https://${apiDomain} → localhost:${apiPort}`);
+console.log(`  web: https://${webDomain} → localhost:${webPort}`);
+console.log(`  app: https://${appDomain} → localhost:${appPort}`);
 console.log("\n✅ All tunnels starting. Press Ctrl+C to stop.\n");
 
 const proc = spawn({

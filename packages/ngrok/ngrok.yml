@@ -6,13 +6,16 @@
 #   NGROK_API_DOMAIN=your-api.ngrok.dev
 #   NGROK_WEB_DOMAIN=your-web.ngrok.dev
 #   NGROK_APP_DOMAIN=your-app.ngrok-free.app
+#   API_PORT=3000 (optional, defaults to 3000)
+#   WEB_PORT=5173 (optional, defaults to 5173)
+#   APP_PORT=3002 (optional, defaults to 3002)
 #
 # Example structure (auto-generated at runtime):
 version: "3"
 tunnels:
   api:
     proto: http
-    addr: 3001
+    addr: 3000
     url: https://your-api.ngrok.dev
   web:
     proto: http

@@ -1,4 +1,5 @@
 import { b, Router } from "@clairvoyant/baml-client";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
 import { recordToolInvocation } from "./core/convex";
@@ -18,7 +19,9 @@ export async function handleTranscription(
 	memorySession: Session,
 	peers: Peer[],
 	mentraUserId: string,
+	convexUserId: Id<"users">,
 	sessionId: string,
+	honchoSessionId: string,
 	transcriptBuffer: string[],
 	displayQueue: DisplayQueueManager,
 ) {
@@ -115,12 +118,18 @@ export async function handleTranscription(
 
 		case Router.NOTE_THIS:
 			session.logger.info(`[Clairvoyant] Note This route: starting async flow`);
-			void startNoteThisFlow(transcriptBuffer, session, mentraUserId, displayQueue);
+			void startNoteThisFlow(transcriptBuffer, session, mentraUserId, honchoSessionId, displayQueue);
 			return;
 
 		case Router.FOLLOW_UP:
 			session.logger.info(`[Clairvoyant] Follow Up route: starting async flow`);
-			void startFollowUpFlow(session, mentraUserId, sessionId, displayQueue);
+			void startFollowUpFlow(
+				session,
+				mentraUserId,
+				convexUserId,
+				sessionId,
+				displayQueue,
+			);
 			return;
 
 		default: {
