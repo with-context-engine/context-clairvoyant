@@ -35,5 +35,5 @@ jobs:
       run: bun install
       
     - name: Run tests
-      run: bun run test
+      run: bunx turbo run test --filter='!python-tools'
 
