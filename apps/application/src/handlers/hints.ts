@@ -1,7 +1,9 @@
 import { b, HintCategory } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import type { DisplayQueueManager } from "../core/displayQueue";
 
@@ -14,6 +16,7 @@ export async function tryPassthroughHint(
 	peers: Peer[],
 	mentraUserId: string,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ): Promise<void> {
 	const runId = Date.now();
 	hintRunIds.set(session, runId);
@@ -163,6 +166,16 @@ export async function tryPassthroughHint(
 			durationMs: 4000,
 			priority: 3,
 		});
+
+		// Log the hint response for ML training
+		if (logContext) {
+			updateConversationResponse(
+				logContext.convexUserId,
+				logContext.sessionId,
+				logContext.transcript,
+				`H: ${hintResult.hint}`,
+			);
+		}
 	} catch (error) {
 		session.logger.error(`[tryPassthroughHint] Error: ${String(error)}`);
 	}

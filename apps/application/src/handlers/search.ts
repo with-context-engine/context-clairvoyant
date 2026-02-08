@@ -1,7 +1,9 @@
 import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import type { DisplayQueueManager } from "../core/displayQueue";
 import { showTextDuringOperation } from "../core/textWall";
@@ -18,6 +20,7 @@ export async function startWebSearchFlow(
 	peers: Peer[],
 	mentraUserId: string,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	const runId = Date.now();
 	webSearchRunIds.set(session, runId);
@@ -230,6 +233,16 @@ export async function startWebSearchFlow(
 					durationMs: 3000,
 					priority: 2,
 				});
+			}
+
+			if (logContext) {
+				const responseText = lines.map((l) => `S: ${l}`).join("\n");
+				updateConversationResponse(
+					logContext.convexUserId,
+					logContext.sessionId,
+					logContext.transcript,
+					responseText,
+				);
 			}
 		} else {
 			session.logger.error(`[startWebSearchFlow] No lines in answerLines`);

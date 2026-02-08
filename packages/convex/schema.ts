@@ -140,4 +140,14 @@ export default defineSchema({
 		content: v.string(),
 		createdAt: v.string(),
 	}).index("by_followup", ["followupId"]),
+	conversationLogs: defineTable({
+		userId: v.id("users"),
+		sessionId: v.string(),
+		transcript: v.string(),
+		route: v.string(),
+		response: v.optional(v.string()),
+	})
+		.index("by_user", ["userId"])
+		.index("by_session", ["sessionId"])
+		.index("by_route", ["route"]),
 });

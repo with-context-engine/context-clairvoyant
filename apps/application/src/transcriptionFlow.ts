@@ -3,6 +3,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession, TranscriptionData } from "@mentra/sdk";
 import { recordToolInvocation } from "./core/convex";
+import { logConversation } from "./core/conversationLogger";
 import type { DisplayQueueManager } from "./core/displayQueue";
 import { tryPassthroughHint } from "./handlers/hints";
 import { startKnowledgeFlow } from "./handlers/knowledge";
@@ -31,11 +32,17 @@ export async function handleTranscription(
 		session.logger.warn(`[Clairvoyant] No routing decision made. Resetting...`);
 		return;
 	}
+
+	// Log conversation for ML training (fire-and-forget)
+	logConversation(convexUserId, sessionId, data.text, routing.routing);
+
+	const logContext = { convexUserId, sessionId, transcript: data.text };
+
 	switch (routing.routing) {
 		case Router.WEATHER:
 			session.logger.info(`[Clairvoyant] Weather route: starting async flow`);
 			void recordToolInvocation(mentraUserId, Router.WEATHER);
-			void startWeatherFlow(session, memorySession, peers, displayQueue);
+			void startWeatherFlow(session, memorySession, peers, displayQueue, logContext);
 			return;
 
 		case Router.MAPS:
@@ -48,6 +55,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
@@ -63,6 +71,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
@@ -76,6 +85,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
@@ -99,7 +109,7 @@ export async function handleTranscription(
 				`[Clairvoyant] Memory Recall route: starting async flow`,
 			);
 			void recordToolInvocation(mentraUserId, Router.MEMORY_RECALL);
-			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId, displayQueue);
+			void MemoryRecall(data.text, session, memorySession, peers, mentraUserId, displayQueue, logContext);
 			return;
 
 		case Router.PASSTHROUGH:
@@ -113,6 +123,7 @@ export async function handleTranscription(
 				peers,
 				mentraUserId,
 				displayQueue,
+				logContext,
 			);
 			return;
 
