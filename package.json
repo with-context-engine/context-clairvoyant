@@ -30,7 +30,8 @@
 		"elysia": "^1.4.24"
 	},
 	"overrides": {
-		"elysia": "$elysia"
+		"elysia": "$elysia",
+		"esbuild": "0.25.12"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.2",
