@@ -14,6 +14,7 @@ polar.registerRoutes(http, {
 			event.data.customer?.externalId ??
 			(metadataUserId ? String(metadataUserId) : undefined);
 		const customerId = event.data.customer?.id;
+		const productId = event.data.productId;
 
 		if (!userId) {
 			console.warn(
@@ -23,8 +24,22 @@ polar.registerRoutes(http, {
 		}
 
 		console.log(
-			`[Polar Webhook] Subscription created for user ${userId}, customer ${customerId}`,
+			`[Polar Webhook] Subscription created for user ${userId}, customer ${customerId}, product ${productId}`,
 		);
+
+		if (productId === polar.products.optOut) {
+			await ctx.runMutation(internal.users.setOptOutStatus, {
+				userId: userId as import("./_generated/dataModel").Id<"users">,
+				optedOut: true,
+			});
+		}
+
+		if (productId === polar.products.emailThreads) {
+			await ctx.runMutation(internal.users.setPaidEmailThreadsStatus, {
+				userId: userId as import("./_generated/dataModel").Id<"users">,
+				paidEmailThreads: true,
+			});
+		}
 
 		await ctx.runMutation(
 			internal.payments.scheduleSubscriptionCreatedHandler,
@@ -33,6 +48,38 @@ polar.registerRoutes(http, {
 				customerId: customerId ?? null,
 			},
 		);
+	},
+	onSubscriptionUpdated: async (ctx, event) => {
+		const metadataUserId = event.data.customer?.metadata?.userId;
+		const userId =
+			event.data.customer?.externalId ??
+			(metadataUserId ? String(metadataUserId) : undefined);
+		if (!userId) {
+			return;
+		}
+
+		const productId = event.data.productId;
+		const endedStatuses = new Set([
+			"canceled",
+			"past_due",
+			"unpaid",
+			"revoked",
+		]);
+		const isActive = !endedStatuses.has(event.data.status);
+
+		if (productId === polar.products.optOut) {
+			await ctx.runMutation(internal.users.setOptOutStatus, {
+				userId: userId as import("./_generated/dataModel").Id<"users">,
+				optedOut: isActive,
+			});
+		}
+
+		if (productId === polar.products.emailThreads) {
+			await ctx.runMutation(internal.users.setPaidEmailThreadsStatus, {
+				userId: userId as import("./_generated/dataModel").Id<"users">,
+				paidEmailThreads: isActive,
+			});
+		}
 	},
 });
 

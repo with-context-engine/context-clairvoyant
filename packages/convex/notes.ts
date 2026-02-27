@@ -44,6 +44,16 @@ export const sendNoteEmail = action({
 			return { success: false, reason: "no_email_configured" };
 		}
 
+		const access = await ctx.runAction(
+			internal.emailEntitlementsNode.preflightOutboundEmail,
+			{
+				userId: user._id,
+			},
+		);
+		if (!access.allowed) {
+			return { success: false, reason: access.reason ?? "email_limit_reached" };
+		}
+
 		const sessionDate = new Date().toLocaleDateString("en-US", {
 			weekday: "long",
 			year: "numeric",
@@ -92,6 +102,15 @@ export const sendNoteEmail = action({
 				resendEmailId,
 				textContent,
 			});
+
+			if (access.trackUsage) {
+				await ctx.runMutation(
+					internal.emailEntitlements.incrementOutboundUsage,
+					{
+						userId: user._id,
+					},
+				);
+			}
 
 			console.log(
 				`[Notes] Email queued successfully to ${user.email} (noteId: ${emailNoteId}, resendId: ${resendEmailId})`,

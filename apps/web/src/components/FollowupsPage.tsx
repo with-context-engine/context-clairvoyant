@@ -125,52 +125,60 @@ export function FollowupsPage({ userId }: FollowupsPageProps) {
 			<h2 className="text-xl font-semibold">Follow-ups</h2>
 
 			<div className="space-y-4">
-				{followups.map((followup) => (
-					<Card
-						key={followup._id}
-						className={followup.status === "pending" ? "cursor-pointer" : ""}
-						onClick={() => {
-							if (followup.status === "pending") {
-								navigate(`/followups/chat/${followup._id}`);
-							}
-						}}
-					>
-						<CardHeader className="pb-2">
-							<div className="flex items-center justify-between gap-2">
-								<CardTitle className="text-lg">{followup.topic}</CardTitle>
-								<StatusBadge status={followup.status} />
-							</div>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<p className="text-foreground text-sm">{followup.summary}</p>
+				{followups.map(
+					(followup: {
+						_id: Id<"followups">;
+						topic: string;
+						summary: string;
+						status: "pending" | "completed" | "dismissed";
+						createdAt: string;
+					}) => (
+						<Card
+							key={followup._id}
+							className={followup.status === "pending" ? "cursor-pointer" : ""}
+							onClick={() => {
+								if (followup.status === "pending") {
+									navigate(`/followups/chat/${followup._id}`);
+								}
+							}}
+						>
+							<CardHeader className="pb-2">
+								<div className="flex items-center justify-between gap-2">
+									<CardTitle className="text-lg">{followup.topic}</CardTitle>
+									<StatusBadge status={followup.status} />
+								</div>
+							</CardHeader>
+							<CardContent className="space-y-3">
+								<p className="text-foreground text-sm">{followup.summary}</p>
 
-							<div className="flex items-center justify-between">
-								<p className="text-xs text-foreground/50">
-									{formatRelativeTime(followup.createdAt)}
-								</p>
+								<div className="flex items-center justify-between">
+									<p className="text-xs text-foreground/50">
+										{formatRelativeTime(followup.createdAt)}
+									</p>
 
-								{followup.status === "pending" && (
-									<div className="flex gap-2">
-										<Button
-											variant="neutral"
-											size="sm"
-											onClick={(e) => handleComplete(followup._id, e)}
-										>
-											Complete
-										</Button>
-										<Button
-											variant="neutral"
-											size="sm"
-											onClick={(e) => handleDismiss(followup._id, e)}
-										>
-											Dismiss
-										</Button>
-									</div>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				))}
+									{followup.status === "pending" && (
+										<div className="flex gap-2">
+											<Button
+												variant="neutral"
+												size="sm"
+												onClick={(e) => handleComplete(followup._id, e)}
+											>
+												Complete
+											</Button>
+											<Button
+												variant="neutral"
+												size="sm"
+												onClick={(e) => handleDismiss(followup._id, e)}
+											>
+												Dismiss
+											</Button>
+										</div>
+									)}
+								</div>
+							</CardContent>
+						</Card>
+					),
+				)}
 			</div>
 		</div>
 	);

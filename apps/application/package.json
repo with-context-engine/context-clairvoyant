@@ -15,10 +15,10 @@
 		"@boundaryml/baml": "0.215.0",
 		"@clairvoyant/baml-client": "workspace:*",
 		"@honcho-ai/sdk": "^1.6.0",
-		"@mentra/sdk": "^2.1.28",
+		"@mentra/sdk": "^2.1.29",
 		"@t3-oss/env-core": "^0.13.10",
 		"@tavily/core": "^0.5.14",
-		"convex": "^1.31.2",
+		"convex": "^1.32.0",
 		"exa-js": "^1.10.2",
 		"openai": "^5.23.2",
 		"zod": "^3.25.76"

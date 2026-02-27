@@ -10,6 +10,12 @@ import {
 	query,
 } from "./_generated/server";
 
+const DEFAULT_SETTINGS_URL = process.env.WEB_APP_URL
+	? `${process.env.WEB_APP_URL.replace(/\/$/, "")}/settings`
+	: "https://clairvoyant.app/settings";
+
+type PaidFeatureProduct = "optOut" | "emailThreads";
+
 // =============================================================================
 // Polar Types (inferred from polar.listProducts return type)
 // =============================================================================
@@ -69,6 +75,10 @@ export type PolarProduct = {
 // =============================================================================
 
 export const polar = new Polar(components.polar, {
+	products: {
+		optOut: process.env.POLAR_OPT_OUT_PRODUCT_ID ?? "",
+		emailThreads: process.env.POLAR_EMAIL_THREADS_PRODUCT_ID ?? "",
+	},
 	getUserInfo: async (ctx): Promise<{ userId: Id<"users">; email: string }> => {
 		const user = await ctx.runQuery(api.users.getCurrentUser);
 		return {
@@ -187,6 +197,32 @@ export const getCustomerInfo = action({
 			name: result.name || null,
 			billingAddress: result.billingAddress || null,
 		};
+	},
+});
+
+export const createFeatureCheckoutLink = action({
+	args: {
+		mentraUserId: v.string(),
+		feature: v.union(v.literal("optOut"), v.literal("emailThreads")),
+		successUrl: v.optional(v.string()),
+	},
+	handler: async (ctx, args): Promise<{ url: string }> => {
+		const user = await ctx.runQuery(api.users.getByMentraId, {
+			mentraUserId: args.mentraUserId,
+		});
+
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		return await ctx.runAction(
+			internal.payments.createFeatureCheckoutLinkInternal,
+			{
+				userId: user._id,
+				feature: args.feature,
+				successUrl: args.successUrl,
+			},
+		);
 	},
 });
 
@@ -312,3 +348,60 @@ export const handleSubscriptionCreated = internalAction({
 		}
 	},
 });
+
+export const createFeatureCheckoutLinkInternal = internalAction({
+	args: {
+		userId: v.id("users"),
+		feature: v.union(v.literal("optOut"), v.literal("emailThreads")),
+		successUrl: v.optional(v.string()),
+	},
+	handler: async (ctx, args): Promise<{ url: string }> => {
+		const user = await ctx.runQuery(internal.users.getByIdInternal, {
+			userId: args.userId,
+		});
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		const accessToken =
+			process.env.POLAR_ACCESS_TOKEN ?? process.env.POLAR_ORGANIZATION_TOKEN;
+		if (!accessToken) {
+			throw new Error(
+				"POLAR_ACCESS_TOKEN or POLAR_ORGANIZATION_TOKEN environment variable is not set",
+			);
+		}
+
+		const productId = getFeatureProductId(args.feature);
+		if (!productId) {
+			throw new Error(
+				`Polar product is not configured for feature: ${args.feature}`,
+			);
+		}
+
+		const polarSDK = new PolarSDK({
+			accessToken,
+			server: process.env.POLAR_SERVER as "production" | "sandbox" | undefined,
+		});
+
+		const checkout = await polarSDK.checkouts.create({
+			products: [productId],
+			externalCustomerId: user._id,
+			customerEmail: user.email,
+			successUrl: args.successUrl ?? DEFAULT_SETTINGS_URL,
+			metadata: {
+				userId: user._id,
+				feature: args.feature,
+			},
+		});
+
+		return { url: checkout.url };
+	},
+});
+
+function getFeatureProductId(feature: PaidFeatureProduct): string {
+	if (feature === "optOut") {
+		return polar.products.optOut;
+	}
+
+	return polar.products.emailThreads;
+}

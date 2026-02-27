@@ -1,8 +1,10 @@
 import { b } from "@clairvoyant/baml-client";
 import type { FormattedWeather } from "@clairvoyant/baml-client/types";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
+import { updateConversationResponse } from "../core/conversationLogger";
 import {
 	checkUserIsPro,
 	convexClient,
@@ -30,6 +32,7 @@ async function processWeatherData(
 	displayQueue: DisplayQueueManager,
 	memorySession?: Session,
 	peers?: Peer[],
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	// Fetch memory context if available
 	let memoryContext: {
@@ -161,6 +164,16 @@ async function processWeatherData(
 			priority: 2,
 		});
 	}
+
+	if (logContext && weatherLines.lines.length > 0) {
+		const responseText = weatherLines.lines.map((l) => `W: ${l}`).join("\n");
+		updateConversationResponse(
+			logContext.convexUserId,
+			logContext.sessionId,
+			logContext.transcript,
+			responseText,
+		);
+	}
 }
 
 export async function startWeatherFlow(
@@ -168,6 +181,7 @@ export async function startWeatherFlow(
 	memorySession: Session | undefined,
 	peers: Peer[] | undefined,
 	displayQueue: DisplayQueueManager,
+	logContext?: { convexUserId: Id<"users">; sessionId: string; transcript: string },
 ) {
 	const mentraUserId = session.userId;
 	let preferredUnit: "C" | "F" = "C";
@@ -250,6 +264,7 @@ export async function startWeatherFlow(
 				displayQueue,
 				memorySession,
 				peers,
+				logContext,
 			);
 
 			// TODO: Add a BAML to check if the weather is inclement and if so and if so, ask the user if they're appropriately dressed for the weather.
@@ -337,6 +352,7 @@ export async function startWeatherFlow(
 						displayQueue,
 						memorySession,
 						peers,
+						logContext,
 					);
 				} catch (err) {
 					session.logger.error(
