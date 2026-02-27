@@ -96,6 +96,26 @@ export const getEmail = query({
 	},
 });
 
+export const getOptOutStatus = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		return {
+			optedOut: user?.optedOutOfTraining ?? false,
+		};
+	},
+});
+
+export const getEmailThreadsPaidStatus = query({
+	args: { mentraUserId: v.string() },
+	handler: async (ctx, args) => {
+		const user = await getByMentraIdInternal(ctx, args.mentraUserId);
+		return {
+			paidEmailThreads: user?.paidEmailThreads ?? false,
+		};
+	},
+});
+
 // =============================================================================
 // Public Queries - Preferences
 // =============================================================================
@@ -164,9 +184,11 @@ export const getOrCreate = mutation({
 		if (existing) {
 			return existing._id;
 		}
+		const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(args.mentraUserId);
 		const userId = await ctx.db.insert("users", {
 			mentraUserId: args.mentraUserId,
 			mentraToken: args.mentraToken,
+			...(isEmail ? { email: args.mentraUserId } : {}),
 		});
 
 		await ctx.db.insert("preferences", {
@@ -403,5 +425,46 @@ export const updateDefaultLocation = internalMutation({
 			weatherUnit: "C",
 			defaultLocation,
 		});
+	},
+});
+
+export const setOptOutStatus = internalMutation({
+	args: {
+		userId: v.id("users"),
+		optedOut: v.boolean(),
+	},
+	handler: async (ctx, args) => {
+		await ctx.db.patch(args.userId, {
+			optedOutOfTraining: args.optedOut,
+		});
+		return { success: true };
+	},
+});
+
+export const backfillEmailsFromMentraId = internalMutation({
+	handler: async (ctx) => {
+		const users = await ctx.db.query("users").collect();
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		let updated = 0;
+		for (const user of users) {
+			if (!user.email && emailRegex.test(user.mentraUserId)) {
+				await ctx.db.patch(user._id, { email: user.mentraUserId });
+				updated++;
+			}
+		}
+		return { updated, total: users.length };
+	},
+});
+
+export const setPaidEmailThreadsStatus = internalMutation({
+	args: {
+		userId: v.id("users"),
+		paidEmailThreads: v.boolean(),
+	},
+	handler: async (ctx, args) => {
+		await ctx.db.patch(args.userId, {
+			paidEmailThreads: args.paidEmailThreads,
+		});
+		return { success: true };
 	},
 });
