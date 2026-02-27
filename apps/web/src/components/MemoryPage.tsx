@@ -82,40 +82,47 @@ export function MemoryPage({ mentraUserId }: MemoryPageProps) {
 			<h2 className="text-xl font-semibold">Memory</h2>
 
 			<div className="space-y-4">
-				{result.summaries.map((day) => (
-					<Card
-						key={day.date}
-						className="cursor-pointer"
-						onClick={() => navigate(`/memory/chat/${day.date}`)}
-					>
-						<CardHeader className="pb-2">
-							<CardTitle className="text-lg flex items-center gap-2">
-								<span>📅</span>
-								{formatDate(day.date)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<p className="text-foreground">{day.summary}</p>
+				{result.summaries.map(
+					(day: {
+						date: string;
+						summary: string;
+						topics: string[];
+						sessionCount: number;
+					}) => (
+						<Card
+							key={day.date}
+							className="cursor-pointer"
+							onClick={() => navigate(`/memory/chat/${day.date}`)}
+						>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-lg flex items-center gap-2">
+									<span>📅</span>
+									{formatDate(day.date)}
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-3">
+								<p className="text-foreground">{day.summary}</p>
 
-							{day.topics.length > 0 && (
-								<div className="flex flex-wrap gap-2">
-									{day.topics.map((topic) => (
-										<span
-											key={topic}
-											className="px-2 py-1 bg-main/10 text-main rounded-base text-sm border border-main/20"
-										>
-											{topic}
-										</span>
-									))}
-								</div>
-							)}
+								{day.topics.length > 0 && (
+									<div className="flex flex-wrap gap-2">
+										{day.topics.map((topic: string) => (
+											<span
+												key={topic}
+												className="px-2 py-1 bg-main/10 text-main rounded-base text-sm border border-main/20"
+											>
+												{topic}
+											</span>
+										))}
+									</div>
+								)}
 
-							<p className="text-xs text-foreground/50">
-								{day.sessionCount} session{day.sessionCount > 1 ? "s" : ""}
-							</p>
-						</CardContent>
-					</Card>
-				))}
+								<p className="text-xs text-foreground/50">
+									{day.sessionCount} session{day.sessionCount > 1 ? "s" : ""}
+								</p>
+							</CardContent>
+						</Card>
+					),
+				)}
 			</div>
 		</div>
 	);

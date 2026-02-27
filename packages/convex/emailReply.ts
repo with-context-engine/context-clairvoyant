@@ -261,22 +261,25 @@ export const processEmailReply = internalAction({
 				const diatribePeer = await honchoClient.peer(`${user._id}-diatribe`, {
 					metadata: {
 						name: "Diatribe",
-						description: "A peer that listens to the raw translations of the users' speech.",
+						description:
+							"A peer that listens to the raw translations of the users' speech.",
 					},
 				});
 				const synthesisPeer = await honchoClient.peer(`${user._id}-synthesis`, {
 					metadata: {
 						name: "Synthesis Peer",
-						description: "A peer that captures synthesized knowledge from the user's speech.",
+						description:
+							"A peer that captures synthesized knowledge from the user's speech.",
 					},
 				});
 
 				await session.addPeers([diatribePeer, synthesisPeer]);
 
 				// Add user email message + extracted facts to diatribe peer
-				const userContent = interpretation.extractedFacts.length > 0
-					? `${textContent}\n\nExtracted facts:\n${interpretation.extractedFacts.map((f) => `• ${f}`).join("\n")}`
-					: textContent;
+				const userContent =
+					interpretation.extractedFacts.length > 0
+						? `${textContent}\n\nExtracted facts:\n${interpretation.extractedFacts.map((f) => `• ${f}`).join("\n")}`
+						: textContent;
 
 				await session.addMessages([
 					{
@@ -290,7 +293,9 @@ export const processEmailReply = internalAction({
 						},
 					},
 				]);
-				console.log(`[EmailReply] ✓ Added user message to diatribe peer${interpretation.extractedFacts.length > 0 ? ` with ${interpretation.extractedFacts.length} facts` : ""}`);
+				console.log(
+					`[EmailReply] ✓ Added user message to diatribe peer${interpretation.extractedFacts.length > 0 ? ` with ${interpretation.extractedFacts.length} facts` : ""}`,
+				);
 
 				// Add assistant response to synthesis peer
 				await session.addMessages([
@@ -305,7 +310,9 @@ export const processEmailReply = internalAction({
 						},
 					},
 				]);
-				console.log(`[EmailReply] ✓ Added assistant response to synthesis peer`);
+				console.log(
+					`[EmailReply] ✓ Added assistant response to synthesis peer`,
+				);
 			} catch (error) {
 				console.warn(
 					`[EmailReply] ✗ Failed to update Honcho memory: ${error instanceof Error ? error.message : String(error)}`,
@@ -356,6 +363,16 @@ export const processEmailReply = internalAction({
 
 		// Step 9: Build and send reply email with proper threading headers
 		console.log("[EmailReply] Step 9: Building and sending reply email...");
+		const access = await ctx.runAction(
+			internal.emailEntitlementsNode.preflightOutboundEmail,
+			{
+				userId: user._id,
+			},
+		);
+		if (!access.allowed) {
+			return { success: false, error: access.reason ?? "email_limit_reached" };
+		}
+
 		const newMessageId = generateMessageId();
 
 		const inReplyTo = inboundMessageId;
@@ -415,6 +432,15 @@ Sent by Clairvoyant`;
 				resendEmailId,
 				textContent: replyContent,
 			});
+
+			if (access.trackUsage) {
+				await ctx.runMutation(
+					internal.emailEntitlements.incrementOutboundUsage,
+					{
+						userId: user._id,
+					},
+				);
+			}
 			console.log(`[EmailReply] ✓ Stored outbound message in thread`);
 
 			const totalTime = Date.now() - startTime;

@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"private": true,
-	"packageManager": "bun@1.3.9",
+	"packageManager": "bun@1.3.10",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
@@ -23,23 +23,31 @@
 		"test": "turbo run test",
 		"clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules .turbo apps/*/.turbo packages/*/.turbo apps/*/dist packages/*/dist apps/*/build packages/*/build packages/convex/_generated bun.lock",
 		"clean:install": "bun run clean && bun install",
-		"ngrok": "turbo run dev --filter=@clairvoyant/ngrok"
+		"ngrok": "turbo run dev --filter=@clairvoyant/ngrok",
+		"prepare": "husky"
 	},
 	"dependencies": {
-		"convex": "^1.31.7",
-		"elysia": "^1.4.24"
+		"convex": "^1.32.0",
+		"elysia": "^1.4.26"
 	},
 	"overrides": {
 		"elysia": "$elysia",
 		"esbuild": "0.25.12"
 	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx,json,css}": [
+			"bunx biome check --write --no-errors-on-unmatched"
+		]
+	},
 	"devDependencies": {
 		"@biomejs/biome": "2.1.2",
 		"@boundaryml/baml": "0.215.0",
 		"@types/bun": "latest",
-		"@types/node": "^24.10.13",
+		"@types/node": "^24.10.15",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
 		"tsx": "^4.21.0",
-		"turbo": "^2.8.7",
+		"turbo": "^2.8.11",
 		"typescript": "^5.9.3"
 	}
 }

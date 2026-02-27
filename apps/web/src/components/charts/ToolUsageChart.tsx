@@ -79,6 +79,8 @@ export function ToolUsageChart({
 		days: timeframe,
 	});
 
+	type ToolInvocation = { date: string; router: string; count: number };
+
 	const chartMemo = useMemo(() => {
 		if (!toolInvocations || !toolInvocations.length) {
 			return {
@@ -90,7 +92,7 @@ export function ToolUsageChart({
 		}
 
 		// Filter out KNOWLEDGE entries
-		const filteredInvocations = toolInvocations.filter(
+		const filteredInvocations = (toolInvocations as ToolInvocation[]).filter(
 			({ router }) => router !== "KNOWLEDGE",
 		);
 
@@ -226,12 +228,15 @@ export function ToolUsageChart({
 							/>
 							<Tooltip
 								cursor={{ fill: "rgba(255,255,255,0.12)" }}
-								labelFormatter={(value: string) =>
-									new Date(`${value}T00:00:00Z`).toLocaleDateString(undefined, {
-										weekday: "short",
-										month: "short",
-										day: "numeric",
-									})
+								labelFormatter={(value) =>
+									new Date(`${String(value)}T00:00:00Z`).toLocaleDateString(
+										undefined,
+										{
+											weekday: "short",
+											month: "short",
+											day: "numeric",
+										},
+									)
 								}
 								formatter={(value, name) => [
 									Number(value).toLocaleString(),

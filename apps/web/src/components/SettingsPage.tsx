@@ -1,6 +1,6 @@
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useState } from "react";
 import { LocationSelector } from "./LocationSelector";
 import { MessageSpeedSelector } from "./MessageSpeedSelector";
@@ -33,9 +33,15 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 	const updatePreferences = useMutation(api.users.updatePreferences);
 	const updatePrefixPriorities = useMutation(api.users.updatePrefixPriorities);
 	const updateMessageGapSpeed = useMutation(api.users.updateMessageGapSpeed);
-
+	const requestOptOutCheckoutEmail = useAction(
+		api.optOut.requestOptOutCheckoutEmail,
+	);
 	const storedEmail = useQuery(
 		api.users.getEmail,
+		mentraUserId ? { mentraUserId } : "skip",
+	);
+	const optOutStatus = useQuery(
+		api.users.getOptOutStatus,
 		mentraUserId ? { mentraUserId } : "skip",
 	);
 	const updateEmail = useMutation(api.users.updateEmail);
@@ -44,7 +50,10 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 		"idle" | "saving" | "saved" | "error"
 	>("idle");
 	const [emailError, setEmailError] = useState<string | null>(null);
-
+	const [optOutRequestStatus, setOptOutRequestStatus] = useState<
+		"idle" | "sending" | "sent" | "error"
+	>("idle");
+	const [optOutError, setOptOutError] = useState<string | null>(null);
 	useEffect(() => {
 		if (storedEmail !== undefined && storedEmail !== null) {
 			setEmailInput(storedEmail);
@@ -95,6 +104,26 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 			messageGapSpeed: speed,
 		});
 		console.log(`Preference saved: messageGapSpeed=${speed}`);
+	};
+
+	const handleRequestOptOut = async () => {
+		if (!mentraUserId) return;
+
+		setOptOutRequestStatus("sending");
+		setOptOutError(null);
+		try {
+			const result = await requestOptOutCheckoutEmail({ mentraUserId });
+			if (!result.success) {
+				setOptOutError("Unable to send opt-out email.");
+				setOptOutRequestStatus("error");
+				return;
+			}
+			setOptOutRequestStatus("sent");
+			setTimeout(() => setOptOutRequestStatus("idle"), 2500);
+		} catch {
+			setOptOutError("Unable to send opt-out email.");
+			setOptOutRequestStatus("error");
+		}
 	};
 
 	const hasPreferencesLoaded = preferences !== undefined;
@@ -196,6 +225,39 @@ export function SettingsPage({ userId, mentraUserId }: SettingsPageProps) {
 										<p className="text-sm text-red-600">{emailError}</p>
 									)}
 								</div>
+							)}
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Training Data</CardTitle>
+							<CardDescription>
+								Control whether your data is used for model training.
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-3">
+							<p className="text-sm text-foreground/70">
+								Status:{" "}
+								{optOutStatus?.optedOut ? "Opted out" : "Included in training"}
+							</p>
+							{!optOutStatus?.optedOut && (
+								<Button
+									onClick={handleRequestOptOut}
+									disabled={!mentraUserId || optOutRequestStatus === "sending"}
+								>
+									{optOutRequestStatus === "sending"
+										? "Sending..."
+										: "Opt Out Of Training"}
+								</Button>
+							)}
+							{optOutRequestStatus === "sent" && (
+								<p className="text-sm text-green-600">
+									Email sent with instructions.
+								</p>
+							)}
+							{optOutError && (
+								<p className="text-sm text-red-600">{optOutError}</p>
 							)}
 						</CardContent>
 					</Card>

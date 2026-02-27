@@ -10,6 +10,11 @@ export const logConversation = mutation({
 		response: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
+		const user = await ctx.db.get(args.userId);
+		if (user?.optedOutOfTraining) {
+			return null;
+		}
+
 		return await ctx.db.insert("conversationLogs", {
 			userId: args.userId,
 			sessionId: args.sessionId,

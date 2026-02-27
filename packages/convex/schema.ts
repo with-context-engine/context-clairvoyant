@@ -6,6 +6,8 @@ export default defineSchema({
 		mentraUserId: v.string(),
 		mentraToken: v.optional(v.string()),
 		email: v.optional(v.string()),
+		optedOutOfTraining: v.optional(v.boolean()),
+		paidEmailThreads: v.optional(v.boolean()),
 		billingName: v.optional(v.string()),
 		billingAddress: v.optional(
 			v.object({
@@ -91,6 +93,14 @@ export default defineSchema({
 	})
 		.index("by_email_note", ["emailNoteId"])
 		.index("by_resend_email_id", ["resendEmailId"]),
+	emailThreadUsage: defineTable({
+		userId: v.id("users"),
+		periodKey: v.string(),
+		outboundCount: v.number(),
+		paywallEmailSentAt: v.optional(v.string()),
+	})
+		.index("by_user", ["userId"])
+		.index("by_user_period", ["userId", "periodKey"]),
 	chatMessages: defineTable({
 		userId: v.id("users"),
 		dailySummaryId: v.optional(v.id("dailySummaries")),

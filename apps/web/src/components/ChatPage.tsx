@@ -76,7 +76,7 @@ export function ChatPage({ mentraUserId }: ChatPageProps) {
 	useEffect(() => {
 		if (existingMessages && pendingMessages.length > 0) {
 			const existingContents = new Set(
-				existingMessages.map((m) => `${m.role}:${m.content}`),
+				existingMessages.map((m: Message) => `${m.role}:${m.content}`),
 			);
 			const remaining = pendingMessages.filter(
 				(m) => !existingContents.has(`${m.role}:${m.content}`),
