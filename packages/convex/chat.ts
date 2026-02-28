@@ -170,6 +170,80 @@ export const sendMessage = action({
 			}
 		}
 
+		// Cross-peer queries: fetch perspectives from connected users with shared memory
+		let crossPeerPerspectives: Array<{ label: string; perspective: string }> = [];
+		if (honchoKey) {
+			try {
+				const connections = (await ctx.runQuery(
+					internal.connections.getActiveSharedMemoryConnections,
+					{ userId: user._id },
+				)) as Array<{ _id: Id<"connections">; connectedUserId: Id<"users">; label: string | null }>;
+
+				const cappedConnections = connections.slice(0, 3);
+				if (cappedConnections.length > 0) {
+					console.log(`[Chat] Querying ${cappedConnections.length} cross-peer connections`);
+
+					const crossPeerClient = new Honcho({
+						apiKey: honchoKey,
+						environment: "production",
+						workspaceId: "with-context",
+					});
+
+					const rawPerspectives = await Promise.all(
+						cappedConnections.map(async (conn) => {
+							try {
+								const connectedPeer = await crossPeerClient.peer(
+									`${conn.connectedUserId}-diatribe`,
+								);
+								const rep = await connectedPeer.representation({
+									target: `${user._id}-diatribe`,
+									searchQuery: `${date} ${content}`,
+									searchTopK: 5,
+									maxConclusions: 10,
+								});
+								return {
+									label: conn.label ?? "Connected user",
+									perspective: typeof rep.representation === "string" ? rep.representation : "",
+								};
+							} catch (error) {
+								console.warn(
+									`[Chat] Cross-peer query failed for ${conn.connectedUserId}: ${error instanceof Error ? error.message : String(error)}`,
+								);
+								return null;
+							}
+						}),
+					);
+
+					const validPerspectives = rawPerspectives.filter(
+						(p): p is { label: string; perspective: string } =>
+							p !== null && p.perspective.length > 0,
+					);
+
+					const sensitivityResults = await Promise.all(
+						validPerspectives.map(async (p) => {
+							const category = (await ctx.runAction(
+								internal.bamlActions.checkSensitivity,
+								{ crossPeerContext: p.perspective },
+							)) as string;
+							return { ...p, category };
+						}),
+					);
+
+					crossPeerPerspectives = sensitivityResults
+						.filter((p) => p.category === "SAFE")
+						.map(({ label, perspective }) => ({ label, perspective }));
+
+					console.log(
+						`[Chat] Cross-peer: ${validPerspectives.length} valid, ${crossPeerPerspectives.length} safe`,
+					);
+				}
+			} catch (error) {
+				console.warn(
+					`[Chat] Cross-peer lookup failed: ${error instanceof Error ? error.message : String(error)}`,
+				);
+			}
+		}
+
 		const interpretation = (await ctx.runAction(
 			internal.bamlActions.interpretChatMessage,
 			{
@@ -190,6 +264,7 @@ export const sendMessage = action({
 						content: m.content,
 						createdAt: m.createdAt,
 					})),
+					crossPeerPerspectives,
 				},
 			},
 		)) as ChatInterpretation;

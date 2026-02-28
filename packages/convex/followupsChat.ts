@@ -168,6 +168,83 @@ export const sendFollowupMessage = action({
 		}
 		console.log(`[FollowupChat] Search results: ${searchResults.length} results`);
 
+		// Cross-peer queries: fetch perspectives from connected users with shared memory
+		let crossPeerPerspectives: Array<{ label: string; perspective: string }> = [];
+		if (honchoKey) {
+			try {
+				const connections = (await ctx.runQuery(
+					internal.connections.getActiveSharedMemoryConnections,
+					{ userId: user._id },
+				)) as Array<{ _id: Id<"connections">; connectedUserId: Id<"users">; label: string | null }>;
+
+				const cappedConnections = connections.slice(0, 3);
+				if (cappedConnections.length > 0) {
+					console.log(`[FollowupChat] Querying ${cappedConnections.length} cross-peer connections`);
+
+					const honchoClient = new Honcho({
+						apiKey: honchoKey,
+						environment: "production",
+						workspaceId: "with-context",
+					});
+
+					const rawPerspectives = await Promise.all(
+						cappedConnections.map(async (conn) => {
+							try {
+								const connectedPeer = await honchoClient.peer(
+									`${conn.connectedUserId}-diatribe`,
+								);
+								const rep = await connectedPeer.representation({
+									target: `${user._id}-diatribe`,
+									searchQuery: followup.topic,
+									searchTopK: 5,
+									maxConclusions: 10,
+								});
+								const perspective = typeof rep.representation === "string" ? rep.representation : "";
+								return {
+									label: conn.label ?? "Connected user",
+									perspective,
+								};
+							} catch (error) {
+								console.warn(
+									`[FollowupChat] Cross-peer query failed for ${conn.connectedUserId}: ${error instanceof Error ? error.message : String(error)}`,
+								);
+								return null;
+							}
+						}),
+					);
+
+					// Filter out failed queries and empty perspectives
+					const validPerspectives = rawPerspectives.filter(
+						(p): p is { label: string; perspective: string } =>
+							p !== null && p.perspective.length > 0,
+					);
+
+					// Run sensitivity gate on each perspective (second protection layer)
+					const sensitivityResults = await Promise.all(
+						validPerspectives.map(async (p) => {
+							const category = (await ctx.runAction(
+								internal.bamlActions.checkSensitivity,
+								{ crossPeerContext: p.perspective },
+							)) as string;
+							return { ...p, category };
+						}),
+					);
+
+					crossPeerPerspectives = sensitivityResults
+						.filter((p) => p.category === "SAFE")
+						.map(({ label, perspective }) => ({ label, perspective }));
+
+					console.log(
+						`[FollowupChat] Cross-peer (representation): ${validPerspectives.length} valid, ${crossPeerPerspectives.length} safe`,
+					);
+				}
+			} catch (error) {
+				console.warn(
+					`[FollowupChat] Cross-peer lookup failed: ${error instanceof Error ? error.message : String(error)}`,
+				);
+			}
+		}
+
 		const interpretation = (await ctx.runAction(
 			internal.bamlActions.interpretFollowupChat,
 			{
@@ -187,6 +264,7 @@ export const sendFollowupMessage = action({
 						deductiveFacts: memoryContext.deductiveFacts,
 					} : null,
 					searchResults: searchResults,
+					crossPeerPerspectives,
 				},
 			},
 		)) as FollowupChatResponse;

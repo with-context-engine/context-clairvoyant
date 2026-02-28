@@ -174,6 +174,11 @@ export namespace partial_types {
       peerCard: string[]
       recentMessages: string[]
       sessionSummaries: string[]
+      crossPeerPerspectives: CrossPeerPerspective[]
+    }
+    export interface CrossPeerPerspective {
+      label?: string | null
+      perspective?: string | null
     }
     export interface MemoryCore {
       userName?: string | null

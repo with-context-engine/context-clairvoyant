@@ -1,6 +1,6 @@
 # Shared Memory Between Users — Implementation Plan
 
-## Status: Architecture Finalized / Ready for Phase 0
+## Status: Phases 0-4 Complete / Ready for Phase 5 (Passive Sharing & Smart Detection)
 
 ## Problem
 
@@ -221,15 +221,16 @@ When a connection is revoked (either side):
 
 ## Implementation Phases
 
-### Phase 0: SDK Evaluation (prerequisite)
+### Phase 0: SDK Evaluation ✅ COMPLETE
 
 **Goal**: Confirm `peer.chat(query, { target })` is available and plan upgrade if needed.
 
-1. Check current `@honcho-ai/sdk` version in `package.json` against latest v3.x
-2. Test if `peer.chat(query, { target })` (dialectic API) works with our version
-3. If upgrade needed, plan a separate PR for SDK migration
-4. Verify backward compatibility with existing `getContext()` / `addMessages()` patterns
-5. **Decision gate**: If dialectic API is unavailable, we need an alternative approach (manual context merging via `getContext()` on both peers)
+**Result**: Our `@honcho-ai/sdk@1.6.0` already supports the full v3 dialectic API including `peer.chat(query, { target })` for cross-peer queries. No SDK upgrade needed.
+
+- `peer.chat(query, { target?: string | Peer, session?: string | Session, reasoningLevel?: string })` — confirmed available
+- `peer.context({ target })` — cross-peer context retrieval confirmed
+- `peer.representation({ target })` — cross-peer representation confirmed
+- Existing `session.getContext()` / `session.addMessages()` patterns remain compatible
 
 ### Phase 1: Connections (Convex only, no Honcho changes)
 
@@ -272,14 +273,19 @@ When a connection is revoked (either side):
 3. Update `InterpretEmailReply` prompt for attributed cross-peer weaving
 4. Test: Ajay replies to an email note about a topic Sarah has discussed, her perspective enriches the reply
 
-### Phase 4: Advanced Cross-Peer Features (future)
+### Phase 4: Advanced Cross-Peer Features ✅ COMPLETE
 
 **Goal**: Deeper cross-peer reasoning and additional surfaces.
 
-1. Use `session.working_rep(peerA, peerB)` for pre-computed cross-peer representations (faster than per-query `peer.chat`)
-2. Extend to real-time glasses responses (MemoryRecall handler) for "What does Sarah think about X?" queries
-3. Add cross-peer context to web chat (`chat.ts` `sendMessage`) for daily recap conversations
-4. Group connections (3+ users, e.g., a team sharing context)
+**Result**: All four sub-tasks implemented.
+
+1. **Optimized with `peer.representation()`**: Replaced `peer.chat()` with `peer.representation({ target, searchQuery, searchTopK: 5, maxConclusions: 10 })` in `followupsChat.ts` and `emailReply.ts`. The `representation()` method returns pre-computed representations without agentic reasoning, which is faster since BAML handles interpretation. Applied across all integration surfaces.
+
+2. **Extended MemoryRecall for glasses**: Added cross-peer support to `apps/application/src/handlers/memory.ts`. Uses public query `connections.getActiveSharedMemoryConnectionsByMentraId` (since the app layer can't access internal queries), queries up to 3 connected peers via `peer.representation()`, gates through `b.CheckSensitivity()` directly, and passes `crossPeerPerspectives` to `b.SynthesizeMemory()`. Updated `baml_src/synthesis.baml` with cross-peer context in `MemoryContext` class and prompt.
+
+3. **Added cross-peer to web chat**: Extended `packages/convex/chat.ts` `sendMessage` with the same cross-peer query pattern (connections → representation → sensitivity gate → BAML). Updated `baml_src/chat.baml` `ChatContext` class with `crossPeerPerspectives` field and prompt section. Updated `bamlActions.ts` `interpretChatMessage` args.
+
+4. **Group connections**: Added `connectionGroups` and `connectionGroupMembers` tables to schema. Added mutations (`createConnectionGroup`, `acceptGroupInvite`, `leaveConnectionGroup`, `toggleGroupSharedMemory`, `updateGroupMemberLabel`), public query (`getGroupsForUser`), and internal query (`getActiveSharedMemoryGroupMembers`) to `connections.ts`.
 
 ### Phase 5: Passive Sharing & Smart Detection (future)
 

@@ -248,6 +248,13 @@ export interface MemoryContext {
   peerCard: string[]
   recentMessages: string[]
   sessionSummaries: string[]
+  crossPeerPerspectives: CrossPeerPerspective[]
+  
+}
+
+export interface CrossPeerPerspective {
+  label: string
+  perspective: string
   
 }
 
