@@ -1,5 +1,10 @@
 // Common classes shared across BAML functions
 
+class CrossPeerPerspective {
+  label string @description("Display name of the connected user")
+  perspective string @description("Perspective or relevant facts from the connected user's memory")
+}
+
 class MemoryCore {
   userName string? @description("User's name if known")
   userFacts string[] @description("Relevant biographical facts about the user")

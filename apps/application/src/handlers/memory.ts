@@ -1,11 +1,13 @@
 import { b } from "@clairvoyant/baml-client";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
+import { Honcho } from "@honcho-ai/sdk";
 import type { Peer, Session } from "@honcho-ai/sdk";
 import type { AppSession } from "@mentra/sdk";
 import { updateConversationResponse } from "../core/conversationLogger";
 import { checkUserIsPro, convexClient } from "../core/convex";
 import type { DisplayQueueManager } from "../core/displayQueue";
+import { env } from "../core/env";
 
 const memoryRunCallIds = new WeakMap<AppSession, number>();
 
@@ -198,6 +200,82 @@ export async function MemoryRecall(
 				peerRep = { explicit: [], deductive: [] };
 			}
 
+			// Cross-peer queries: fetch perspectives from connected users
+			let crossPeerPerspectives: Array<{ label: string; perspective: string }> = [];
+			try {
+				const connections = await convexClient.query(
+					api.connections.getActiveSharedMemoryConnectionsByMentraId,
+					{ mentraUserId },
+				);
+
+				const cappedConnections = connections.slice(0, 3);
+				if (cappedConnections.length > 0) {
+					session.logger.info(
+						`[startMemoryRecallFlow] Querying ${cappedConnections.length} cross-peer connections`,
+					);
+
+					const honchoClient = new Honcho({
+						apiKey: env.HONCHO_API_KEY,
+						environment: "production",
+						workspaceId: "with-context",
+					});
+
+					const rawPerspectives = await Promise.all(
+						cappedConnections.map(async (conn) => {
+							try {
+								const connectedPeer = await honchoClient.peer(
+									`${conn.connectedUserId}-diatribe`,
+								);
+								const rep = await connectedPeer.representation({
+									target: `${userId}-diatribe`,
+									searchQuery: textQuery,
+									searchTopK: 5,
+									maxConclusions: 10,
+								});
+								return {
+									label: conn.label ?? "Connected user",
+									perspective: typeof rep.representation === "string" ? rep.representation : "",
+								};
+							} catch (error) {
+								session.logger.warn(
+									`[startMemoryRecallFlow] Cross-peer query failed for ${conn.connectedUserId}: ${error}`,
+								);
+								return null;
+							}
+						}),
+					);
+
+					const validPerspectives = rawPerspectives.filter(
+						(p): p is { label: string; perspective: string } =>
+							p !== null && p.perspective.length > 0,
+					);
+
+					// Sensitivity gate
+					const sensitivityResults = await Promise.all(
+						validPerspectives.map(async (p) => {
+							try {
+								const category = await b.CheckSensitivity(p.perspective);
+								return { ...p, category };
+							} catch {
+								return { ...p, category: "SENSITIVE" as const };
+							}
+						}),
+					);
+
+					crossPeerPerspectives = sensitivityResults
+						.filter((p) => p.category === "SAFE")
+						.map(({ label, perspective }) => ({ label, perspective }));
+
+					session.logger.info(
+						`[startMemoryRecallFlow] Cross-peer: ${validPerspectives.length} valid, ${crossPeerPerspectives.length} safe`,
+					);
+				}
+			} catch (error) {
+				session.logger.warn(
+					`[startMemoryRecallFlow] Cross-peer lookup failed: ${error}`,
+				);
+			}
+
 			// Build memory context
 			const memoryContext = {
 				explicitFacts: peerRep.explicit.map((e) => e.content),
@@ -207,6 +285,7 @@ export async function MemoryRecall(
 				peerCard: contextData.peerCard,
 				recentMessages: contextData.messages.slice(-5).map((m) => m.content),
 				sessionSummaries,
+				crossPeerPerspectives,
 			};
 
 			// Synthesize response with BAML (replaces .chat() call)

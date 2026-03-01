@@ -45,7 +45,7 @@ export default class TypeBuilder {
     
     LocationLite: ClassViewer<'LocationLite', "lat" | "lon" | "timezone">;
     
-    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages" | "sessionSummaries">;
+    MemoryContext: ClassViewer<'MemoryContext', "explicitFacts" | "deductiveFacts" | "peerCard" | "recentMessages" | "sessionSummaries" | "crossPeerPerspectives">;
     
     MemoryCore: ClassViewer<'MemoryCore', "userName" | "userFacts" | "deductiveFacts">;
     
@@ -127,7 +127,7 @@ export default class TypeBuilder {
         ]);
         
         this.MemoryContext = this.tb.classViewer("MemoryContext", [
-          "explicitFacts","deductiveFacts","peerCard","recentMessages","sessionSummaries",
+          "explicitFacts","deductiveFacts","peerCard","recentMessages","sessionSummaries","crossPeerPerspectives",
         ]);
         
         this.MemoryCore = this.tb.classViewer("MemoryCore", [

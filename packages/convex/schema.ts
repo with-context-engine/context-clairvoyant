@@ -19,7 +19,9 @@ export default defineSchema({
 				state: v.string(),
 			}),
 		),
-	}).index("by_mentra_id", ["mentraUserId"]),
+	})
+		.index("by_mentra_id", ["mentraUserId"])
+		.index("by_email", ["email"]),
 	preferences: defineTable({
 		userId: v.id("users"),
 		weatherUnit: v.string(),
@@ -160,4 +162,42 @@ export default defineSchema({
 		.index("by_user", ["userId"])
 		.index("by_session", ["sessionId"])
 		.index("by_route", ["route"]),
+	connections: defineTable({
+		requesterId: v.id("users"),
+		accepterId: v.id("users"),
+		status: v.union(
+			v.literal("pending"),
+			v.literal("active"),
+			v.literal("revoked"),
+		),
+		sharedMemoryEnabled: v.boolean(),
+	})
+		.index("by_requester", ["requesterId"])
+		.index("by_accepter", ["accepterId"])
+		.index("by_pair", ["requesterId", "accepterId"]),
+	connectionLabels: defineTable({
+		connectionId: v.id("connections"),
+		userId: v.id("users"),
+		label: v.string(),
+	})
+		.index("by_connection", ["connectionId"])
+		.index("by_user", ["userId"]),
+	connectionGroups: defineTable({
+		name: v.string(),
+		creatorId: v.id("users"),
+		sharedMemoryEnabled: v.boolean(),
+	}).index("by_creator", ["creatorId"]),
+	connectionGroupMembers: defineTable({
+		groupId: v.id("connectionGroups"),
+		userId: v.id("users"),
+		label: v.optional(v.string()),
+		status: v.union(
+			v.literal("pending"),
+			v.literal("active"),
+			v.literal("removed"),
+		),
+	})
+		.index("by_group", ["groupId"])
+		.index("by_user", ["userId"])
+		.index("by_group_user", ["groupId", "userId"]),
 });

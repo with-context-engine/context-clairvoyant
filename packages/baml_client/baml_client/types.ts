@@ -64,6 +64,11 @@ export enum Router {
   PASSTHROUGH = "PASSTHROUGH",
 }
 
+export enum SensitivityCategory {
+  SAFE = "SAFE",
+  SENSITIVE = "SENSITIVE",
+}
+
 export interface AlertLite {
   sender_name: string
   event: string
@@ -86,6 +91,7 @@ export interface ChatContext {
   userFacts: string[]
   deductiveFacts: string[]
   conversationHistory: ChatConversationMessage[]
+  crossPeerPerspectives: CrossPeerPerspective[]
   
 }
 
@@ -116,6 +122,12 @@ export interface ChatSessionSummary {
 export interface ConversationMessage {
   direction: string
   content: string
+  
+}
+
+export interface CrossPeerPerspective {
+  label: string
+  perspective: string
   
 }
 
@@ -154,6 +166,7 @@ export interface EmailContext {
   sessionTopics: string[]
   peerCard: string[]
   conversationHistory: ConversationMessage[]
+  crossPeerPerspectives: CrossPeerPerspective[]
   
 }
 
@@ -179,6 +192,7 @@ export interface FollowupChatContext {
   conversationHistory: FollowupConversationMessage[]
   memory?: FollowupMemoryContext | null
   searchResults: FollowupSearchResult[]
+  crossPeerPerspectives: CrossPeerPerspective[]
   
 }
 
@@ -248,6 +262,7 @@ export interface MemoryContext {
   peerCard: string[]
   recentMessages: string[]
   sessionSummaries: string[]
+  crossPeerPerspectives: CrossPeerPerspective[]
   
 }
 

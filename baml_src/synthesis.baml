@@ -4,6 +4,7 @@ class MemoryContext {
   peerCard string[]
   recentMessages string[]
   sessionSummaries string[] @description("Summaries of past sessions, e.g. 'Dec 20: discussed weather and navigation'")
+  crossPeerPerspectives CrossPeerPerspective[] @description("Perspectives from connected users with shared memory enabled")
 }
 
 class MemorySynthesisLines {
@@ -46,6 +47,14 @@ PAST SESSION SUMMARIES:
 - {{ summary }}
 {% endfor %}
 
+{% if context.crossPeerPerspectives | length > 0 %}
+CONNECTED USER PERSPECTIVES:
+{% for p in context.crossPeerPerspectives %}
+From "{{ p.label }}":
+{{ p.perspective }}
+{% endfor %}
+
+{% endif %}
 QUERY: {{ query }}
 
 Instructions:
@@ -56,6 +65,7 @@ Instructions:
 - If you don't have enough information to answer, say so briefly
 - Focus on what's most relevant to the query
 - Ignore any alphanumeric IDs or hashes in the facts (e.g., "j979r44m..." prefixes) — extract only the meaningful content
+- If connected users have relevant perspectives, naturally mention them (e.g. "Sarah thinks...", "Alex mentioned...")
 "#
 }
 
@@ -78,6 +88,7 @@ test test_memory_synthesis_name {
         "What is my name?"
       ]
       sessionSummaries []
+      crossPeerPerspectives []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -107,6 +118,7 @@ test test_memory_synthesis_children {
         "Tell me about my daughters"
       ]
       sessionSummaries []
+      crossPeerPerspectives []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -130,6 +142,7 @@ test test_memory_synthesis_no_info {
         "What car do I drive?"
       ]
       sessionSummaries []
+      crossPeerPerspectives []
     }
   }
   @@assert({{ this.lines|length <= 3 }})
@@ -156,6 +169,7 @@ test test_memory_synthesis_age {
         "How old am I?"
       ]
       sessionSummaries []
+      crossPeerPerspectives []
     }
   }
   @@assert({{ this.lines|length <= 3 }})

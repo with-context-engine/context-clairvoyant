@@ -10,6 +10,7 @@ import type {
 	EmailInterpretation,
 	FollowupChatContext,
 	FollowupChatResponse,
+	SensitivityCategory,
 	SessionInput,
 } from "../baml_client/baml_client/types";
 import { internalAction } from "./_generated/server";
@@ -65,6 +66,12 @@ export const interpretEmailReply = internalAction({
 					content: v.string(),
 				}),
 			),
+			crossPeerPerspectives: v.array(
+				v.object({
+					label: v.string(),
+					perspective: v.string(),
+				}),
+			),
 		}),
 	},
 	handler: async (
@@ -79,6 +86,10 @@ export const interpretEmailReply = internalAction({
 			conversationHistory: context.conversationHistory.map((m) => ({
 				direction: m.direction,
 				content: m.content,
+			})),
+			crossPeerPerspectives: context.crossPeerPerspectives.map((p) => ({
+				label: p.label,
+				perspective: p.perspective,
 			})),
 		};
 
@@ -114,6 +125,12 @@ export const interpretChatMessage = internalAction({
 					createdAt: v.string(),
 				}),
 			),
+			crossPeerPerspectives: v.array(
+				v.object({
+					label: v.string(),
+					perspective: v.string(),
+				}),
+			),
 		}),
 	},
 	handler: async (_, { userMessage, context }): Promise<ChatInterpretation> => {
@@ -133,9 +150,23 @@ export const interpretChatMessage = internalAction({
 				content: m.content,
 				createdAt: m.createdAt,
 			})),
+			crossPeerPerspectives: context.crossPeerPerspectives.map((p) => ({
+				label: p.label,
+				perspective: p.perspective,
+			})),
 		};
 
 		const result = await b.InterpretChatMessage(userMessage, chatContext);
+		return result;
+	},
+});
+
+export const checkSensitivity = internalAction({
+	args: {
+		crossPeerContext: v.string(),
+	},
+	handler: async (_, { crossPeerContext }): Promise<SensitivityCategory> => {
+		const result = await b.CheckSensitivity(crossPeerContext);
 		return result;
 	},
 });
@@ -169,6 +200,12 @@ export const interpretFollowupChat = internalAction({
 					url: v.string(),
 				}),
 			),
+			crossPeerPerspectives: v.array(
+				v.object({
+					label: v.string(),
+					perspective: v.string(),
+				}),
+			),
 		}),
 	},
 	handler: async (_, { userMessage, context }): Promise<FollowupChatResponse> => {
@@ -190,6 +227,10 @@ export const interpretFollowupChat = internalAction({
 				title: r.title,
 				content: r.content,
 				url: r.url,
+			})),
+			crossPeerPerspectives: context.crossPeerPerspectives.map((p) => ({
+				label: p.label,
+				perspective: p.perspective,
 			})),
 		};
 

@@ -29,6 +29,7 @@ class ChatContext {
   userFacts string[] @description("Known facts about the user")
   deductiveFacts string[] @description("Inferred facts about the user")
   conversationHistory ChatConversationMessage[] @description("Previous messages in this chat")
+  crossPeerPerspectives CrossPeerPerspective[] @description("Perspectives from connected users with shared memory enabled")
 }
 
 function InterpretChatMessage(
@@ -50,6 +51,7 @@ Style:
 - Reference session context naturally
 - Keep responses brief - this is chat, not an essay
 - Don't be overly enthusiastic or use excessive exclamation marks
+- If connected user perspectives are available, weave them naturally with attribution (e.g. "Your wife mentioned...", "Alex has been looking into...")
 
 DATE: {{ context.date }}
 
@@ -73,6 +75,14 @@ USER PROFILE:
 {% endfor %}
 {% for fact in context.deductiveFacts %}
 - {{ fact }}
+{% endfor %}
+
+{% endif %}
+{% if context.crossPeerPerspectives | length > 0 %}
+CONNECTED USER PERSPECTIVES:
+{% for p in context.crossPeerPerspectives %}
+From "{{ p.label }}":
+{{ p.perspective }}
 {% endfor %}
 
 {% endif %}
@@ -114,6 +124,7 @@ test test_chat_simple_greeting {
         "User is interested in AI technologies"
       ]
       conversationHistory []
+      crossPeerPerspectives []
     }
   }
 }
@@ -142,6 +153,7 @@ test test_chat_with_history {
           createdAt "2024-12-24T16:00:00Z"
         }
       ]
+      crossPeerPerspectives []
     }
   }
 }
@@ -157,6 +169,7 @@ test test_chat_no_sessions {
       userFacts []
       deductiveFacts []
       conversationHistory []
+      crossPeerPerspectives []
     }
   }
 }
