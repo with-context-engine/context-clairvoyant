@@ -200,15 +200,14 @@ export const processEmailReply = internalAction({
 								const connectedPeer = await crossPeerClient.peer(
 									`${conn.connectedUserId}-diatribe`,
 								);
-								const rep = await connectedPeer.representation({
-									target: `${user._id}-diatribe`,
+								const rep = await connectedPeer.workingRep(undefined, `${user._id}-diatribe`, {
 									searchQuery: emailNote.subject,
 									searchTopK: 5,
-									maxConclusions: 10,
+									maxObservations: 10,
 								});
 								return {
 									label: conn.label ?? "Connected user",
-									perspective: typeof rep.representation === "string" ? rep.representation : "",
+									perspective: rep.isEmpty() ? "" : rep.toStringNoTimestamps(),
 								};
 							} catch (error) {
 								console.warn(

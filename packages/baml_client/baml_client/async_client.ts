@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector } from "@boundaryml/
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FollowupChatContext, FollowupChatResponse, FollowupConversationMessage, FollowupMemoryContext, FollowupSearchResult, FollowupTopic, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CrossPeerPerspective, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FollowupChatContext, FollowupChatResponse, FollowupConversationMessage, FollowupMemoryContext, FollowupSearchResult, FollowupTopic, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SensitivityCategory, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -235,6 +235,54 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             __options__.watchers,
             )
             return __raw__.parsed(false) as types.QueryResult
+            } catch (error) {
+            throw toBamlError(error);
+            }
+            }
+            
+        async CheckSensitivity(
+        crossPeerContext: string,
+        __baml_options__?: BamlCallOptions<never>
+        ): Promise<types.SensitivityCategory> {
+          try {
+          const __options__ = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+          const __signal__ = __options__.signal;
+
+          if (__signal__?.aborted) {
+          throw new BamlAbortError('Operation was aborted', __signal__.reason);
+          }
+
+          // Check if onTick is provided - route through streaming if so
+          if (__options__.onTick) {
+          const __stream__ = this.stream.CheckSensitivity(
+          crossPeerContext,
+          __baml_options__
+          );
+
+          return await __stream__.getFinalResponse();
+          }
+
+          const __collector__ = __options__.collector ? (Array.isArray(__options__.collector) ? __options__.collector :
+          [__options__.collector]) : [];
+          const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+          const __env__: Record<string, string> = Object.fromEntries(
+            Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+            );
+            const __raw__ = await this.runtime.callFunction(
+            "CheckSensitivity",
+            {
+            "crossPeerContext": crossPeerContext
+            },
+            this.ctxManager.cloneContext(),
+            __options__.tb?.__tb(),
+            __options__.clientRegistry,
+            __collector__,
+            __options__.tags || {},
+            __env__,
+            __signal__,
+            __options__.watchers,
+            )
+            return __raw__.parsed(false) as types.SensitivityCategory
             } catch (error) {
             throw toBamlError(error);
             }
@@ -1068,6 +1116,72 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   __raw__,
                   (a): partial_types.QueryResult => a,
                   (a): types.QueryResult => a,
+                  this.ctxManager.cloneContext(),
+                  __options__.signal,
+                  )
+                  } catch (error) {
+                  throw toBamlError(error);
+                  }
+                  }
+                  
+            CheckSensitivity(
+            crossPeerContext: string,
+            __baml_options__?: BamlCallOptions<never>
+            ): BamlStream<types.SensitivityCategory, types.SensitivityCategory>
+              {
+              try {
+              const __options__ = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+              const __signal__ = __options__.signal;
+
+              if (__signal__?.aborted) {
+              throw new BamlAbortError('Operation was aborted', __signal__.reason);
+              }
+
+              let __collector__ = __options__.collector ? (Array.isArray(__options__.collector) ? __options__.collector :
+              [__options__.collector]) : [];
+
+              let __onTickWrapper__: (() => void) | undefined;
+
+              // Create collector and wrap onTick if provided
+              if (__options__.onTick) {
+              const __tickCollector__ = new Collector("on-tick-collector");
+              __collector__ = [...__collector__, __tickCollector__];
+
+              __onTickWrapper__ = () => {
+              const __log__ = __tickCollector__.last;
+              if (__log__) {
+              try {
+              __options__.onTick!("Unknown", __log__);
+              } catch (error) {
+              console.error("Error in onTick callback for CheckSensitivity", error);
+              }
+              }
+              };
+              }
+
+              const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+              const __env__: Record<string, string> = Object.fromEntries(
+                Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+                );
+                const __raw__ = this.runtime.streamFunction(
+                "CheckSensitivity",
+                {
+                "crossPeerContext": crossPeerContext
+                },
+                undefined,
+                this.ctxManager.cloneContext(),
+                __options__.tb?.__tb(),
+                __options__.clientRegistry,
+                __collector__,
+                __options__.tags || {},
+                __env__,
+                __signal__,
+                __onTickWrapper__,
+                )
+                return new BamlStream<types.SensitivityCategory, types.SensitivityCategory>(
+                  __raw__,
+                  (a): types.SensitivityCategory => a,
+                  (a): types.SensitivityCategory => a,
                   this.ctxManager.cloneContext(),
                   __options__.signal,
                   )

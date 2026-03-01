@@ -22,7 +22,7 @@ import type { BamlRuntime, FunctionResult, BamlCtxManager, Image, Audio, Pdf, Vi
 import { toBamlError, BamlAbortError, type HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type * as types from "./types"
-import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FollowupChatContext, FollowupChatResponse, FollowupConversationMessage, FollowupMemoryContext, FollowupSearchResult, FollowupTopic, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
+import type {AlertLite, AnswerLines, ChatContext, ChatConversationMessage, ChatInterpretation, ChatSessionSummary, ConversationMessage, CrossPeerPerspective, CurrentLite, DailyForecastItem, DailySummaryResult, EmailContext, EmailInterpretation, EnhancedQuery, FollowupChatContext, FollowupChatResponse, FollowupConversationMessage, FollowupMemoryContext, FollowupSearchResult, FollowupTopic, FormattedWeather, HintCategory, HintEligibility, HintResult, LocationLite, MemoryContext, MemoryCore, MemorySynthesisLines, NewsItem, NoteContent, PlaceLines, PlaceSuggestion, QueryResult, QuestionAnalysisResponse, Router, RoutingBehavior, SensitivityCategory, SessionInput, SessionSummaryOutput, TempBlock, WeatherConditionLite, WeatherLines} from "./types"
 import type TypeBuilder from "./type_builder"
 import { HttpRequest, HttpStreamRequest } from "./sync_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -217,6 +217,48 @@ export class BamlSyncClient {
         __options__.watchers,
       )
       return __raw__.parsed(false) as types.QueryResult
+    } catch (error: any) {
+      throw toBamlError(error);
+    }
+  }
+  
+  CheckSensitivity(
+      crossPeerContext: string,
+      __baml_options__?: BamlCallOptions<never>
+  ): types.SensitivityCategory {
+    try {
+      const __options__ = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+      const __signal__ = __options__.signal;
+
+      if (__signal__?.aborted) {
+        throw new BamlAbortError('Operation was aborted', __signal__.reason);
+      }
+
+      // Check if onTick is provided and reject for sync operations
+      if (__options__.onTick) {
+        throw new Error("onTick is not supported for synchronous functions. Please use the async client instead.");
+      }
+
+      const __collector__ = __options__.collector ? (Array.isArray(__options__.collector) ? __options__.collector : [__options__.collector]) : [];
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
+      );
+      const __raw__ = this.runtime.callFunctionSync(
+        "CheckSensitivity",
+        {
+          "crossPeerContext": crossPeerContext
+        },
+        this.ctxManager.cloneContext(),
+        __options__.tb?.__tb(),
+        __options__.clientRegistry,
+        __collector__,
+        __options__.tags || {},
+        __env__,
+        __signal__,
+        __options__.watchers,
+      )
+      return __raw__.parsed(false) as types.SensitivityCategory
     } catch (error: any) {
       throw toBamlError(error);
     }

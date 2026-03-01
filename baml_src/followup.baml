@@ -16,6 +16,7 @@ class FollowupChatContext {
     conversationHistory FollowupConversationMessage[] @description("Previous chat messages about this follow-up")
     memory FollowupMemoryContext? @description("User memory context from Honcho")
     searchResults FollowupSearchResult[] @description("Web search results relevant to the topic")
+    crossPeerPerspectives CrossPeerPerspective[] @description("Perspectives from connected users with shared memory enabled")
 }
 
 class FollowupChatResponse {
@@ -137,6 +138,14 @@ CONVERSATION HISTORY:
 {% endfor %}
 
 {% endif %}
+{% if context.crossPeerPerspectives | length > 0 %}
+CONNECTED USER PERSPECTIVES:
+{% for p in context.crossPeerPerspectives %}
+From "{{ p.label }}":
+{{ p.perspective }}
+{% endfor %}
+
+{% endif %}
 USER'S MESSAGE:
 {{ userMessage }}
 
@@ -158,6 +167,7 @@ test test_followup_chat_simple {
             ]
             conversationHistory []
             searchResults []
+            crossPeerPerspectives []
         }
     }
 }
@@ -187,6 +197,7 @@ test test_followup_chat_with_history {
                 }
             ]
             searchResults []
+            crossPeerPerspectives []
         }
     }
 }

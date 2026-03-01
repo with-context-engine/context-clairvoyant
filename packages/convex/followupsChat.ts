@@ -193,13 +193,12 @@ export const sendFollowupMessage = action({
 								const connectedPeer = await honchoClient.peer(
 									`${conn.connectedUserId}-diatribe`,
 								);
-								const rep = await connectedPeer.representation({
-									target: `${user._id}-diatribe`,
+								const rep = await connectedPeer.workingRep(undefined, `${user._id}-diatribe`, {
 									searchQuery: followup.topic,
 									searchTopK: 5,
-									maxConclusions: 10,
+									maxObservations: 10,
 								});
-								const perspective = typeof rep.representation === "string" ? rep.representation : "";
+								const perspective = rep.isEmpty() ? "" : rep.toStringNoTimestamps();
 								return {
 									label: conn.label ?? "Connected user",
 									perspective,

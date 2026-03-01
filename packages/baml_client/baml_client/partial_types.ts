@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  AlertLite,  AnswerLines,  ChatContext,  ChatConversationMessage,  ChatInterpretation,  ChatSessionSummary,  ConversationMessage,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FollowupChatContext,  FollowupChatResponse,  FollowupConversationMessage,  FollowupMemoryContext,  FollowupSearchResult,  FollowupTopic,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
+import type {  AlertLite,  AnswerLines,  ChatContext,  ChatConversationMessage,  ChatInterpretation,  ChatSessionSummary,  ConversationMessage,  CrossPeerPerspective,  CurrentLite,  DailyForecastItem,  DailySummaryResult,  EmailContext,  EmailInterpretation,  EnhancedQuery,  FollowupChatContext,  FollowupChatResponse,  FollowupConversationMessage,  FollowupMemoryContext,  FollowupSearchResult,  FollowupTopic,  FormattedWeather,  HintCategory,  HintEligibility,  HintResult,  LocationLite,  MemoryContext,  MemoryCore,  MemorySynthesisLines,  NewsItem,  NoteContent,  PlaceLines,  PlaceSuggestion,  QueryResult,  QuestionAnalysisResponse,  Router,  RoutingBehavior,  SensitivityCategory,  SessionInput,  SessionSummaryOutput,  TempBlock,  WeatherConditionLite,  WeatherLines } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -54,6 +54,7 @@ export namespace partial_types {
       userFacts: string[]
       deductiveFacts: string[]
       conversationHistory: ChatConversationMessage[]
+      crossPeerPerspectives: CrossPeerPerspective[]
     }
     export interface ChatConversationMessage {
       role?: string | null
@@ -76,6 +77,10 @@ export namespace partial_types {
     export interface ConversationMessage {
       direction?: string | null
       content?: string | null
+    }
+    export interface CrossPeerPerspective {
+      label?: string | null
+      perspective?: string | null
     }
     export interface CurrentLite {
       temperature?: number | null
@@ -106,6 +111,7 @@ export namespace partial_types {
       sessionTopics: string[]
       peerCard: string[]
       conversationHistory: ConversationMessage[]
+      crossPeerPerspectives: CrossPeerPerspective[]
     }
     export interface EmailInterpretation {
       response?: string | null
@@ -125,6 +131,7 @@ export namespace partial_types {
       conversationHistory: FollowupConversationMessage[]
       memory?: FollowupMemoryContext | null
       searchResults: FollowupSearchResult[]
+      crossPeerPerspectives: CrossPeerPerspective[]
     }
     export interface FollowupChatResponse {
       response?: string | null
@@ -175,10 +182,6 @@ export namespace partial_types {
       recentMessages: string[]
       sessionSummaries: string[]
       crossPeerPerspectives: CrossPeerPerspective[]
-    }
-    export interface CrossPeerPerspective {
-      label?: string | null
-      perspective?: string | null
     }
     export interface MemoryCore {
       userName?: string | null

@@ -20,6 +20,7 @@ class EmailContext {
   sessionTopics string[] @description("Topics from the linked session")
   peerCard string[] @description("User profile facts from Honcho")
   conversationHistory ConversationMessage[] @description("Previous messages in this email thread")
+  crossPeerPerspectives CrossPeerPerspective[] @description("Perspectives from connected users with shared memory enabled")
 }
 
 function InterpretEmailReply(
@@ -69,6 +70,14 @@ CONVERSATION HISTORY:
 {% endfor %}
 
 {% endif %}
+{% if context.crossPeerPerspectives | length > 0 %}
+CONNECTED USER PERSPECTIVES:
+{% for p in context.crossPeerPerspectives %}
+From "{{ p.label }}":
+{{ p.perspective }}
+{% endfor %}
+
+{% endif %}
 USER'S NEW REPLY:
 {{ userMessage }}
 
@@ -88,6 +97,7 @@ test test_email_reply_simple {
       conversationHistory [
         { direction "outbound", content "Here are your session notes from today..." }
       ]
+      crossPeerPerspectives []
     }
   }
 }
@@ -104,6 +114,7 @@ test test_email_reply_with_new_info {
       conversationHistory [
         { direction "outbound", content "Here are your session notes from today..." }
       ]
+      crossPeerPerspectives []
     }
   }
 }
@@ -118,6 +129,7 @@ test test_email_reply_no_session {
       sessionTopics []
       peerCard []
       conversationHistory []
+      crossPeerPerspectives []
     }
   }
 }

@@ -31,7 +31,7 @@ export default class TypeBuilder {
     
     AnswerLines: ClassViewer<'AnswerLines', "lines">;
     
-    ChatContext: ClassViewer<'ChatContext', "date" | "sessionSummaries" | "userName" | "userFacts" | "deductiveFacts" | "conversationHistory">;
+    ChatContext: ClassViewer<'ChatContext', "date" | "sessionSummaries" | "userName" | "userFacts" | "deductiveFacts" | "conversationHistory" | "crossPeerPerspectives">;
     
     ChatConversationMessage: ClassViewer<'ChatConversationMessage', "role" | "content" | "createdAt">;
     
@@ -41,19 +41,21 @@ export default class TypeBuilder {
     
     ConversationMessage: ClassViewer<'ConversationMessage', "direction" | "content">;
     
+    CrossPeerPerspective: ClassViewer<'CrossPeerPerspective', "label" | "perspective">;
+    
     CurrentLite: ClassViewer<'CurrentLite', "temperature" | "feels_like" | "conditions" | "humidity" | "pressure" | "wind_speed" | "wind_direction" | "visibility" | "uv_index" | "clouds">;
     
     DailyForecastItem: ClassViewer<'DailyForecastItem', "date" | "summary" | "temperature" | "conditions" | "precipitation_probability" | "rain">;
     
     DailySummaryResult: ClassViewer<'DailySummaryResult', "summary">;
     
-    EmailContext: ClassViewer<'EmailContext', "originalSubject" | "sessionSummary" | "sessionTopics" | "peerCard" | "conversationHistory">;
+    EmailContext: ClassViewer<'EmailContext', "originalSubject" | "sessionSummary" | "sessionTopics" | "peerCard" | "conversationHistory" | "crossPeerPerspectives">;
     
     EmailInterpretation: ClassViewer<'EmailInterpretation', "response" | "extractedFacts" | "newTopics" | "shouldUpdateSummary" | "summaryAddition">;
     
     EnhancedQuery: ClassViewer<'EnhancedQuery', "original" | "enhanced">;
     
-    FollowupChatContext: ClassViewer<'FollowupChatContext', "topic" | "summary" | "sourceMessages" | "conversationHistory" | "memory" | "searchResults">;
+    FollowupChatContext: ClassViewer<'FollowupChatContext', "topic" | "summary" | "sourceMessages" | "conversationHistory" | "memory" | "searchResults" | "crossPeerPerspectives">;
     
     FollowupChatResponse: ClassViewer<'FollowupChatResponse', "response" | "extractedFacts">;
     
@@ -108,14 +110,16 @@ export default class TypeBuilder {
     
     Router: EnumViewer<'Router', "WEATHER" | "WEB_SEARCH" | "MAPS" | "KNOWLEDGE" | "MEMORY_CAPTURE" | "MEMORY_RECALL" | "NOTE_THIS" | "FOLLOW_UP" | "PASSTHROUGH">;
     
+    SensitivityCategory: EnumViewer<'SensitivityCategory', "SAFE" | "SENSITIVE">;
+    
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AlertLite","AnswerLines","ChatContext","ChatConversationMessage","ChatInterpretation","ChatSessionSummary","ConversationMessage","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FollowupChatContext","FollowupChatResponse","FollowupConversationMessage","FollowupMemoryContext","FollowupSearchResult","FollowupTopic","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
+            "AlertLite","AnswerLines","ChatContext","ChatConversationMessage","ChatInterpretation","ChatSessionSummary","ConversationMessage","CrossPeerPerspective","CurrentLite","DailyForecastItem","DailySummaryResult","EmailContext","EmailInterpretation","EnhancedQuery","FollowupChatContext","FollowupChatResponse","FollowupConversationMessage","FollowupMemoryContext","FollowupSearchResult","FollowupTopic","FormattedWeather","HintEligibility","HintResult","LocationLite","MemoryContext","MemoryCore","MemorySynthesisLines","NewsItem","NoteContent","PlaceLines","PlaceSuggestion","QueryResult","QuestionAnalysisResponse","RoutingBehavior","SessionInput","SessionSummaryOutput","TempBlock","WeatherConditionLite","WeatherLines",
           ]),
           enums: new Set([
-            "HintCategory","Router",
+            "HintCategory","Router","SensitivityCategory",
           ]),
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
@@ -129,7 +133,7 @@ export default class TypeBuilder {
         ]);
         
         this.ChatContext = this.tb.classViewer("ChatContext", [
-          "date","sessionSummaries","userName","userFacts","deductiveFacts","conversationHistory",
+          "date","sessionSummaries","userName","userFacts","deductiveFacts","conversationHistory","crossPeerPerspectives",
         ]);
         
         this.ChatConversationMessage = this.tb.classViewer("ChatConversationMessage", [
@@ -148,6 +152,10 @@ export default class TypeBuilder {
           "direction","content",
         ]);
         
+        this.CrossPeerPerspective = this.tb.classViewer("CrossPeerPerspective", [
+          "label","perspective",
+        ]);
+        
         this.CurrentLite = this.tb.classViewer("CurrentLite", [
           "temperature","feels_like","conditions","humidity","pressure","wind_speed","wind_direction","visibility","uv_index","clouds",
         ]);
@@ -161,7 +169,7 @@ export default class TypeBuilder {
         ]);
         
         this.EmailContext = this.tb.classViewer("EmailContext", [
-          "originalSubject","sessionSummary","sessionTopics","peerCard","conversationHistory",
+          "originalSubject","sessionSummary","sessionTopics","peerCard","conversationHistory","crossPeerPerspectives",
         ]);
         
         this.EmailInterpretation = this.tb.classViewer("EmailInterpretation", [
@@ -173,7 +181,7 @@ export default class TypeBuilder {
         ]);
         
         this.FollowupChatContext = this.tb.classViewer("FollowupChatContext", [
-          "topic","summary","sourceMessages","conversationHistory","memory","searchResults",
+          "topic","summary","sourceMessages","conversationHistory","memory","searchResults","crossPeerPerspectives",
         ]);
         
         this.FollowupChatResponse = this.tb.classViewer("FollowupChatResponse", [
@@ -279,6 +287,10 @@ export default class TypeBuilder {
         
         this.Router = this.tb.enumViewer("Router", [
           "WEATHER","WEB_SEARCH","MAPS","KNOWLEDGE","MEMORY_CAPTURE","MEMORY_RECALL","NOTE_THIS","FOLLOW_UP","PASSTHROUGH",
+        ]);
+        
+        this.SensitivityCategory = this.tb.enumViewer("SensitivityCategory", [
+          "SAFE","SENSITIVE",
         ]);
         
     }
